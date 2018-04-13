@@ -1,7 +1,5 @@
 /target/
-<<<<<<< HEAD
 /.settings/
 /.project
 /.classpath
-=======
->>>>>>> branch 'master' of https://github.com/GovernIB/emiserv.git
+/scsp-emisor-*
