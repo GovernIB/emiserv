@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server>
+    <mbean code="org.jboss.varia.property.SystemPropertiesService" name="jboss:type=Service,name=RegwebSystemProperties">
+        <attribute name="Properties">
+es.caib.emiserv.datasource.jndi=java:es.caib.emiserv.db
+es.caib.emiserv.hibernate.dialect=org.hibernate.dialect.Oracle10gDialect
+es.caib.emiserv.hibernate.show_sql=false
+es.caib.emiserv.hibernate.hbm2ddl.auto=update
+
+es.caib.emiserv.servei.SERVEI_CODI.usuari=
+es.caib.emiserv.servei.SERVEI_CODI.contrasenya=
+
+es.caib.emiserv.plugin.dades.usuari.class=es.caib.emiserv.plugin.caib.usuari.DadesUsuariPluginJdbc
+es.caib.emiserv.plugin.dades.usuari.jdbc.datasource.jndi.name=java:es.caib.emiserv.usuaris.db
+es.caib.emiserv.plugin.dades.usuari.jdbc.query=select usu_codi, usu_nom, usu_nif, usu_codi||'@caib.es' from sc_wl_usuari where usu_codi=:codi
+es.caib.emiserv.plugin.dades.usuari.jdbc.query.nif=select usu_codi, usu_nom, usu_nif, usu_codi||'@limit.es' from sc_wl_usuari where usu_nif=:nif
+es.caib.emiserv.plugin.dades.usuari.jdbc.query.rols=select ugr_codgru from sc_wl_usugru where ugr_codusu=:codi
+
+es.caib.emiserv.scsp.axis2.client.xml=/opt/config/emiserv/axis2/axis2.xml
+es.caib.emiserv.scsp.axis2.client.repository=/opt/config/emiserv/axis2/
+es.caib.emiserv.scsp.almacenamiento.ficheros=/opt/webapp-data/emiserv/scsp/ficheros
+es.caib.emiserv.scsp.almacenamiento.transmisiones=1
+es.caib.emiserv.scsp.afirma.enabled=false
+es.caib.emiserv.scsp.afirma.url=none
+es.caib.emiserv.scsp.afirma.idAplicacion=none
+es.caib.emiserv.scsp.afirma.modoValidacion=none
+es.caib.emiserv.scsp.custom.cert.validation.class=es.scsp.common.certificates.revocation.IgnoreRevocationManager
+es.caib.emiserv.scsp.keystoreType=jks
+es.caib.emiserv.scsp.keystoreFile=/opt/config/emiserv/keystore.jks
+es.caib.emiserv.scsp.keystorePass=XXXXXXXX
+es.caib.emiserv.scsp.validacion.formatoFirma=permisivo
+es.caib.emiserv.scsp.polling.enabled=true
+es.caib.emiserv.scsp.task.polling.intervalo=1800
+es.caib.emiserv.scsp.task.polling.espera=1000
+        </attribute>
+    </mbean>
+</server>

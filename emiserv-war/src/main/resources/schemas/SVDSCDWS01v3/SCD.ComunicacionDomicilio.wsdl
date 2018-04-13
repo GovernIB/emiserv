@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:pet="http://intermediacion.redsara.es/scsp/esquemas/V3/peticion" xmlns:resp="http://intermediacion.redsara.es/scsp/esquemas/V3/respuesta" xmlns:solr="http://intermediacion.redsara.es/scsp/esquemas/V3/solicitudRespuesta" xmlns:conPet="http://intermediacion.redsara.es/scsp/esquemas/V3/confirmacionPeticion" xmlns:sf="http://intermediacion.redsara.es/scsp/esquemas/V3/soapfaultatributos" xmlns:desp="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos" xmlns:wsdl="http://intermediacion.redsara.es/scsp/wsdl" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" targetNamespace="http://intermediacion.redsara.es/scsp/wsdl">
+	<types>
+		<xs:schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xs:import namespace="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos" schemaLocation="datos-especificos.xsd"/>
+			<xs:import namespace="http://intermediacion.redsara.es/scsp/esquemas/V3/peticion" schemaLocation="peticion.xsd"/>
+			<xs:import namespace="http://intermediacion.redsara.es/scsp/esquemas/V3/respuesta" schemaLocation="respuesta.xsd"/>
+			<xs:import namespace="http://intermediacion.redsara.es/scsp/esquemas/V3/solicitudRespuesta" schemaLocation="solicitud-respuesta.xsd"/>
+			<xs:import namespace="http://intermediacion.redsara.es/scsp/esquemas/V3/confirmacionPeticion" schemaLocation="confirmacion-peticion.xsd"/>
+			<xs:import namespace="http://intermediacion.redsara.es/scsp/esquemas/V3/soapfaultatributos" schemaLocation="soapfaultatributos.xsd"/>
+		</xs:schema>
+	</types>
+	<message name="SolicitarSoapIn">
+		<part name="parameters" element="pet:Peticion"/>
+	</message>
+	<message name="SolicitarSoapOut">
+		<part name="parameters" element="conPet:ConfirmacionPeticion"/>
+	</message>
+	<message name="Respuesta">
+		<part name="parameters" element="resp:Respuesta"/>
+	</message>
+	<message name="SolicitarRespuesta">
+		<part name="parameters" element="solr:SolicitudRespuesta"/>
+	</message>
+	<message name="FaultSCSP">
+		<part name="fault" element="sf:Atributos"/>
+	</message>
+	<portType name="ComunicacionDomicilio">
+		<operation name="peticionAsincrona">
+			<documentation>Solicitud de Cambio de Domicilio</documentation>
+			<input message="wsdl:SolicitarSoapIn"/>
+			<output message="wsdl:SolicitarSoapOut"/>
+			<fault name="FaultSCSP" message="wsdl:FaultSCSP"/>
+		</operation>
+		<operation name="solicitudRespuesta">
+			<documentation>Solicitud de Cambio de Domicilio</documentation>
+			<input message="wsdl:SolicitarRespuesta"/>
+			<output message="wsdl:Respuesta"/>
+			<fault name="FaultSCSP" message="wsdl:FaultSCSP"/>
+		</operation>
+	</portType>
+	<binding name="ComunicacionDomicilio" type="wsdl:ComunicacionDomicilio">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="peticionAsincrona">
+			<soap:operation soapAction="peticionAsincrona" style="document"/>
+			<input>
+				<soap:body use="literal"/>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="FaultSCSP">
+				<soap:fault name="FaultSCSP" use="literal"/>
+			</fault>
+		</operation>
+		<operation name="solicitudRespuesta">
+			<soap:operation soapAction="solicitudRespuesta" style="document"/>
+			<input>
+				<soap:body use="literal"/>
+			</input>
+			<output>
+				<soap:body use="literal"/>
+			</output>
+			<fault name="FaultSCSP">
+				<soap:fault name="FaultSCSP" use="literal"/>
+			</fault>
+		</operation>
+	</binding>
+	<service name="SCD.ComunicacionDomicilio">
+		<port name="SCD.ComunicacionDomicilio" binding="wsdl:ComunicacionDomicilio">
+			<soap:address location="https://intermediacion.redsara.es/servicios/SVD/SCD.ComunicacionDomicilio"/>
+		</port>
+	</service>
+</definitions>

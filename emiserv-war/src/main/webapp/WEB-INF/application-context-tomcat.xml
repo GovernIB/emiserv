@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans	xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="
+				http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basenames">
+			<list>
+				<value>es/caib/emiserv/war/i18n/messages</value>
+				<value>es/caib/emiserv/core/i18n/messages</value>
+			</list>
+		</property>
+	</bean>
+	<import resource="classpath:es/caib/emiserv/core/context/application-context-war.xml"/>
+	<import resource="classpath:es/caib/emiserv/war/context/application-context-war.xml"/>
+	<import resource="classpath:es/caib/emiserv/war/context/application-context-security.xml"/>
+	<import resource="classpath:es/caib/emiserv/war/context/application-context-scsp-emisor.xml"/>
+
+	<!--import resource="classpath:META-INF/cxf/cxf.xml"/>
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+	<import resource="classpath:META-INF/cxf/cxf-extension-xml.xml"/>
+	<import resource="classpath:META-INF/cxf/cxf-extension-soap.xml"/>
+	<import resource="classpath:META-INF/cxf/cxf-extension-http.xml"/-->
+
+</beans>
