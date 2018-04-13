@@ -38,6 +38,10 @@ public class TestBackoffice2 implements BackOffice {
 
 	@SuppressWarnings("unused")
 	private static final String XMLNS_V2 = "http://www.map.es/scsp/esquemas/datosespecificos";
+<<<<<<< HEAD
+=======
+	@SuppressWarnings("unused")
+>>>>>>> branch 'master' of https://github.com/GovernIB/emiserv.git
 	private static final String XMLNS_V3 = "http://intermediacion.redsara.es/scsp/esquemas/datosespecificos";
 
 	public Respuesta NotificarSincrono(
