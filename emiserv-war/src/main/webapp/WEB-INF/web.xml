@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+	<display-name>EMISERV: Emisor SCSP CAIB</display-name>
+
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/${application.context}</param-value>
+	</context-param>
+
+	<filter>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>CharacterEncoding</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CharacterEncoding</filter-name>
+		<url-pattern>*</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>sitemesh</filter-name>
+		<filter-class>com.opensymphony.module.sitemesh.filter.PageFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>sitemesh</filter-name>
+		<url-pattern>*</url-pattern>
+		<dispatcher>FORWARD</dispatcher>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>ERROR</dispatcher>
+	</filter-mapping>
+
+	<servlet>
+		<servlet-name>emiserv</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>emiserv</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>AxisServlet</servlet-name>
+		<servlet-class>org.apache.axis2.transport.http.AxisServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>AxisAdminServlet</servlet-name>
+		<servlet-class>org.apache.axis2.webapp.AxisAdminServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>AxisServlet</servlet-name>
+		<url-pattern>/servlet/AxisServlet</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AxisServlet</servlet-name>
+		<url-pattern>*.jws</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AxisServlet</servlet-name>
+		<url-pattern>/services/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AxisAdminServlet</servlet-name>
+		<url-pattern>/axis2-admin/*</url-pattern>
+	</servlet-mapping>
+
+	<login-config>
+		<auth-method>BASIC</auth-method>
+		<realm-name>Govern de les Illes Balears</realm-name>
+	</login-config>
+
+	<security-role>
+		<description>Administradors de l'aplicació</description>
+		<role-name>EMS_ADMIN</role-name>
+	</security-role>
+	<security-role>
+		<description>Responsables dels serveis</description>
+		<role-name>EMS_RESP</role-name>
+	</security-role>
+
+	<security-constraint>
+		<display-name>Unauthenticated areas</display-name>
+		<web-resource-collection>
+			<web-resource-name>Axis servlet</web-resource-name>
+			<url-pattern>/servlet/AxisServlet</url-pattern>
+		</web-resource-collection>
+		<web-resource-collection>
+			<web-resource-name>Axis services</web-resource-name>
+			<url-pattern>/services/*</url-pattern>
+		</web-resource-collection>
+		<web-resource-collection>
+			<web-resource-name>Axis admin</web-resource-name>
+			<url-pattern>/axis2-admin/*</url-pattern>
+		</web-resource-collection>
+		<web-resource-collection>
+			<web-resource-name>Web services</web-resource-name>
+			<url-pattern>/ws/*</url-pattern>
+		</web-resource-collection>
+		<web-resource-collection>
+			<web-resource-name>scspRouting</web-resource-name>
+			<url-pattern>/scspRouting/*</url-pattern>
+		</web-resource-collection>
+		<web-resource-collection>
+			<web-resource-name>Error page</web-resource-name>
+			<url-pattern>/error</url-pattern>
+		</web-resource-collection>
+	</security-constraint>
+	<security-constraint>
+		<display-name>All areas</display-name>
+		<web-resource-collection>
+			<web-resource-name>All areas</web-resource-name>
+			<url-pattern>/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>EMS_ADMIN</role-name>
+			<role-name>EMS_RESP</role-name>
+		</auth-constraint>
+	</security-constraint>
+
+	<error-page>
+		<exception-type>java.lang.Throwable</exception-type>
+		<location>/error</location>
+	</error-page>
+
+	<session-config>
+		<session-timeout>30</session-timeout>
+	</session-config>
+
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+	<!-- restes emisor SCSP -->
+	<mime-mapping>
+		<extension>inc</extension>
+		<mime-type>text/plain</mime-type>
+	</mime-mapping>
+	<!-- /restes emisor SCSP -->
+
+</web-app>

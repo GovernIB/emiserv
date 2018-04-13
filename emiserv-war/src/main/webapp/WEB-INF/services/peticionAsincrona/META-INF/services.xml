@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceGroup wsu:Id="SigEncr"
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
+	xmlns:wspol="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702" 
+	xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy"
+	xmlns:ramp="http://ws.apache.org/rampart/policy">
+
+	<service name="peticionAsincrona">
+		<description>Peticion asincrona</description>
+		<parameter name="ServiceClass">es.scsp.services.ServiceAsync</parameter>
+		<parameter name="ServiceObjectSupplier">org.apache.axis2.extensions.spring.receivers.SpringAppContextAwareObjectSupplier</parameter>
+		<parameter name="SpringBeanName">serviceAsync</parameter>
+
+		<operation name="PeticionAsincrona">
+			<messageReceiver class="es.scsp.common.axis2.CustomRawXMLINOutMessageReceiver" />
+		</operation>
+		<operation name="SolicitudRespuesta">
+			<messageReceiver class="es.scsp.common.axis2.CustomRawXMLINOutMessageReceiver" />
+		</operation>
+
+		<wsp:Policy>
+			<wsp:ExactlyOne>
+				<wsp:All>
+					<sp:AsymmetricBinding>
+						<wsp:Policy>
+							<sp:InitiatorToken>
+								<wsp:Policy>
+									<sp:X509Token
+										sp:IncludeToken="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/Always">
+										<wsp:Policy>
+											<sp:RequireThumbprintReference />
+											<sp:WssX509V1Token10 />
+										</wsp:Policy>
+									</sp:X509Token>
+								</wsp:Policy>
+							</sp:InitiatorToken>
+							<sp:RecipientToken>
+								<wsp:Policy>
+									<sp:X509Token
+										sp:IncludeToken="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/Always">
+										<wsp:Policy>
+											<sp:RequireThumbprintReference />
+											<sp:WssX509V3Token10 />
+										</wsp:Policy>
+									</sp:X509Token>
+								</wsp:Policy>
+							</sp:RecipientToken>
+							<sp:AlgorithmSuite>
+								<wsp:Policy>
+									<!-- sp:TripleDesRsa15 / -->
+									<sp:Basic128Rsa15 />
+									<!-- sp:Basic256Rsa15 / -->
+								</wsp:Policy>
+							</sp:AlgorithmSuite>
+							<sp:Layout>
+								<wsp:Policy>
+									<sp:Strict />
+								</wsp:Policy>
+							</sp:Layout>
+							<sp:EncryptBeforeSigning />
+						</wsp:Policy>
+					</sp:AsymmetricBinding>
+					<sp:Wss10>
+						<wsp:Policy>
+							<sp:MustSupportRefKeyIdentifier />
+							<sp:MustSupportRefIssuerSerial />
+						</wsp:Policy>
+					</sp:Wss10>
+					<sp:SignedParts>
+						<sp:Body />
+					</sp:SignedParts>
+					<wspol:ContentEncryptedElements>
+						<wspol:XPath>//*[local-name()='DatosEspecificos']</wspol:XPath>
+					</wspol:ContentEncryptedElements>
+					<ramp:RampartConfig>
+						<!-- No editar. Este valor se recupera de base de datos -->
+						<ramp:user>${emisor.signature.alias}</ramp:user>
+						<ramp:encryptionUser>useReqSigCert</ramp:encryptionUser>
+						<ramp:policyValidatorCbClass>es.scsp.modules.CustomPolicyBasedResultsValidator</ramp:policyValidatorCbClass>
+						<ramp:passwordCallbackClass>es.scsp.common.security.PasswordCallbackHandler
+						</ramp:passwordCallbackClass>
+						<ramp:signatureCrypto>
+							<ramp:crypto provider="es.scsp.common.security.ScspCryptoProperties" />
+						</ramp:signatureCrypto>
+						<ramp:encryptionCypto>
+							<ramp:crypto provider="es.scsp.common.security.ScspCryptoProperties" />
+						</ramp:encryptionCypto>
+					</ramp:RampartConfig>
+				</wsp:All>
+			</wsp:ExactlyOne>
+		</wsp:Policy>
+
+	</service>
+</serviceGroup>

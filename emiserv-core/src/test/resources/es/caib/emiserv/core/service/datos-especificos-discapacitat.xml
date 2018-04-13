@@ -1,0 +1,7 @@
+<DatosEspecificos
+	xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<Consulta>
+		<CodigoComunidadAutonoma>07</CodigoComunidadAutonoma>
+		<ConsentimientoTiposDiscapacidad>S</ConsentimientoTiposDiscapacidad>
+	</Consulta>
+</DatosEspecificos>

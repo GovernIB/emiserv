@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='utf-8'?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Body
+		xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+		wsu:Id="Id-538144878">
+		<Respuesta
+			xmlns="http://intermediacion.redsara.es/scsp/esquemas/V3/respuesta">
+			<Atributos>
+				<IdPeticion>SPP0000000121062</IdPeticion>
+				<NumElementos>1</NumElementos>
+				<TimeStamp>2017-06-28T11:36:18.643+02:00</TimeStamp>
+				<Estado>
+					<CodigoEstado>0003</CodigoEstado>
+					<CodigoEstadoSecundario>1</CodigoEstadoSecundario>
+					<LiteralError>Peticion procesada correctamente.</LiteralError>
+					<TiempoEstimadoRespuesta>0</TiempoEstimadoRespuesta>
+				</Estado>
+				<CodigoCertificado>SVDSCDWS01</CodigoCertificado>
+			</Atributos>
+			<Transmisiones>
+				<TransmisionDatos>
+					<DatosGenericos>
+						<Emisor>
+							<NifEmisor>S0711001H</NifEmisor>
+							<NombreEmisor>Gobierno de Islas Baleares</NombreEmisor>
+						</Emisor>
+						<Solicitante>
+							<IdentificadorSolicitante>S2833002E</IdentificadorSolicitante>
+							<NombreSolicitante>MINISTERIO DE HACIENDA Y AP
+							</NombreSolicitante>
+							<UnidadTramitadora>SG COORD ESTUDIOS E IMPULSO ADM ELECLT(MINHAP)
+							</UnidadTramitadora>
+							<Procedimiento>
+								<CodProcedimiento>SVDR_20090505_000005</CodProcedimiento>
+								<NombreProcedimiento>SERVICIO DE COMUNICACION DEL CAMBIO DE
+									DOMICILIO</NombreProcedimiento>
+							</Procedimiento>
+							<Finalidad>PRUEBAS DE INTEGRACION SCCD</Finalidad>
+							<Consentimiento>Si</Consentimiento>
+							<Funcionario>
+								<NombreCompletoFuncionario>JUAN ESPAÑOL ESPAÑOL
+								</NombreCompletoFuncionario>
+								<NifFuncionario>99999999R</NifFuncionario>
+							</Funcionario>
+							<IdExpediente>EXP/07042015</IdExpediente>
+						</Solicitante>
+						<Titular>
+							<TipoDocumentacion>NIF</TipoDocumentacion>
+							<Documentacion>00000000T</Documentacion>
+							<NombreCompleto>OLGA SAN MIGUEL CHAO</NombreCompleto>
+							<Nombre>OLGA</Nombre>
+							<Apellido1>SAN MIGUEL</Apellido1>
+							<Apellido2>CHAO</Apellido2>
+						</Titular>
+						<Transmision>
+							<CodigoCertificado>SVDSCDWS01</CodigoCertificado>
+							<IdSolicitud>SPP0000000121062</IdSolicitud>
+							<IdTransmision>SPP0000000121062</IdTransmision>
+							<FechaGeneracion>2017-06-28T11:36:15.729+02:00</FechaGeneracion>
+						</Transmision>
+					</DatosGenericos>
+					<ns1:DatosEspecificos
+						xmlns:ns1="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+						<ns1:Comunicacion>
+							<ns1:DatosVolante>
+								<ns2:VolanteEmpadronamiento
+									xmlns:ns2="http://www.red.es/padron" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+									xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+									xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+									<ns2:VolanteEmpadronamientoDatosFirmados
+										Id="MAP" Version="02.00">
+										<ns2:FechaExpedicion>20120806</ns2:FechaExpedicion>
+										<ns2:DatosPersonales>
+											<ns2:Nombre>OLGA</ns2:Nombre>
+											<ns2:PrimerApellido>SAN MIGUEL</ns2:PrimerApellido>
+											<ns2:ParticulaPrimerApellido />
+											<ns2:SegundoApellido>CHAO</ns2:SegundoApellido>
+											<ns2:ParticulaSegundoApellido />
+											<ns2:FechaNacimiento>19900331</ns2:FechaNacimiento>
+											<ns2:CodigoMunicipioNacimiento>013
+											</ns2:CodigoMunicipioNacimiento>
+											<ns2:CodigoProvinciaNacimiento>33
+											</ns2:CodigoProvinciaNacimiento>
+											<ns2:Sexo>F</ns2:Sexo>
+											<ns2:CodigoNacionalidad>108</ns2:CodigoNacionalidad>
+											<ns2:TipoDocumentacion>1</ns2:TipoDocumentacion>
+											<ns2:Documentacion>00000000T</ns2:Documentacion>
+											<ns2:FechaAltaPadron>19950817</ns2:FechaAltaPadron>
+										</ns2:DatosPersonales>
+										<ns2:DireccionEmpadronamiento>
+											<ns2:Localidad>
+												<ns2:CodigoProvincia>33</ns2:CodigoProvincia>
+												<ns2:CodigoMunicipio>012</ns2:CodigoMunicipio>
+												<ns2:CodigoUnidadPoblacional>0202001
+												</ns2:CodigoUnidadPoblacional>
+											</ns2:Localidad>
+											<ns2:CodigoPostal>33550</ns2:CodigoPostal>
+											<ns2:Via>
+												<ns2:TipoVia>CALLE</ns2:TipoVia>
+												<ns2:NombreVia>EMILIO LARIA</ns2:NombreVia>
+												<ns2:Pseudovia />
+											</ns2:Via>
+											<ns2:Numeracion>
+												<ns2:Numero>5</ns2:Numero>
+												<ns2:CalificadorNumero />
+												<ns2:NumeroSuperior>0</ns2:NumeroSuperior>
+												<ns2:CalificadorNumeroSuperior />
+												<ns2:Kilometro>0</ns2:Kilometro>
+												<ns2:Hectometro>0</ns2:Hectometro>
+												<ns2:Bloque />
+												<ns2:Portal />
+												<ns2:Escalera />
+												<ns2:Planta>2</ns2:Planta>
+												<ns2:Puerta>2</ns2:Puerta>
+												<ns2:TipoLocal>1</ns2:TipoLocal>
+											</ns2:Numeracion>
+										</ns2:DireccionEmpadronamiento>
+									</ns2:VolanteEmpadronamientoDatosFirmados>
+									<ds:Signature>
+										<ds:SignedInfo>
+											<ds:CanonicalizationMethod
+												Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+											<ds:SignatureMethod
+												Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" />
+											<ds:Reference URI="#MAP">
+												<ds:Transforms>
+													<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+												</ds:Transforms>
+												<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+												<ds:DigestValue>Eea9PTm1PxPTgmQsVh0ThpKlLpI=
+												</ds:DigestValue>
+											</ds:Reference>
+										</ds:SignedInfo>
+										<ds:SignatureValue>
+											TNXy8FVY4KjcfC95K03sojfI99XSnu+6sXimh3Em8V/oXpM07BwwmklTz3ZkAF9UyNEQjeJaDsyn
+											6wniYLijccvPj7zY2rTKUIe4dSqas+7kcI+2k5ov4FG3IdCT+yHwIzsrhslo0YWQprxDxWKQmnaY
+											/qzj925kq/vr5xr7SqD6NBxhbVDXDQ3oBxu6iuTEfaHNq2r1QqXu9ct7O1CarsggSk1UKT5hX12G
+											pKH+ay9SPmewXv1DjT2nBj6/Mj38ZDA8nkxL2/N0MTjU0kLD1YNXkL6IQqbDMpt0UO9lzHXVQsPL
+											3e/L72DWwwH18+8Rt5GOb7HCQOdEk6ZYcBxSKw==
+										</ds:SignatureValue>
+										<ds:KeyInfo>
+											<ds:X509Data>
+												<ds:X509Certificate>
+													MIIHMjCCBhqgAwIBAgIIZCfBQxI+TKowDQYJKoZIhvcNAQEFBQAwgYYxCzAJBgNVBAYTAkVTMTMw
+													MQYDVQQKDCpDT05TT1JDSSBBRE1JTklTVFJBQ0lPIE9CRVJUQSBERSBDQVRBTFVOWUExKjAoBgNV
+													BAsMIVNlcnZlaXMgUMO6YmxpY3MgZGUgQ2VydGlmaWNhY2nDszEWMBQGA1UEAwwNRUMtQ2l1dGFk
+													YW5pYTAeFw0xNTAyMTExMDIzMTBaFw0xOTAyMTExMDIzMTBaMIHRMQswCQYDVQQGEwJFUzEOMAwG
+													A1UECwwFSURDQVQxNDAyBgNVBAsMK1ZlZ2V1IGh0dHBzOi8vd3d3LmFvYy5jYXQvQ0FUQ2VydC9S
+													ZWd1bGFjaW8xHjAcBgNVBAQMFWRlIGxhIFBlw6dhIGRlIFByb3ZlczEYMBYGA1UEKgwPUGVyc29u
+													YSBGw61zaWNhMRIwEAYDVQQFEwkwMDAwMDAwMFQxLjAsBgNVBAMMJVBlcnNvbmEgRsOtc2ljYSBk
+													ZSBsYSBQZcOnYSBkZSBQcm92ZXMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCoMvRH
+													DE00ukKYnLXYSTDVvJ9vD8RdBjTikpc7lsznI+40cxrsmh2dWu1igy/gpGyyShJE/JZEGOabiTEc
+													x9shOcXYXgecglNcqh4bfFK0VmgqrYmytfZHO9xXOjFr/x04GpV6nL+r0vxDk10f/5vr/IkTrBCr
+													WMdeg6pbupdsFuPTGkwo5wa2W+U4Sdl54+hT4NI0sr03LChNz1+TAvcwAvlHcXokXoHomi3NQ90N
+													+GCgw86CcAwunUt55+zTZMKS+zEUu0158Pmz18xinWYd6cus5zFTfffMUKpHroZSRv2i1zBU0wNk
+													H58Du3wHY9eoYAi03TRnuxujiXDvNX/xAgMBAAGjggNVMIIDUTAtBgNVHQkEJjAkMBAGCCsGAQUF
+													BwkFMQQTAkVTMBAGCCsGAQUFBwkEMQQTAkVTMHQGCCsGAQUFBwEBBGgwZjA/BggrBgEFBQcwAoYz
+													aHR0cDovL3d3dy5jYXRjZXJ0LmNhdC9kZXNjYXJyZWdhL2VjLWNpdXRhZGFuaWEuY3J0MCMGCCsG
+													AQUFBzABhhdodHRwOi8vb2NzcC5jYXRjZXJ0LmNhdDAdBgNVHQ4EFgQUW8xVZwjnuCmuVFA5WOYW
+													hdiQWqowDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBQLaFk+h8ijFRrgQIIiX58dssU3FTAlBggr
+													BgEFBQcBAwQZMBcwCAYGBACORgEBMAsGBgQAjkYBAwIBDzCCAQsGA1UdIASCAQIwgf8wgfwGDCsG
+													AQQB9XgBAwFWATCB6zAxBggrBgEFBQcCARYlaHR0cHM6Ly93d3cuYW9jLmNhdC9DQVRDZXJ0L1Jl
+													Z3VsYWNpbzCBtQYIKwYBBQUHAgIwgagMgaVDZXJ0aWZpY2F0IHBlcnNvbmFsIHJlY29uZWd1dCBk
+													4oCZaWRlbnRpZmljYWNpw7MsIHhpZnJhdGdlIGkgc2lnbmF0dXJhIGF2YW7Dp2FkYSwgZGUgY2xh
+													c3NlIDIuIEFkcmXDp2EgaSBOSUYgZGVsIHByZXN0YWRvcjogVmlhIExhaWV0YW5hIDI2IDA4MDAz
+													IEJhcmNlbG9uYSBRMDgwMTE3NUEwPwYDVR0fBDgwNjA0oDKgMIYuaHR0cDovL2Vwc2NkLmNhdGNl
+													cnQubmV0L2NybC9lYy1jaXV0YWRhbmlhLmNybDAOBgNVHQ8BAf8EBAMCA/gwHQYDVR0lBBYwFAYI
+													KwYBBQUHAwIGCCsGAQUFBwMEMIG1BgNVHREEga0wgaqBC3NjZEBhb2MuY2F0pIGaMIGXMQ4wDAYD
+													VQQLDAVJRENBVDE0MDIGA1UECgwrQ29uc29yY2kgQWRtaW5pc3RyYWNpw7MgT2JlcnRhIGRlIENh
+													dGFsdW55YTELMAkGA1UEBhMCRVMxEjAQBgNVBAUTCTAwMDAwMDAwVDEuMCwGA1UEAwwlUGVyc29u
+													YSBGw61zaWNhIGRlIGxhIFBlw6dhIGRlIFByb3ZlczANBgkqhkiG9w0BAQUFAAOCAQEAwZtxKMOA
+													BH6subqErQTLme1f00FG3KpdE57hO/vFg5sId0HVt6mY5IT+ILmOboiNJAP0LeF18+5MnxGu33MQ
+													u94/l8j03PNNZDTDaVmGGzmUJvZWL9DVvc2pwt61X9q+xH4H5QXXPfypry0NqnHunZdQr3BhF8WF
+													QcMdkpRxaHwjDtptkh9OBF/VbXDt0K9sgKPEmxeNen2Xsahoh4KOTQuH6SKbLn0lD1ABvFKDDo5/
+													EMlSvF4QvSchZz9bSnjtm+RY4PFySzhHVdEaCAW1dGlHoFrqper2zq6T5lDhnAjd9O9koNiTDFxe
+													mi+zGd7vxce08M0ismjtWt6QVzUgZw==
+												</ds:X509Certificate>
+											</ds:X509Data>
+											<ds:KeyValue>
+												<ds:RSAKeyValue>
+													<ds:Modulus>
+														qDL0RwxNNLpCmJy12Ekw1byfbw/EXQY04pKXO5bM5yPuNHMa7JodnVrtYoMv4KRsskoSRPyWRBjm
+														m4kxHMfbITnF2F4HnIJTXKoeG3xStFZoKq2JsrX2RzvcVzoxa/8dOBqVepy/q9L8Q5NdH/+b6/yJ
+														E6wQq1jHXoOqW7qXbBbj0xpMKOcGtlvlOEnZeePoU+DSNLK9NywoTc9fkwL3MAL5R3F6JF6B6Jot
+														zUPdDfhgoMPOgnAMLp1Leefs02TCkvsxFLtNefD5s9fMYp1mHenLrOcxU333zFCqR66GUkb9otcw
+														VNMDZB+fA7t8B2PXqGAItN00Z7sbo4lw7zV/8Q==
+													</ds:Modulus>
+													<ds:Exponent>AQAB</ds:Exponent>
+												</ds:RSAKeyValue>
+											</ds:KeyValue>
+										</ds:KeyInfo>
+									</ds:Signature>
+								</ns2:VolanteEmpadronamiento>
+							</ns1:DatosVolante>
+							<ns1:DatosAuxiliares>
+								<ns1:DatoAuxiliar>
+									<ns1:Campo />
+									<ns1:Valor />
+								</ns1:DatoAuxiliar>
+								<ns1:Email>email@email.com</ns1:Email>
+								<ns1:Movil>999999999</ns1:Movil>
+							</ns1:DatosAuxiliares>
+							<ns1:OrganismoComunicar>
+								<ns1:Nombre>BALEARES SALUD</ns1:Nombre>
+								<ns1:CodigoOrganismo>BALEARES_IBSALUT</ns1:CodigoOrganismo>
+							</ns1:OrganismoComunicar>
+						</ns1:Comunicacion>
+					</ns1:DatosEspecificos>
+				</TransmisionDatos>
+			</Transmisiones>
+		</Respuesta>
+	</soapenv:Body>
+</soapenv:Envelope>

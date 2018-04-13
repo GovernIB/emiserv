@@ -1,0 +1,19 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+   <soapenv:Body>
+      <soapenv:Fault>
+         <faultcode>Server</faultcode>
+         <faultstring>[EMISERV] TEST ERROR</faultstring>
+         <detail>
+            <a:Atributos xmlns:a="http://intermediacion.redsara.es/scsp/esquemas/V3/soapfaultatributos">
+               <a:IdPeticion>DML000000000000000000001032</a:IdPeticion>
+               <a:TimeStamp>2016-04-19T16:23:40.029+02:00</a:TimeStamp>
+               <a:CodigoCertificado>XXX</a:CodigoCertificado>
+               <a:Estado>
+                  <a:CodigoEstado>0502</a:CodigoEstado>
+                  <a:LiteralError>[EMISERV] TEST ERROR</a:LiteralError>
+               </a:Estado>
+            </a:Atributos>
+         </detail>
+      </soapenv:Fault>
+   </soapenv:Body>
+</soapenv:Envelope>
