@@ -520,7 +520,7 @@
 					var $parentTr = $(cell.node()).closest('tr');
 					var $lastRow = $('tr[data-editing]', $parentTbody);
 					var currentRow = cell.index().row;
-					if (currentRow != $lastRow.index()) {
+					if (currentRow != $lastRow.index() && plugin.settings.updatable) {
 						var triggerOk = editableProcessarCanviRow($lastRow);
 						if (triggerOk) {
 							editableSeleccionarRow($parentTr, cell.index().row);
@@ -748,6 +748,7 @@
 					[$(this), editableGetRowData($currentRow)]);
 		}
 		var editableSeleccionarRow = function($row, rowIndex) {
+			console.log('>>> editableSeleccionarRow');
 			$row.attr('data-editing', 'true');
 			$row.children().each(function() {
 				var $thCapcalera = $('thead th:nth-child(' + ($(this).index() + 1) + ')', $taula);
@@ -833,43 +834,15 @@
 				$rowCampsAddicionals.remove();
 			}
 		}
-		var editableGetRowData = function($row, incloureCampsAddicionals) {
-			var rowData = {};
-			$('td,th', $row).each(function() {
-				var $contingutInput = $(':input', this).first();
-				if ($contingutInput.length) {
-					var $inputPeu = $('th:nth-child(' + ($(this).index() + 1) + ') :input', getEditableSampleRow());
-					rowData[$inputPeu.prop('name')] = ($contingutInput.is(':checkbox')) ? $contingutInput.prop('checked') : $contingutInput.val();
-				} else {
-					var $thCapcalera = $('thead th:nth-child(' + ($(this).index() + 1) + ')', $taula);
-					var colName = $thCapcalera.data('col-name');
-					if (colName) {
-						rowData[colName] = $taula.dataTable().api().row($row).data()[colName];
-					}
-				}
-			});
-			if (incloureCampsAddicionals && plugin.settings.campsAddicionals) {
-				var $rowCampsAddicionals = $row.next();
-				$(':input', $rowCampsAddicionals).each(function() {
-					if ($(this).val()) {
-						var inputName = $(this).prop('name');
-						rowData[inputName] = ($(this).is(':checkbox')) ? $(this).prop('checked') : $(this).val();
-					}
-				});
-			}
-			return rowData;
-		}
 		var editableProcessarCanviRow = function($row) {
 			var triggerOk = true;
 			var rowEditat = $row.attr('data-edited');
 			if (rowEditat) {
-				var rowData = editableGetRowData($row);
 				var resultat = {resultat: false};
 				var apiRowData = $taula.dataTable().api().row($row).data();
 				editableAccioUpdate(
 						getBaseUrl() + '/' + apiRowData['DT_Id'],
 						$row,
-						rowData,
 						resultat);
 				triggerOk = resultat.resultat;
 				if (triggerOk) {
@@ -890,17 +863,81 @@
 			}
 			return triggerOk;
 		}
+		var editableGetRowData = function($row, incloureCampsAddicionals) {
+			var rowData = {};
+			$('td,th', $row).each(function() {
+				var $contingutInput = $(':input:not(:hidden)', this).first();
+				if ($contingutInput.length) {
+					var $inputPeu = $('th:nth-child(' + ($(this).index() + 1) + ') :input:not(:hidden)', getEditableSampleRow());
+					rowData[$inputPeu.prop('name')] = ($contingutInput.is(':checkbox')) ? $contingutInput.prop('checked') : $contingutInput.val();
+				} else {
+					var $thCapcalera = $('thead th:nth-child(' + ($(this).index() + 1) + ')', $taula);
+					var colName = $thCapcalera.data('col-name');
+					if (colName) {
+						rowData[colName] = $taula.dataTable().api().row($row).data()[colName];
+					}
+				}
+			});
+			if (incloureCampsAddicionals && plugin.settings.campsAddicionals) {
+				var $rowCampsAddicionals = $row.next();
+				$(':input', $rowCampsAddicionals).each(function() {
+					if ($(this).val()) {
+						var inputName = $(this).prop('name');
+						rowData[inputName] = ($(this).is(':checkbox')) ? $(this).prop('checked') : $(this).val();
+					}
+				});
+			}
+			var $form = $taula.closest('form');
+			var csrf = $('input[name="_csrf"]:first', $form).val();
+			if (csrf) {
+				$.extend(rowData, {'_csrf': csrf});
+			}
+			var formData = new FormData($form[0]);
+			for (var prop in rowData) {
+				if (rowData.hasOwnProperty(prop)) {
+					if (formData.get(prop) instanceof File) {
+						rowData[prop] = formData.get(prop);
+					}
+				}
+			}
+			return rowData;
+		}
+		var editableProcessarRowData = function(rowData, ajaxParams) {
+			var $form = $taula.closest('form');
+			var csrf = $('input[name="_csrf"]:first', $form).val();
+			if (csrf) {
+				$.extend(rowData, {'_csrf': csrf});
+			}
+			var hiHaFile = false;
+			var formData = new FormData($form[0]);
+			var formDataPerEnviar = new FormData();
+			for (var prop in rowData) {
+				if (rowData.hasOwnProperty(prop)) {
+					if (formData.get(prop) instanceof File) {
+						rowData[prop] = formData.get(prop);
+						hiHaFile = true;
+					}
+					formDataPerEnviar.set(prop, rowData[prop]);
+				}
+			}
+			if (hiHaFile) {
+				$.extend(ajaxParams, {
+					  processData: false,
+					  contentType: false,
+					  data: formDataPerEnviar});
+			} else {
+				$.extend(ajaxParams, {data: rowData});
+			}
+		}
 		var editableAccioCreate = function(createUrl, $row) {
 			$taula.trigger(
 					'beforerowcreate.dataTable',
 					[$row, rowData]);
 			var rowData = editableGetRowData($row, false);
-			var csrf = $('form input[name="_csrf"]:first').val();
 			$row.webutilNetejarErrorsCamps();
-			$.ajax({
+			var ajaxParams = {
 				type: 'POST',
 				url: createUrl,
-				data: $.extend(rowData, {'_csrf': csrf}),
 				async: true,
 				success: function(resposta) {
 					if (resposta.estatError) {
@@ -914,17 +951,18 @@
 						$taula.dataTable().fnDraw();
 					}
 				}
-			});
+			};
+			editableProcessarRowData(rowData, ajaxParams);
+			$.ajax(ajaxParams);
 		}
-		var editableAccioUpdate = function(updateUrl, $row, rowData, resultat) {
+		var editableAccioUpdate = function(updateUrl, $row, resultat) {
 			$taula.trigger(
 					'beforerowchange.dataTable',
 					[$row, rowData]);
-			var csrf = $('form input[name="_csrf"]:first').val();
-			$.ajax({
+			var rowData = editableGetRowData($row);
+			var ajaxParams = {
 				type: 'POST',
 				url: updateUrl,
-				data: $.extend(rowData, {'_csrf': csrf}),
 				async: false,
 				success: function(resposta) {
 					if (resposta.estatError) {
@@ -939,7 +977,9 @@
 						$taula.dataTable().fnDraw();
 					}
 				}
-			});
+			};
+			editableProcessarRowData(rowData, ajaxParams);
+			$.ajax(ajaxParams);
 		}
 		var editableAccioDelete = function(deleteUrl) {
 			$taula.trigger(

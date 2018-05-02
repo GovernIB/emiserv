@@ -25,6 +25,8 @@ public class ServeiDto extends ObjecteAmbPermisosDto {
 	private String resolverClass;
 	private String urlPerDefecte;
 	private String responseResolverClass;
+	private boolean xsdGestioActiva;
+	private String xsdEsquemaBackup;
 	private boolean configurat;
 	private boolean actiu;
 
@@ -105,6 +107,18 @@ public class ServeiDto extends ObjecteAmbPermisosDto {
 	}
 	public void setResponseResolverClass(String responseResolverClass) {
 		this.responseResolverClass = responseResolverClass;
+	}
+	public boolean isXsdGestioActiva() {
+		return xsdGestioActiva;
+	}
+	public void setXsdGestioActiva(boolean xsdGestioActiva) {
+		this.xsdGestioActiva = xsdGestioActiva;
+	}
+	public String getXsdEsquemaBackup() {
+		return xsdEsquemaBackup;
+	}
+	public void setXsdEsquemaBackup(String xsdEsquemaBackup) {
+		this.xsdEsquemaBackup = xsdEsquemaBackup;
 	}
 	public boolean isConfigurat() {
 		return configurat;

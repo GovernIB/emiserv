@@ -5,8 +5,11 @@ package es.caib.emiserv.core.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
 
 /**
  * Classe de model de dades per a la taula CORE_EM_AUTORIZACION_CA.
@@ -18,11 +21,24 @@ import javax.persistence.Table;
 public class ScspCoreEmAutorizacionAutoridadCertEntity {
 
 	@Id
+	@GenericGenerator(
+			name = "sequence",
+			strategy = "native",
+			parameters = {
+					@org.hibernate.annotations.Parameter(
+							name = "sequence_name",
+							value = "ID_AUTORIZACION_CA_SEQ")
+			})
+	@GeneratedValue(generator="sequence")
+	private Long id;
 	@Column(length = 512)
 	private String codca;
 	@Column(length = 512)
 	private String nombre;
 
+	public Long getId() {
+		return id;
+	}
 	public String getCodca() {
 		return codca;
 	}

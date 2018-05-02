@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.core.ejb;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import javax.interceptor.Interceptors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ejb.interceptor.SpringBeanAutowiringInterceptor;
 
+import es.caib.emiserv.core.api.dto.FitxerDto;
 import es.caib.emiserv.core.api.dto.InformeGeneralEstatDto;
 import es.caib.emiserv.core.api.dto.PaginaDto;
 import es.caib.emiserv.core.api.dto.PaginacioParamsDto;
@@ -22,6 +24,8 @@ import es.caib.emiserv.core.api.dto.ServeiConfigScspDto;
 import es.caib.emiserv.core.api.dto.ServeiDto;
 import es.caib.emiserv.core.api.dto.ServeiRutaDestiDto;
 import es.caib.emiserv.core.api.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.core.api.dto.ServeiXsdDto;
+import es.caib.emiserv.core.api.dto.XsdTipusEnumDto;
 import es.caib.emiserv.core.api.exception.NotFoundException;
 import es.caib.emiserv.core.api.service.ServeiService;
 
@@ -130,10 +134,10 @@ public class ServeiServiceBean implements ServeiService {
 
 	@Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
-	public ServeiRutaDestiDto rutaDestiDelete(
+	public void rutaDestiDelete(
 			Long id,
 			Long rutaDestiId) {
-		return delegate.rutaDestiDelete(id, rutaDestiId);
+		delegate.rutaDestiDelete(id, rutaDestiId);
 	}
 
 	@Override
@@ -150,6 +154,47 @@ public class ServeiServiceBean implements ServeiService {
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public boolean rutaDestiMourePosicio(Long rutaId, int posicio) {
 		return delegate.rutaDestiMourePosicio(rutaId, posicio);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public void xsdCreate(
+			Long id,
+			ServeiXsdDto xsd,
+			byte[] contingut) throws IOException {
+		delegate.xsdCreate(id, xsd, contingut);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public void xsdUpdate(
+			Long id,
+			ServeiXsdDto xsd,
+			byte[] contingut) throws IOException {
+		delegate.xsdUpdate(id, xsd, contingut);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public void xsdDelete(
+			Long id,
+			XsdTipusEnumDto tipus) throws IOException {
+		delegate.xsdDelete(id, tipus);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public FitxerDto xsdDescarregarFitxer(
+			Long id,
+			XsdTipusEnumDto tipus) throws IOException {
+		return delegate.xsdDescarregarFitxer(id, tipus);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public List<ServeiXsdDto> xsdFindByServei(
+			Long id) throws IOException {
+		return delegate.xsdFindByServei(id);
 	}
 
 	@Override

@@ -59,6 +59,10 @@ public class ServeiEntity extends EmiservAuditable<Long> {
 	private String responseResolverClass;
 	@Column(name = "url_per_defecte", length = 256)
 	private String urlPerDefecte;
+	@Column(name = "xsd_activa")
+	private boolean xsdGestioActiva;
+	@Column(name = "xsd_esquema_bak", length = 256)
+	private String xsdEsquemaBackup;
 	@Column(name = "configurat")
 	private boolean configurat = false;
 	@Column(name = "actiu")
@@ -112,6 +116,12 @@ public class ServeiEntity extends EmiservAuditable<Long> {
 	}
 	public String getUrlPerDefecte() {
 		return urlPerDefecte;
+	}
+	public boolean isXsdGestioActiva() {
+		return xsdGestioActiva;
+	}
+	public String getXsdEsquemaBackup() {
+		return xsdEsquemaBackup;
 	}
 	public boolean isConfigurat() {
 		return configurat;
@@ -169,6 +179,12 @@ public class ServeiEntity extends EmiservAuditable<Long> {
 	public void updateActiu(
 			boolean actiu) {
 		this.actiu = actiu;
+	}
+	public void updateXsd(
+			boolean xsdGestioActiva,
+			String xsdEsquemaBackup) {
+		this.xsdGestioActiva = xsdGestioActiva;
+		this.xsdEsquemaBackup = xsdEsquemaBackup;
 	}
 
 	public static Builder getBuilder(

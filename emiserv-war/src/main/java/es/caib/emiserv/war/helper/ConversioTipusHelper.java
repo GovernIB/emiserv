@@ -6,11 +6,11 @@ package es.caib.emiserv.war.helper;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.stereotype.Component;
+
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
-
-import org.springframework.stereotype.Component;
 
 /**
  * Helper per a convertir entre diferents formats de documents.
@@ -43,6 +43,13 @@ public class ConversioTipusHelper {
 	private static MapperFacade getMapperFacade() {
 		if (mapperFactory == null)
 			mapperFactory = new DefaultMapperFactory.Builder().build();
+		/*mapperFactory.getConverterFactory().registerConverter(
+				new CustomConverter<MultipartFile, byte[]>() {
+					public byte[] convert(MultipartFile source, Type<? extends byte[]> destinationClass) {
+						byte[] target = new byte[0];
+						return target;
+					}
+				});*/
 		return mapperFactory.getMapperFacade();
 	}
 

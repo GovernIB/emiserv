@@ -41,6 +41,7 @@ public class ServeiConfigScspDto extends ObjecteAmbPermisosDto {
 	private String xpathCodigoError;
 	private String xpathLiteralError;
 	private int timeout;
+	private boolean xsdGestioActiva;
 
 
 
@@ -205,6 +206,12 @@ public class ServeiConfigScspDto extends ObjecteAmbPermisosDto {
 	}
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
+	}
+	public boolean isXsdGestioActiva() {
+		return xsdGestioActiva;
+	}
+	public void setXsdGestioActiva(boolean xsdGestioActiva) {
+		this.xsdGestioActiva = xsdGestioActiva;
 	}
 
 	@Override

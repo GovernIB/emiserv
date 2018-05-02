@@ -17,11 +17,11 @@
 # under the License.
 #
 version-1.4.1.aar
-scsp-service-asincrono.aar
-scsp-service-asincrono-wss-sig.aar
-scsp-service-common.aar
-scsp-service-sincrono.aar
-scsp-service-sincrono-wss-enc.aar
-scsp-service-sincrono-wss-enc-alt.aar
-scsp-service-sincrono-wss-enc-xpath.aar
-scsp-service-sincrono-wss-sig.aar
+#scsp-service-asincrono.aar
+#scsp-service-asincrono-wss-sig.aar
+#scsp-service-common.aar
+#scsp-service-sincrono.aar
+#scsp-service-sincrono-wss-enc.aar
+#scsp-service-sincrono-wss-enc-alt.aar
+#scsp-service-sincrono-wss-enc-xpath.aar
+#scsp-service-sincrono-wss-sig.aar
