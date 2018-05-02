@@ -70,7 +70,7 @@ public class ServeiConfigScspCommand {
 	private int timeout;
 	@Size(max=256)
 	private String esquemas;
-	private boolean mantxsd;
+	private boolean xsdGestioActiva;
 
 
 
@@ -230,13 +230,13 @@ public class ServeiConfigScspCommand {
 	public void setEsquemas(String esquemas) {
 		this.esquemas = esquemas;
 	}
+	public boolean isXsdGestioActiva() {
+		return xsdGestioActiva;
+	}
+	public void setXsdGestioActiva(boolean xsdGestioActiva) {
+		this.xsdGestioActiva = xsdGestioActiva;
+	}
 
-	public boolean isMantxsd() {
-		return mantxsd;
-	}
-	public void setMantxsd(boolean mantxsd) {
-		this.mantxsd = mantxsd;
-	}
 	public static ServeiConfigScspCommand toCommand(ServeiConfigScspDto dto) {
 		return ConversioTipusHelper.convertir(
 				dto,

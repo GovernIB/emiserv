@@ -129,13 +129,13 @@
 				<tr class="ruta-nova">
 					<th>
 						<emi:inputHidden name="id"/>
-					</th>									
+					</th>
 					<th>
 						<emi:inputText name="ordre" disabled="true" inline="true"/>
-					</th>									
+					</th>
 					<th>
 						<emi:inputText name="entitatCodi" textKey="servei.config.rutes.camp.entitat.codi" inline="true" required="true"/>
-					</th>									
+					</th>
 					<th>
 						<emi:inputText name="url" textKey="servei.config.rutes.camp.url" inline="true" required="true"/>
 					</th>

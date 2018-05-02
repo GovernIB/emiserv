@@ -122,7 +122,10 @@ $(document).ajaxError(function(event, jqxhr, ajaxSettings, thrownError) {
 	$.fn.webutilNetejarInputs = function(options) {
 		$(this).find('input:text, input:password, input:file, select, textarea').val('');
 		$(this).find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
-		$(this).find('select.select2-hidden-accessible').select2({theme: "bootstrap"}).trigger("change");
+		$(this).find('select.select2-hidden-accessible').val(null).trigger('change');
+		$(this).find('input:file').each(function() {
+			$('a', $(this).parent().parent()).trigger('click');
+		});
 	}
 
 	$.fn.webutilClonar = function() {

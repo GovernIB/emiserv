@@ -21,6 +21,16 @@ pageContext.setAttribute(
 	<script src="<c:url value="/js/bootstrap-datepicker.js"/>"></script>
 	<script src="<c:url value="/js/datepicker-locales/bootstrap-datepicker.${idioma}.js"/>"></script>
 	<emi:modalHead/>
+<script>
+$(document).ready(function() {
+	$("form input#xsdGestioActiva").on('change', function() {
+		$('form input#esquemas').prop(
+				"disabled",
+				$(this).prop('checked'));
+	});
+	$("form input#xsdGestioActiva").trigger('change');
+});
+</script>
 </head>
 <body>
 	<c:set var="formAction"><emi:modalUrl value="/servei/${servei.id}/configScsp"/></c:set>
@@ -64,14 +74,18 @@ pageContext.setAttribute(
 				<div class="col-sm-6">
 				</div>
 			</div>
+		</fieldset>
+		<fieldset>
+			<legend><spring:message code="servei.config.agrupacio.xsd"/></legend>
 			<div class="row">
+				<div class="col-sm-6">
+					<emi:inputCheckbox name="xsdGestioActiva" textKey="servei.config.camp.mant.xsd"/>
+				</div>
 				<div class="col-sm-6">
 					<emi:inputText name="versionEsquema" textKey="servei.config.camp.versionEsquema" required="true"/>
 				</div>
-				<div class="col-sm-6">
-					<emi:inputText name="esquemas" textKey="servei.config.camp.esquemas"/>
-				</div>
 			</div>
+			<emi:inputText name="esquemas" textKey="servei.config.camp.esquemas" labelSize="2"/>
 		</fieldset>
 		<fieldset>
 			<legend><spring:message code="servei.config.agrupacio.xifrat"/></legend>

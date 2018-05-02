@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.core.service;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -10,10 +11,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.ClassMetadata;
@@ -24,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import es.caib.emiserv.core.api.dto.FitxerDto;
 import es.caib.emiserv.core.api.dto.InformeGeneralEstatDto;
 import es.caib.emiserv.core.api.dto.PaginaDto;
 import es.caib.emiserv.core.api.dto.PaginacioParamsDto;
@@ -33,6 +34,8 @@ import es.caib.emiserv.core.api.dto.ServeiConfigScspDto;
 import es.caib.emiserv.core.api.dto.ServeiDto;
 import es.caib.emiserv.core.api.dto.ServeiRutaDestiDto;
 import es.caib.emiserv.core.api.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.core.api.dto.ServeiXsdDto;
+import es.caib.emiserv.core.api.dto.XsdTipusEnumDto;
 import es.caib.emiserv.core.api.exception.NotFoundException;
 import es.caib.emiserv.core.api.exception.PermissionDeniedException;
 import es.caib.emiserv.core.api.exception.ValidationException;
@@ -46,6 +49,7 @@ import es.caib.emiserv.core.helper.PaginacioHelper;
 import es.caib.emiserv.core.helper.PermisosHelper;
 import es.caib.emiserv.core.helper.PermisosHelper.ObjectIdentifierExtractor;
 import es.caib.emiserv.core.helper.SecurityHelper;
+import es.caib.emiserv.core.helper.ServeiXsdHelper;
 import es.caib.emiserv.core.repository.RedireccioPeticioRepository;
 import es.caib.emiserv.core.repository.ScspCoreEmisorCertificadoRepository;
 import es.caib.emiserv.core.repository.ScspCorePeticionRespuestaRepository;
@@ -66,31 +70,33 @@ public class ServeiServiceImpl implements ServeiService {
 
 	private static final int DEFAULT_BACKOFFICE_TER = 1;
 
-	@Resource
+	@Autowired
 	private ServeiRepository serveiRepository;
-	@Resource
+	@Autowired
 	private ServeiRutaDestiRepository serveiRutaDestiRepository;
-	@Resource
+	@Autowired
 	private ScspEmisorBackofficeRepository scspEmisorBackofficeRepository;
-	@Resource
+	@Autowired
 	private ScspCoreServicioRepository scspCoreServicioRepository;
-	@Resource
+	@Autowired
 	private ScspCoreTransmisionRepository scspCoreTransmisionRepository;
-	@Resource
+	@Autowired
 	private ScspCorePeticionRespuestaRepository scspCorePeticionRespuestaRepository;
-	@Resource
+	@Autowired
 	private ScspCoreEmisorCertificadoRepository scspCoreEmisorCertificadoRepository;
-	@Resource
+	@Autowired
 	private RedireccioPeticioRepository redireccioPeticioRepository;
 
-	@Resource
+	@Autowired
 	private PaginacioHelper paginacioHelper;
-	@Resource
+	@Autowired
 	private ConversioTipusHelper conversioTipusHelper;
-	@Resource
+	@Autowired
 	private PermisosHelper permisosHelper;
-	@Resource
+	@Autowired
 	private SecurityHelper securityHelper;
+	@Autowired
+	private ServeiXsdHelper serveiXsdHelper;
 
 
 
@@ -374,7 +380,61 @@ public class ServeiServiceImpl implements ServeiService {
 				"id=" + id + ")");
 		ServeiEntity servei = comprovarServei(id);
 		servei.updateConfigurat(true);
-		comprovarScspCoreServicioCreat(servei, configuracio);
+		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.findByCodigoCertificado(
+				servei.getCodi());
+		boolean esCreacio = scspCoreServicio == null;
+		if (esCreacio) {
+			scspCoreServicio = ScspCoreServicioEntity.getBuilder(
+					servei.getCodi()).build();
+		}
+		String esquemas = configuracio.getEsquemas();
+		if (servei.isXsdGestioActiva() != configuracio.isXsdGestioActiva()) {
+			if (!servei.isXsdGestioActiva() && configuracio.isXsdGestioActiva()) {
+				// S'ha passat de gestió XSD desactivada a activada
+				// Fer backup esquemes
+				servei.updateXsd(
+						configuracio.isXsdGestioActiva(),
+						scspCoreServicio.getEsquemas());
+				esquemas = serveiXsdHelper.getPathPerServei(servei);
+			} else {
+				// S'ha passat de gestió XSD activada a desactivada
+				// Recuperar backup esquemes
+				esquemas = servei.getXsdEsquemaBackup();
+				servei.updateXsd(
+						configuracio.isXsdGestioActiva(),
+						null);
+			}
+		}
+		scspCoreServicio.update(
+				servei.getNom(),
+				scspCoreEmisorCertificadoRepository.findOne(configuracio.getEmisorId()),
+				configuracio.getFechaAlta(),
+				configuracio.getFechaBaja(),
+				configuracio.getCaducidad(),
+				configuracio.getUrlSincrona(),
+				configuracio.getUrlAsincrona(),
+				configuracio.getActionSincrona(),
+				configuracio.getActionAsincrona(),
+				configuracio.getActionSolicitud(),
+				configuracio.getVersionEsquema(),
+				configuracio.getTipoSeguridad(),
+				configuracio.getClaveFirma(),
+				configuracio.getClaveCifrado(),
+				configuracio.getXpathCifradoSincrono(),
+				configuracio.getXpathCifradoAsincrono(),
+				configuracio.getAlgoritmoCifrado(),
+				configuracio.getValidacionFirma(),
+				configuracio.getPrefijoPeticion(), 
+				esquemas,
+				configuracio.getNumeroMaximoReenvios(),
+				configuracio.getMaxSolicitudesPeticion(),
+				configuracio.getPrefijoIdTransmision(),
+				configuracio.getXpathCodigoError(),
+				configuracio.getXpathLiteralError(),
+				configuracio.getTimeout());
+		if (esCreacio) {
+			scspCoreServicioRepository.save(scspCoreServicio);
+		}
 		comprovarScspBackofficeCreat(servei);
 	}
 
@@ -392,7 +452,6 @@ public class ServeiServiceImpl implements ServeiService {
 				rutaDesti.getEntitatCodi(),
 				rutaDesti.getUrl(),
 				serveiRutaDestiRepository.getNextOrdre(servei.getId())).build();
-
 		return conversioTipusHelper.convertir(
 				serveiRutaDestiRepository.save(entity),
 				ServeiRutaDestiDto.class);
@@ -425,7 +484,7 @@ public class ServeiServiceImpl implements ServeiService {
 
 	@Transactional
 	@Override
-	public ServeiRutaDestiDto rutaDestiDelete(
+	public void rutaDestiDelete(
 			Long id,
 			Long rutaDestiId) {
 		logger.debug("Esborra una ruta d'un servei (" +
@@ -440,9 +499,6 @@ public class ServeiServiceImpl implements ServeiService {
 					ServeiRutaDestiEntity.class);
 		} else {
 			serveiRutaDestiRepository.delete(entity);
-			return conversioTipusHelper.convertir(
-					entity,
-					ServeiRutaDestiDto.class);
 		}
 	}
 
@@ -488,6 +544,66 @@ public class ServeiServiceImpl implements ServeiService {
 			}
 		}
 		return ret;
+	}
+
+	@Transactional
+	@Override
+	public void xsdCreate(
+			Long id,
+			ServeiXsdDto xsd,
+			byte[] contingut) throws IOException {
+		logger.debug("Crea un fitxer XSD per a un servei (" +
+				"id=" + id + ", " +
+				"xsd=" + xsd + ")");
+		ServeiEntity servei = comprovarServei(id);
+		serveiXsdHelper.modificarXsd(servei, xsd, contingut);
+	}
+
+	@Transactional
+	@Override
+	public void xsdUpdate(
+			Long id,
+			ServeiXsdDto xsd,
+			byte[] contingut) throws IOException {
+		logger.debug("Modifica un fitxer XSD per a un servei (" +
+				"id=" + id + ", " +
+				"xsd=" + xsd + ")");
+		ServeiEntity servei = comprovarServei(id);
+		serveiXsdHelper.modificarXsd(servei, xsd, contingut);
+	}
+
+	@Transactional
+	@Override
+	public void xsdDelete(
+			Long id,
+			XsdTipusEnumDto tipus) throws IOException {
+		logger.debug("Esborra un fitxer XSD per a un servei (" +
+				"id=" + id + ", " +
+				"tipus=" + tipus + ")");
+		ServeiEntity servei = comprovarServei(id);
+		serveiXsdHelper.esborrarXsd(servei, tipus);
+	}
+
+	@Transactional
+	@Override
+	public FitxerDto xsdDescarregarFitxer(
+			Long id,
+			XsdTipusEnumDto tipus) throws IOException {
+		logger.debug("Descarrega un fitxer XSD per a un servei (" +
+				"id=" + id + ", " +
+				"tipus=" + tipus + ")");
+		ServeiEntity servei = comprovarServei(id);
+		return serveiXsdHelper.descarregarXsd(servei, tipus);
+	}
+
+	@Transactional(readOnly = true)
+	@Override
+	public List<ServeiXsdDto> xsdFindByServei(
+			Long id) {
+		logger.debug("Obtenint tots els fitxers XSD per a un servei (" +
+				"id=" + id + ")");
+		ServeiEntity servei = comprovarServei(id);
+		return serveiXsdHelper.findAll(servei);
 	}
 
 	@Transactional(readOnly = true)
@@ -644,49 +760,6 @@ public class ServeiServiceImpl implements ServeiService {
 			}
 		}
 		return servei;
-	}
-
-	private ScspCoreServicioEntity comprovarScspCoreServicioCreat(
-			ServeiEntity servei,
-			ServeiConfigScspDto configuracio) {
-		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.findByCodigoCertificado(
-				servei.getCodi());
-		boolean esCreacio = scspCoreServicio == null;
-		if (esCreacio) {
-			scspCoreServicio = ScspCoreServicioEntity.getBuilder(
-					servei.getCodi()).build();
-		}
-		scspCoreServicio.update(
-				servei.getNom(),
-				scspCoreEmisorCertificadoRepository.findOne(configuracio.getEmisorId()),
-				configuracio.getFechaAlta(),
-				configuracio.getFechaBaja(),
-				configuracio.getCaducidad(),
-				configuracio.getUrlSincrona(),
-				configuracio.getUrlAsincrona(),
-				configuracio.getActionSincrona(),
-				configuracio.getActionAsincrona(),
-				configuracio.getActionSolicitud(),
-				configuracio.getVersionEsquema(),
-				configuracio.getTipoSeguridad(),
-				configuracio.getClaveFirma(),
-				configuracio.getClaveCifrado(),
-				configuracio.getXpathCifradoSincrono(),
-				configuracio.getXpathCifradoAsincrono(),
-				configuracio.getAlgoritmoCifrado(),
-				configuracio.getValidacionFirma(),
-				configuracio.getPrefijoPeticion(), 
-				configuracio.getEsquemas(),
-				configuracio.getNumeroMaximoReenvios(),
-				configuracio.getMaxSolicitudesPeticion(),
-				configuracio.getPrefijoIdTransmision(),
-				configuracio.getXpathCodigoError(),
-				configuracio.getXpathLiteralError(),
-				configuracio.getTimeout());
-		if (esCreacio) {
-			scspCoreServicioRepository.save(scspCoreServicio);
-		}
-		return scspCoreServicio;
 	}
 
 	private ScspEmisorBackofficeEntity comprovarScspBackofficeCreat(

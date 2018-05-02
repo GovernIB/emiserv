@@ -56,3 +56,6 @@ alter table core_em_autorizacion_cert add primary key (idcertificado, idaplicaci
 alter table core_em_autorizacion_cert add constraint autorizacion_cert_servicio foreign key (idcertificado) references core_servicio (id) enable novalidate;
 
 alter table core_em_autorizacion_cert modify fechaalta null;
+
+ALTER TABLE EMS_SERVEI ADD XSD_ACTIVA NUMBER(1);
+ALTER TABLE EMS_SERVEI ADD XSD_ESQUEMA_BAK VARCHAR2(256);

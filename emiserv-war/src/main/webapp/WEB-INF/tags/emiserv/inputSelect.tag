@@ -96,9 +96,9 @@
 <script>
 $(document).ready(function() {
 	$("#${campPath}").select2({
-	    placeholder: "${campPlaceholder}",
+		<c:if test="${not empty campPlaceholder}">placeholder: "${campPlaceholder}",</c:if>
 	    theme: "bootstrap",
-	    allowClear: true,
+	    allowClear: <c:if test="${emptyOption == 'true'}">true</c:if><c:if test="${emptyOption != 'true'}">false</c:if>,
 	    minimumResultsForSearch: -1
 	});
 	$("#${campPath}").on('select2-open', function() {

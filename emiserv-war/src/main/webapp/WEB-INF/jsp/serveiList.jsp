@@ -50,6 +50,7 @@ pageContext.setAttribute(
 						</script>
 					</th>
 				</c:if>
+				<th data-col-name="xsdGestioActiva" data-visible="false"></th>
 				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="10%">
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="dropdown">
@@ -58,6 +59,9 @@ pageContext.setAttribute(
 								<li><a href="servei/{{:id}}" data-toggle="modal"><span class="fa fa-pencil"></span>&nbsp;&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
 								{{if tipus == 'BACKOFFICE'}}
 									<li><a href="servei/{{:id}}/configScsp" data-toggle="modal"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.scsp"/></a></li>
+									{{if xsdGestioActiva}}
+										<li><a href="servei/{{:id}}/xsd" data-toggle="modal"><span class="fa fa-file-excel-o"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.xsds"/></a></li>
+									{{/if}}
 								{{else}}
 									<li><a href="servei/{{:id}}/rutes" data-toggle="modal"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.rutes"/></a></li>
 								{{/if}}

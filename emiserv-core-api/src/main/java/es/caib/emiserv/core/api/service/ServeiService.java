@@ -3,11 +3,13 @@
  */
 package es.caib.emiserv.core.api.service;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import es.caib.emiserv.core.api.dto.FitxerDto;
 import es.caib.emiserv.core.api.dto.InformeGeneralEstatDto;
 import es.caib.emiserv.core.api.dto.PaginaDto;
 import es.caib.emiserv.core.api.dto.PaginacioParamsDto;
@@ -17,6 +19,8 @@ import es.caib.emiserv.core.api.dto.ServeiConfigScspDto;
 import es.caib.emiserv.core.api.dto.ServeiDto;
 import es.caib.emiserv.core.api.dto.ServeiRutaDestiDto;
 import es.caib.emiserv.core.api.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.core.api.dto.ServeiXsdDto;
+import es.caib.emiserv.core.api.dto.XsdTipusEnumDto;
 import es.caib.emiserv.core.api.exception.NotFoundException;
 import es.caib.emiserv.core.api.exception.PermissionDeniedException;
 
@@ -168,6 +172,7 @@ public interface ServeiService {
 	 *            Atribut id del servei.
 	 * @param rutaDesti
 	 *            Ruta a crear.
+	 * @return la ruta creada.
 	 * @throws NotFoundException
 	 *             Si no s'ha trobat cap servei amb l'id especificat.
 	 * @throws PermissionDeniedException
@@ -185,6 +190,7 @@ public interface ServeiService {
 	 *            Atribut id del servei.
 	 * @param rutaDesti
 	 *            Ruta a modificar.
+	 * @return la ruta actualitzada.
 	 * @throws NotFoundException
 	 *             Si no s'ha trobat cap servei amb l'id especificat.
 	 * @throws PermissionDeniedException
@@ -208,7 +214,7 @@ public interface ServeiService {
 	 *             Si l'usuari no te permisos per administrar el servei.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
-	public ServeiRutaDestiDto rutaDestiDelete(
+	public void rutaDestiDelete(
 			Long id,
 			Long rutaDestiId) throws NotFoundException, PermissionDeniedException;
 
@@ -217,6 +223,7 @@ public interface ServeiService {
 	 * 
 	 * @param id
 	 *            Atribut id del servei.
+	 * @return la llista paginada de rutes.
 	 * @throws NotFoundException
 	 *             Si no s'ha trobat cap servei amb l'id especificat.
 	 * @throws PermissionDeniedException
@@ -226,6 +233,104 @@ public interface ServeiService {
 	public PaginaDto<ServeiRutaDestiDto> rutaDestiFindByServei(
 			Long id,
 			PaginacioParamsDto paginacioParams) throws NotFoundException, PermissionDeniedException;
+
+	/** 
+	 * Mou la ruta del servei amb id rutaId cap a la posició indicada
+	 * reassignant el valor pel camp ordre.
+	 * 
+	 * @param rutaId
+	 *            Atribut id de la ruta a moure.
+	 * @param posicio
+	 *            Nova posició de la ruta.
+	 * @return true si ha anat bé o false si la posició no és correcta.
+	 */
+	public boolean rutaDestiMourePosicio(Long rutaId, int posicio);
+
+	/**
+	 * Crea una ruta a dins un servei.
+	 * 
+	 * @param id
+	 *            Atribut id del servei.
+	 * @param xsd
+	 *            Fitxer XSD a crear.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap servei amb l'id especificat.
+	 * @throws PermissionDeniedException
+	 *             Si l'usuari no te permisos per administrar el servei.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public void xsdCreate(
+			Long id,
+			ServeiXsdDto xsd,
+			byte[] contingut) throws IOException, NotFoundException, PermissionDeniedException;
+
+	/**
+	 * Modifica una ruta d'un servei.
+	 * 
+	 * @param id
+	 *            Atribut id del servei.
+	 * @param xsd
+	 *            Fitxer XSD a modificar.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap servei amb l'id especificat.
+	 * @throws PermissionDeniedException
+	 *             Si l'usuari no te permisos per administrar el servei.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public void xsdUpdate(
+			Long id,
+			ServeiXsdDto xsd,
+			byte[] contingut) throws IOException, NotFoundException, PermissionDeniedException;
+
+	/**
+	 * Esborra una ruta d'un servei.
+	 * 
+	 * @param id
+	 *            Atribut id del servei.
+	 * @param tipus
+	 *            Tipus del fitxer xsd a esborrar.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap servei amb l'id especificat.
+	 * @throws PermissionDeniedException
+	 *             Si l'usuari no te permisos per administrar el servei.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public void xsdDelete(
+			Long id,
+			XsdTipusEnumDto tipus) throws IOException, NotFoundException, PermissionDeniedException;
+
+	/**
+	 * Descarrega un fitxer XSD d'un servei.
+	 * 
+	 * @param id
+	 *            Atribut id del servei.
+	 * @param tipus
+	 *            Tipus del fitxer xsd per descarregar.
+	 * @return el fitxer xsd.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap servei amb l'id especificat.
+	 * @throws PermissionDeniedException
+	 *             Si l'usuari no te permisos per administrar el servei.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public FitxerDto xsdDescarregarFitxer(
+			Long id,
+			XsdTipusEnumDto tipus) throws IOException, NotFoundException, PermissionDeniedException;
+
+	/**
+	 * Obté tots els fitxers XSD associats a un servei.
+	 * 
+	 * @param id
+	 *            Atribut id del servei.
+	 * @return la llista de fitxers xsd paginada.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap servei amb l'id especificat.
+	 * @throws PermissionDeniedException
+	 *             Si l'usuari no te permisos per administrar el servei.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public List<ServeiXsdDto> xsdFindByServei(
+			Long id) throws IOException, NotFoundException, PermissionDeniedException;
 
 	/**
 	 * Consulta els procediments disponibles per administradors.
@@ -277,14 +382,6 @@ public interface ServeiService {
 	public void permisDelete(
 			Long id,
 			Long permisId) throws NotFoundException;
-
-	/** Mou la ruta del servei amb id rutaId cap a la posició indicada reassignant el valor pel camp ordre.
-	 * 
-	 * @param rutaId
-	 * @param posicio
-	 * @return Retorna true si ha anat bé o false si la posició no és correcta.
-	 */
-	public boolean rutaDestiMourePosicio(Long rutaId, int posicio);
 	
 	/** Retorna una llista amb la informació per generar l'informe d'estat general.
 	 * 

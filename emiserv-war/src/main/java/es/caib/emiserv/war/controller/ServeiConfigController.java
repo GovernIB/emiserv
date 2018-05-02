@@ -51,9 +51,13 @@ public class ServeiConfigController extends BaseController {
 				id,
 				model);
 		if (servei.isConfigurat()) {
-			model.addAttribute(
-					ServeiConfigScspCommand.toCommand(
-							serveiService.configuracioScspFindByServei(id)));
+			ServeiConfigScspCommand command = ServeiConfigScspCommand.toCommand(
+					serveiService.configuracioScspFindByServei(id));
+			if (servei.isXsdGestioActiva()) {
+				command.setXsdGestioActiva(true);
+				command.setEsquemas(servei.getXsdEsquemaBackup());
+			}
+			model.addAttribute(command);
 		} else {
 			ServeiConfigScspCommand command = new ServeiConfigScspCommand();
 			command.setCodigoCertificado(servei.getCodi());

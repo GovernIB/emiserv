@@ -20,10 +20,10 @@
 		<div class="form-group<c:if test="${not empty campErrors}"> has-error</c:if>">
 			<label class="control-label col-xs-${campLabelSize}" for="${campPath}">${campLabelText}</label>
 			<div class="col-xs-${12 - campLabelSize}">
-				<div class="fileinput fileinput-new input-group" data-provides="fileinput">
+				<div class="fileinput fileinput-new input-group" data-provides="fileinput" style="width:100%">
 					<div class="form-control" data-trigger="fileinput"><i class="glyphicon glyphicon-file fileinput-exists"></i> <span class="fileinput-filename"></span></div>
-					<span class="input-group-addon btn btn-default btn-file" style="width:auto"><span class="fileinput-new">Seleccionar</span><span class="fileinput-exists">Canviar</span><input type="file" id="${campPath}" name="${campPath}"></span>
-					<a href="#" class="input-group-addon btn btn-default fileinput-exists" style="width:auto" data-dismiss="fileinput">Netejar</a>
+					<span class="input-group-addon btn btn-default btn-file" style="width:10%"><span class="fileinput-new">Seleccionar</span><span class="fileinput-exists">Canviar</span><input type="file" id="${campPath}" name="${campPath}"></span>
+					<a href="#" class="input-group-addon btn btn-default fileinput-exists" style="width:10%" data-dismiss="fileinput">Netejar</a>
 				</div>
 				<c:if test="${not empty campErrors}"><p class="help-block"><span class="fa fa-exclamation-triangle"></span>&nbsp;<form:errors path="${campPath}"/></p></c:if>
 			</div>
@@ -32,10 +32,10 @@
 	<c:otherwise>
 		<div class="form-group<c:if test="${not empty campErrors}"> has-error</c:if>">
     		<label class="sr-only" for="${campPath}">${campLabelText}</label>
-    		<div class="fileinput fileinput-new input-group" data-provides="fileinput">
+    		<div class="fileinput fileinput-new input-group" data-provides="fileinput" style="width:100%">
 				<div class="form-control" data-trigger="fileinput"><i class="glyphicon glyphicon-file fileinput-exists"></i> <span class="fileinput-filename"></span></div>
-				<span class="input-group-addon btn btn-default btn-file" style="width:auto"><span class="fileinput-new">Seleccionar</span><span class="fileinput-exists">Canviar</span><input type="file" id="${campPath}" name="${campPath}"></span>
-				<a href="#" class="input-group-addon btn btn-default fileinput-exists" style="width:auto" data-dismiss="fileinput">Netejar</a>
+				<span class="input-group-addon btn btn-default btn-file" style="width:10%"><span class="fileinput-new">Seleccionar</span><span class="fileinput-exists">Canviar</span><input type="file" id="${campPath}" name="${campPath}"></span>
+				<a href="#" class="input-group-addon btn btn-default fileinput-exists" style="width:10%" data-dismiss="fileinput">Netejar</a>
 			</div>
   		</div>
 	</c:otherwise>
