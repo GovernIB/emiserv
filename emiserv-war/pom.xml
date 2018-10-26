@@ -365,11 +365,14 @@
 		<profile>
 			<id>tomcat</id>
 			<activation>
+				<file>
+					<exists>appserv_tomcat</exists>
+				</file>
 				<activeByDefault>false</activeByDefault>
 			</activation>
 			<properties>
 				<application.context>application-context-tomcat.xml</application.context>
-				<mvc.resources.classpath>classpath:</mvc.resources.classpath>
+				<webjars.classpath>classpath:</webjars.classpath>
 			</properties>
 			<dependencies>
 				<dependency>
@@ -600,11 +603,14 @@
 		<profile>
 			<id>jboss</id>
 			<activation>
+				<file>
+					<missing>appserv_tomcat</missing>
+				</file>
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
 				<application.context>application-context-jboss.xml</application.context>
-				<mvc.resources.classpath></mvc.resources.classpath>
+				<webjars.classpath></webjars.classpath>
 			</properties>
 			<dependencies>
 				<dependency>

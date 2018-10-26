@@ -3,3 +3,5 @@
 /.project
 /.classpath
 /scsp-emisor-*
+/appserv_jboss
+/appserv_tomcat
