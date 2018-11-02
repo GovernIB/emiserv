@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.core.ejb;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.security.RolesAllowed;
@@ -34,7 +35,7 @@ public class AplicacioServiceBean implements AplicacioService {
 
 	@Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
-	public String getVersioActual() {
+	public String getVersioActual() throws IOException {
 		logger.debug("Obtenint versió actual de l'aplicació (EJB)");
 		return delegate.getVersioActual();
 	}

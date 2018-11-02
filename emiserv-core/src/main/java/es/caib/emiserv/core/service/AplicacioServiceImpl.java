@@ -5,10 +5,10 @@ package es.caib.emiserv.core.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -33,7 +33,7 @@ import es.caib.emiserv.plugin.usuari.DadesUsuari;
 @Service
 public class AplicacioServiceImpl implements AplicacioService {
 
-	private String version;
+	private Properties versionProperties;
 
 	@Resource
 	private UsuariRepository usuariRepository;
@@ -44,20 +44,10 @@ public class AplicacioServiceImpl implements AplicacioService {
 	private ConversioTipusHelper conversioTipusHelper;
 
 
-
 	@Override
-	public String getVersioActual() {
+	public String getVersioActual() throws IOException {
 		logger.debug("Obtenint versió actual de l'aplicació");
-		if (version == null) {
-			try {
-				version = IOUtils.toString(
-						getClass().getResourceAsStream("versio"),
-						"UTF-8");
-			} catch (IOException e) {
-				version = "???";
-			}
-		}
-		return version;
+		return getVersionProperties().getProperty("app.version");
 	}
 
 	@Transactional
@@ -126,6 +116,15 @@ public class AplicacioServiceImpl implements AplicacioService {
 	}
 
 
+	private Properties getVersionProperties() throws IOException {
+		if (versionProperties == null) {
+			versionProperties = new Properties();
+			versionProperties.load(
+					getClass().getResourceAsStream(
+							"/es/caib/emiserv/core/version/version.properties"));
+		}
+		return versionProperties;
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(AplicacioServiceImpl.class);
 

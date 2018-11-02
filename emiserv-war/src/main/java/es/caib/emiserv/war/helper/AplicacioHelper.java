@@ -3,6 +3,8 @@
  */
 package es.caib.emiserv.war.helper;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 
 import es.caib.emiserv.core.api.service.AplicacioService;
@@ -21,7 +23,7 @@ public class AplicacioHelper {
 
 	public static void comprovarVersioActual(
 			HttpServletRequest request,
-			AplicacioService aplicacioService) {
+			AplicacioService aplicacioService) throws IOException {
 		if (request.getUserPrincipal() != null) {
 			String versioActual = (String)request.getSession().getServletContext().getAttribute(
 					APPLICATION_ATTRIBUTE_VERSIO_ACTUAL);

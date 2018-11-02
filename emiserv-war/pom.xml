@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>es.caib.emiserv</groupId>
 		<artifactId>emiserv</artifactId>
-		<version>1.4</version>
+		<version>${version.project}</version>
 	</parent>
 	<artifactId>emiserv-war</artifactId>
 	<packaging>war</packaging>
@@ -738,16 +738,6 @@
 							<filtering>true</filtering>
 						</webResource>
 					</webResources>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${compiler.plugin.version}</version>
-				<configuration>
-					<fork>true</fork>
-					<compilerVersion>${java.version}</compilerVersion>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
 				</configuration>
 			</plugin>
 		</plugins>
