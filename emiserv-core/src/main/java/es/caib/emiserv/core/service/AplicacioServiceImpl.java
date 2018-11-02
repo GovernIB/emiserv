@@ -45,9 +45,14 @@ public class AplicacioServiceImpl implements AplicacioService {
 
 
 	@Override
-	public String getVersioActual() throws IOException {
+	public String getVersioActual() {
 		logger.debug("Obtenint versió actual de l'aplicació");
-		return getVersionProperties().getProperty("app.version");
+		try {
+			return getVersionProperties().getProperty("app.version");
+		} catch (IOException ex) {
+			logger.error("No s'ha pogut llegir el fitxer version.properties", ex);
+			return "???";
+		}
 	}
 
 	@Transactional

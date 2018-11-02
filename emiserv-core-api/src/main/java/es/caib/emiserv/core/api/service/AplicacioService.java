@@ -3,7 +3,6 @@
  */
 package es.caib.emiserv.core.api.service;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +23,7 @@ public interface AplicacioService {
 	 * @return La versió actual.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
-	public String getVersioActual() throws IOException;
+	public String getVersioActual();
 
 	/**
 	 * Processa l'autenticació d'un usuari.
