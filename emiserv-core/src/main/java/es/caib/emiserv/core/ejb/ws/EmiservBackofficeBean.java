@@ -41,8 +41,6 @@ public class EmiservBackofficeBean implements EmiservBackoffice {
 	@Autowired
 	EmiservBackoffice delegate;
 
-
-
 	@Override
 	public Respuesta peticionSincrona(
 			Peticion peticion) {

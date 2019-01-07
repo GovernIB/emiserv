@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>es.caib.emiserv</groupId>
 	<artifactId>emiserv</artifactId>
-	<version>${version.project}</version>
+	<version>1.4</version>
 	<packaging>pom</packaging>
 	<name>Emissor SCSP CAIB</name>
 	<properties>
@@ -32,10 +32,8 @@
 		<maven.compiler.target>1.6</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<build.timestamp>${maven.build.timestamp}</build.timestamp>
-		<version.main>1.4</version.main>
-		<version.revision>8</version.revision>
-		<version.full>${version.main}.${version.revision}</version.full>
-		<version.project>${version.main}</version.project>
+		<version.revision>9</version.revision>
+		<version.full>${project.version}.${version.revision}</version.full>
 	</properties>
 	<modules>
 		<module>emiserv-war</module>

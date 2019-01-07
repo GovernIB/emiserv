@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>es.caib.emiserv</groupId>
 		<artifactId>emiserv</artifactId>
-		<version>${version.project}</version>
+		<version>1.4</version>
 	</parent>
 	<artifactId>emiserv-core</artifactId>
 	<dependencies>
@@ -499,6 +499,11 @@
 			<version>1.1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>es.caib.pinbal</groupId>
+			<artifactId>pinbal-ws-client</artifactId>
+			<version>1.4</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -536,6 +541,11 @@
 			<id>archiva.default</id>
 			<url>http://gforge.caib.es/archiva/repository/internal</url>
 		</repository-->
+		<repository>
+			<id>github-governib-maven-repo</id>
+			<name>GitHub GovernIB Maven Repository</name>
+			<url>http://GovernIB.github.io/maven/maven/</url>
+		</repository>
 		<repository>
 			<id>mvn-local-repo</id>
 			<url>file://${basedir}/../local-repo</url>
