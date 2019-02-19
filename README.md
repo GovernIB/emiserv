@@ -6,5 +6,3 @@ EMISERV és una solució tecnològica desenvolupada pel Govern de les Illes Bale
 * [Manual d'usuari](https://github.com/GovernIB/pinbal/raw/pinbal-1.4/doc/odt/02_emiserv_usuari.odt)
 ## <a name="v_estable"></a> Versió estable
 ### [v1.4.9](https://github.com/GovernIB/emiserv/releases/tag/v1.4.9)
-## <a name="captures"></a> Captures de pantalla
-(Pendent)
