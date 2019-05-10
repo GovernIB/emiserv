@@ -240,7 +240,7 @@ public class ScspServiceImpl implements ScspService {
 		return paginacioHelper.toPaginaDto(
 				scspCoreEmAutorizacionOrganismoRepository.findByFiltrePaginat(
 						(filtre.getNom() == null || filtre.getNom().isEmpty()),
-						filtre.getNom(),
+						filtre.getNom() != null ? filtre.getNom(): "",
 						(filtre.getCif() == null || filtre.getCif().isEmpty()),
 						filtre.getCif(),
 						paginacioHelper.toSpringDataPageable(

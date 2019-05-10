@@ -19,7 +19,7 @@ import es.caib.emiserv.war.helper.ConversioTipusHelper;
 public class AuditoriaFiltreCommand {
 
 	private String procediment;
-	private String servei;
+	private Long servei;
 	private PeticioEstatEnumDto estat;
 	private Date dataInici;
 	private Date dataFi;
@@ -34,10 +34,10 @@ public class AuditoriaFiltreCommand {
 	public void setProcediment(String procediment) {
 		this.procediment = procediment;
 	}
-	public String getServei() {
+	public Long getServei() {
 		return servei;
 	}
-	public void setServei(String servei) {
+	public void setServei(Long servei) {
 		this.servei = servei;
 	}
 	public PeticioEstatEnumDto getEstat() {

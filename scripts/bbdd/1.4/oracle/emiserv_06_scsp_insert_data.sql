@@ -1,19 +1,6 @@
---------------------------------------------------------
---  Pre carga de esquema scsp emisor 
---------------------------------------------------------  
 
---------------------------------------------------------
---  Inserts for Table CORE_TIPO_MENSAJE
---------------------------------------------------------
-Insert into CORE_TIPO_MENSAJE (TIPO,DESCRIPCION) values (0,'Peticion');
-Insert into CORE_TIPO_MENSAJE (TIPO,DESCRIPCION) values (1,'ConfirmacionPeticion');
-Insert into CORE_TIPO_MENSAJE (TIPO,DESCRIPCION) values (2,'SolicitudRespuesta');
-Insert into CORE_TIPO_MENSAJE (TIPO,DESCRIPCION) values (3,'Respuesta');
-Insert into CORE_TIPO_MENSAJE (TIPO,DESCRIPCION) values (4,'Fault');
-
---------------------------------------------------------
---  Inserts for Table SCSP_ESTADO_PETICION
---------------------------------------------------------
+  
+  
 Insert into SCSP_ESTADO_PETICION (CODIGO,MENSAJE) values('0001', 'Pendiente');
 Insert into SCSP_ESTADO_PETICION (CODIGO,MENSAJE) values('0002', 'En proceso');
 Insert into SCSP_ESTADO_PETICION (CODIGO,MENSAJE) values('0003', 'Tramitada');
@@ -23,23 +10,27 @@ Insert into SCSP_ESTADO_PETICION (CODIGO,MENSAJE) values('0004', 'En proceso Pol
 --  Inserts for Table AUTORIZACION_CA
 --  No están todas las CA precargadas, unicamente las mas habituales
 --------------------------------------------------------
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('OU=FNMT Clase 2 CA, O=FNMT, C=ES', 'Fabrica Nacional de Moneda y Timbre');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('OU=FNMT Clase 2 CA,O=FNMT,C=ES', 'Fabrica Nacional de Moneda y Timbre');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('OU=AC APE, O=FNMT-RCM, C=ES', 'Fabrica Nacional de Moneda y Timbre');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('OU=AC APE,O=FNMT-RCM,C=ES', 'Fabrica Nacional de Moneda y Timbre');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC DGP 001, OU=CNP, O=DIRECCION GENERAL DE LA POLICIA, C=ES', 'DIRECCION GENERAL DE LA POLICIA');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=EC-SAFP, OU=Secretaria d''Administracio i Funcio Publica, OU="Vegeu https://www.catcert.net/verCIC-2 [^] (c)03", OU=Serveis Publics de Certificacio ECV-2, L=Passatge de la Concepcio 11 08008 Barcelona, O=Agencia Catalana de Certificacio (NIF Q-0801176-I), C=ES', 'Secretaria dŽAdministracio i Funcio Publica');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=EAEko HAetako langileen CA - CA personal de AAPP vascas (2), OU=AZZ Ziurtagiri publikoa - Certificado publico SCA, O=IZENPE S.A., C=ES', 'IZENPE S.A');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC CAMERFIRMA AAPP, SERIALNUMBER=A82743287, OU=AC CAMERFIRMA, L=MADRID (Ver en https://www.camerfirma.com/address [^]), O=AC CAMERFIRMA S.A., C=ES', 'AC Camerfirma');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC Administración Pública, SERIALNUMBER=Q2826004J, OU=CERES, O=FNMT-RCM, C=ES', 'Fabrica Nacional de Moneda y Timbre');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC Camerfirma Express Corporate Server v3, O=AC Camerfirma SA, OU=http://www.camerfirma.com, [^] SERIALNUMBER=A82743287, L=Madrid (see current address at www.camerfirma.com/address), EMAILADDRESS=info@camerfirma.com, C=ES', 'AC Camerfirma');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC Camerfirma Certificados Camerales, O=AC Camerfirma SA, SERIALNUMBER=A82743287, L=Madrid (see current address at www.camerfirma.com/address), EMAILADDRESS=ac_camerfirma_cc@camerfirma.com, C=ES', 'AC Camerfirma');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=EC-AL, OU=Administracions Locals de Catalunya, OU="Vegeu https://www.catcert.net/verCIC-2 [^] (c)03", OU=Serveis Publics de Certificacio ECV-2, L=Passatge de la Concepcio 11 08008 Barcelona, O=Agencia Catalana de Certificacio (NIF Q-0801176-I), C=ES', 'Agència Catalana de Certificació CATCert');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES, O=Generalitat Valenciana, OU=PKIGVA, CN=ACCV-CA2', 'Autoritat de Certificació de la Comunitat Valenciana (ACCV)');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES,O=FNMT,OU=FNMT Clase 2 CA', 'Fabrica Nacional de Moneda y Timbre');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES, L=MADRID, O=MINISTERIO DE TRABAJO E INMIGRACION, OU=SUBDIRECCION GENERAL DE PROCESO DE DATOS, OU=PRESTADOR DE SERVICIOS DE CERTIFICACION MTIN, SERIALNUMBER=S2819001E, CN=AC1 RAIZ MTIN', 'Prestador de Servicios de Certificación del Ministerio de Trabajo e Inmigración (PSCMTIN).');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES,L=Madrid,E=ac@acabogacia.org,O=Consejo General de la Abogacia NIF:Q-2863006I,OU=Autoridad de Certificacion de la Abogacia,CN=ACA - Certificados Corporativos', 'Autoridad de Certificacion de la Abogacia');
-Insert into AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES,O=Agencia Catalana de Certificacio (NIF Q-0801176-I),L=Passatge de la Concepcio 11 08008 Barcelona,OU=Serveis Publics de Certificacio ECV-2,OU=Vegeu https://www.catcert.net/verCIC-2 [^] (c)03,OU=Administracions Locals de Catalunya,CN=EC-AL ', 'Agència Catalana de Certificació CATCert');
+
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('OU=FNMT Clase 2 CA, O=FNMT, C=ES', 'Fabrica Nacional de Moneda y Timbre');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('OU=FNMT Clase 2 CA,O=FNMT,C=ES', 'Fabrica Nacional de Moneda y Timbre');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('OU=AC APE, O=FNMT-RCM, C=ES', 'Fabrica Nacional de Moneda y Timbre');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('OU=AC APE,O=FNMT-RCM,C=ES', 'Fabrica Nacional de Moneda y Timbre');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC DGP 001, OU=CNP, O=DIRECCION GENERAL DE LA POLICIA, C=ES', 'DIRECCION GENERAL DE LA POLICIA');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=EC-SAFP, OU=Secretaria d''Administracio i Funcio Publica, OU="Vegeu https://www.catcert.net/verCIC-2 [^] (c)03", OU=Serveis Publics de Certificacio ECV-2, L=Passatge de la Concepcio 11 08008 Barcelona, O=Agencia Catalana de Certificacio (NIF Q-0801176-I), C=ES', 'Secretaria dŽAdministracio i Funcio Publica');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=EAEko HAetako langileen CA - CA personal de AAPP vascas (2), OU=AZZ Ziurtagiri publikoa - Certificado publico SCA, O=IZENPE S.A., C=ES', 'IZENPE S.A');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC CAMERFIRMA AAPP, SERIALNUMBER=A82743287, OU=AC CAMERFIRMA, L=MADRID (Ver en https://www.camerfirma.com/address [^]), O=AC CAMERFIRMA S.A., C=ES', 'AC Camerfirma');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC Administración Pública, SERIALNUMBER=Q2826004J, OU=CERES, O=FNMT-RCM, C=ES', 'Fabrica Nacional de Moneda y Timbre');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC Camerfirma Express Corporate Server v3, O=AC Camerfirma SA, OU=http://www.camerfirma.com, [^] SERIALNUMBER=A82743287, L=Madrid (see current address at www.camerfirma.com/address), EMAILADDRESS=info@camerfirma.com, C=ES', 'AC Camerfirma');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=AC Camerfirma Certificados Camerales, O=AC Camerfirma SA, SERIALNUMBER=A82743287, L=Madrid (see current address at www.camerfirma.com/address), EMAILADDRESS=ac_camerfirma_cc@camerfirma.com, C=ES', 'AC Camerfirma');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('CN=EC-AL, OU=Administracions Locals de Catalunya, OU="Vegeu https://www.catcert.net/verCIC-2 [^] (c)03", OU=Serveis Publics de Certificacio ECV-2, L=Passatge de la Concepcio 11 08008 Barcelona, O=Agencia Catalana de Certificacio (NIF Q-0801176-I), C=ES', 'Agència Catalana de Certificació CATCert');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES, O=Generalitat Valenciana, OU=PKIGVA, CN=ACCV-CA2', 'Autoritat de Certificació de la Comunitat Valenciana (ACCV)');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES,O=FNMT,OU=FNMT Clase 2 CA', 'Fabrica Nacional de Moneda y Timbre');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES, L=MADRID, O=MINISTERIO DE TRABAJO E INMIGRACION, OU=SUBDIRECCION GENERAL DE PROCESO DE DATOS, OU=PRESTADOR DE SERVICIOS DE CERTIFICACION MTIN, SERIALNUMBER=S2819001E, CN=AC1 RAIZ MTIN', 'Prestador de Servicios de Certificación del Ministerio de Trabajo e Inmigración (PSCMTIN).');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES,L=Madrid,E=ac@acabogacia.org,O=Consejo General de la Abogacia NIF:Q-2863006I,OU=Autoridad de Certificacion de la Abogacia,CN=ACA - Certificados Corporativos', 'Autoridad de Certificacion de la Abogacia');
+Insert into CORE_EM_AUTORIZACION_CA (CODCA,NOMBRE) values ('C=ES,O=Agencia Catalana de Certificacio (NIF Q-0801176-I),L=Passatge de la Concepcio 11 08008 Barcelona,OU=Serveis Publics de Certificacio ECV-2,OU=Vegeu https://www.catcert.net/verCIC-2 [^] (c)03,OU=Administracions Locals de Catalunya,CN=EC-AL ', 'Agència Catalana de Certificació CATCert');
+
+UPDATE CORE_EM_AUTORIZACION_CA  SET ID=ID_AUTORIZACION_CA_SEQ.NEXTVAL;
+COMMIT;
 
 --------------------------------------------------------
 --  Inserts for Table SCSP_CODIGO_ERROR
@@ -124,3 +115,26 @@ Insert into SCSP_CODIGO_ERROR (CODIGO,DESCRIPCION) values ('0901','Servicio no d
 Insert into SCSP_CODIGO_ERROR (CODIGO,DESCRIPCION) values ('0902','Modo síncrono no soportado.');
 Insert into SCSP_CODIGO_ERROR (CODIGO,DESCRIPCION) values ('0903','Modo asíncrono no soportado.');
 Insert into SCSP_CODIGO_ERROR (CODIGO,DESCRIPCION) values ('0904','Error general Indefinido {0}');
+
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('cif.emisor','12345678Z','CIF del Emisor');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('nombre.emisor','Emisor1','Nombre del Emisor');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('nivelTraza','DEBUG','Nivel de traza a mostrar en los logs');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('pathLogs','.','Ruta del fichero donde guardaremos los logs');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('logDinamico.enabled','true','Parámetro que indica si se cargará de BBDD la configuración de logs o de fichero');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('core_log.enabled','true','Parámetro que indica si se guardarán trazas en CORE_LOG de los errores ocurridos');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('almacenamiento.ficheros','.','Directorio donde se guardan los ficheros de las peticiones');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('almacenamiento.transmisiones',1,'Parámetro que indica si se guardarán los nodos de las transmisiones');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('keystoreFile','.','Ruta del fichero keystore');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('keystoreType','jks','Tipo de keystore');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('keystorePass','.','Password del keystore');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('afirma.enabled','true','Parámetro que indica si @Firma está activo');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('afirma.idAplicacion','none','Id de aplicación para enviar a @Firma');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('afirma.url','.','URL de @Firma');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('afirma.modoValidacion',2,'Modo de validación del certificado con @Firma');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('afirma.autenticacion.aliasSignerCert','emisor1','Alias del certificado con el que firmamos la peticiones para @Firma');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('custom.cert.validation.class','none','Clase propia de validación de certificados');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('periodo.validacion.certificados',24,'Periodo de validez del certificado en caché');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('tipoId','long','Longitud del identificador de la petición');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('prefijo.idtransmision','em1','Cuando no haya indicado un prefijo asociado al servicio y este si está definido se utilizará este para la generación del id de transmisión.');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('version.datamodel.scsp','4.2.0','Especifica la versión del modelo de datos actual');
+INSERT INTO CORE_PARAMETRO_CONFIGURACION(NOMBRE, VALOR, DESCRIPCION) VALUES('validate.nif.emisor.enabled','true','Flag que indica si se valida el valor del nodo <NifEmisor> de la petición');

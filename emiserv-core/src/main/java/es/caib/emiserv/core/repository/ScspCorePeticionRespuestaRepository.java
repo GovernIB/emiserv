@@ -35,7 +35,7 @@ public interface ScspCorePeticionRespuestaRepository extends JpaRepository<ScspC
 			@Param("esNullProcediment") boolean esNullProcediment,
 			@Param("procediment") String procediment,
 			@Param("esNullServei") boolean esNullServei,
-			@Param("servei") String servei,
+			@Param("servei") Long servei,
 			@Param("esNullEstat") boolean esNullEstat,
 			@Param("esError") boolean esError,
 			@Param("estat") String estat,

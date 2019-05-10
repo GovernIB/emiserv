@@ -188,7 +188,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
 						filtre.getServei() == null || filtre.getServei().isEmpty(),
-						filtre.getServei(),
+						filtre.getServei() != null ? Long.valueOf(filtre.getServei()) : null,
 						filtre.getEstat() == null,
 						PeticioEstatEnumDto.ERROR.equals(filtre.getEstat()),
 						toEstatScsp(filtre.getEstat()),
@@ -502,21 +502,23 @@ public class BackofficeServiceImpl implements BackofficeService {
 			codisServeisPerConsultar.add(servei.getCodi());
 		}
 		// Obté els ids dels serveis SCSP que corresponen als codis obtinguts
-		List<ScspCoreServicioEntity> servicios = scspCoreServicioRepository.findByCodigoCertificadoIn(codisServeisPerConsultar);
-		List<Long> idsServicios = new ArrayList<Long>();
-		for (ScspCoreServicioEntity servicio: servicios) {
-			idsServicios.add(servicio.getId());
-		}
-		// Es cerquen les peticions que compleixin:
-		//		En estat pendent
-		//		Que siguin de tipus asíncron
-		//		Que no estiguin en estat SCSP d'error (estat ha de començar amb "00")
-		//		Que pertanyin a serveis amb el tipus de processament asíncron "Processar com síncrones"
-		List<BackofficePeticioEntity> peticions = backofficePeticioRepository.findAsincronesPendentsDeProcessar(
-				idsServicios);
-		logger.debug("S'han trobat " + peticions.size() + " peticions asíncrones pendents");
-		for (BackofficePeticioEntity peticio: peticions) {
-			backofficeHelper.processarPeticioPendent(peticio.getId());
+		if(codisServeisPerConsultar.size() > 0) {
+			List<ScspCoreServicioEntity> servicios = scspCoreServicioRepository.findByCodigoCertificadoIn(codisServeisPerConsultar);
+			List<Long> idsServicios = new ArrayList<Long>();
+			for (ScspCoreServicioEntity servicio: servicios) {
+				idsServicios.add(servicio.getId());
+			}
+			// Es cerquen les peticions que compleixin:
+			//		En estat pendent
+			//		Que siguin de tipus asíncron
+			//		Que no estiguin en estat SCSP d'error (estat ha de començar amb "00")
+			//		Que pertanyin a serveis amb el tipus de processament asíncron "Processar com síncrones"
+			List<BackofficePeticioEntity> peticions = backofficePeticioRepository.findAsincronesPendentsDeProcessar(
+					idsServicios);
+			logger.debug("S'han trobat " + peticions.size() + " peticions asíncrones pendents");
+			for (BackofficePeticioEntity peticio: peticions) {
+				backofficeHelper.processarPeticioPendent(peticio.getId());
+			}
 		}
 	}
 

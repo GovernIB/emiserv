@@ -72,8 +72,8 @@ public class JdbcMutableAclService extends JdbcAclService implements MutableAclS
     private String classIdentityQuery = "SELECT " + TableNames.SEQUENCE_CLASS + ".CURRVAL FROM DUAL";
     private String sidIdentityQuery = "SELECT " + TableNames.SEQUENCE_SID + ".CURRVAL FROM DUAL";
     // PostgreSQL
-    //private String classIdentityQuery = "select currval(pg_get_serial_sequence('acl_class', 'id'))";
-    //private String sidIdentityQuery = "select currval(pg_get_serial_sequence('acl_sid', 'id'))";
+//    private String classIdentityQuery = "select currval('ems_acl_class_seq')";
+//    private String sidIdentityQuery = "select currval('ems_acl_sid_seq')";
     private String insertClass = "insert into " + TableNames.TABLE_CLASS + " (class) values (?)";
     private String insertEntry = "insert into " + TableNames.TABLE_ENTRY + " "
         + "(acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)"

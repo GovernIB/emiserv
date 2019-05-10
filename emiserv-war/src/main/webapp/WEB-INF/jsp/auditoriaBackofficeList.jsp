@@ -79,7 +79,7 @@ $(document).ready(function() {
 				<emi:inputSelect name="procediment" optionItems="${procediments}" optionValueAttribute="codi" optionTextAttribute="nom" emptyOption="true" placeholderKey="auditoria.list.filtre.procediment" inline="true"/>
 			</div>
 			<div class="col-md-4">
-				<emi:inputSelect name="servei" optionItems="${serveis}" optionValueAttribute="codi" optionTextAttribute="nom" emptyOption="true" placeholderKey="auditoria.list.filtre.servei" inline="true"/>
+				<emi:inputSelect name="servei" optionItems="${serveis}" optionValueAttribute="id" optionTextAttribute="nom" emptyOption="true" placeholderKey="auditoria.list.filtre.servei" inline="true"/>
 			</div>
 			<div class="col-md-4">
 				<emi:inputSelect name="estat" optionItems="${peticioEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true"/>
