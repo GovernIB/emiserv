@@ -23,7 +23,7 @@ public interface ScspCoreEmAutorizacionOrganismoRepository extends JpaRepository
 			"    ScspCoreEmAutorizacionOrganismoEntity scao " +
 			"where " +
 			"    (:esNullNom = true or lower(scao.nombreOrganismo) like lower('%'||:nom||'%')) " +
-			"and (:esNullCif = true or scao.idorganismo = :cif)")
+			"and (:esNullCif = true or lower(scao.idorganismo) like lower('%'||:cif||'%'))")
 	Page<ScspCoreEmAutorizacionOrganismoEntity> findByFiltrePaginat(
 			@Param("esNullNom") boolean esNullNom,
 			@Param("nom") String nom,
