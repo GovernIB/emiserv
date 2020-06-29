@@ -35,7 +35,7 @@ $(document).ready(function() {
 	<form:form action="${formAction}" method="post" cssClass="form-horizontal" commandName="autoritzacioCommand" role="form" style="height:400px;">
 		<form:hidden path="id"/>
 		<emi:inputSelect name="aplicacioId" textKey="autoritzacio.form.camp.aplicacio" required="true" optionItems="${aplicacions}" optionValueAttribute="id" optionTextAttribute="cn" emptyOption="true" emptyOptionTextKey="comu.opcio.sense.definir"/>
-		<emi:inputSelect name="organismeId" textKey="autoritzacio.form.camp.organisme" required="true" optionItems="${organismes}" optionValueAttribute="id" optionTextAttribute="nom" emptyOption="true" emptyOptionTextKey="comu.opcio.sense.definir"/>
+		<emi:inputSelect name="organismeId" textKey="autoritzacio.form.camp.organisme" required="true" optionMinimumResultsForSearch="4" optionItems="${organismes}" optionValueAttribute="id" optionTextAttribute="nom" emptyOption="true" emptyOptionTextKey="comu.opcio.sense.definir"/>
 		<emi:inputDate name="dataAlta" textKey="autoritzacio.form.camp.data.alta"/>
 		<emi:inputDate name="dataBaixa" textKey="autoritzacio.form.camp.data.baixa"/>
 		<div id="modal-botons" class="well">

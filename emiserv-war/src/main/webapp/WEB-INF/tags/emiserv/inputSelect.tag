@@ -19,17 +19,20 @@
 <%@ attribute name="labelSize" required="false" rtexprvalue="true"%>
 <%@ attribute name="inline" required="false" rtexprvalue="true"%>
 <%@ attribute name="disabled" required="false" rtexprvalue="true"%>
+<%@ attribute name="optionMinimumResultsForSearch" required="false" rtexprvalue="true"%>
 <c:set var="campPath" value="${name}"/>
 <c:set var="campErrors"><form:errors path="${campPath}"/></c:set>
 <c:set var="campLabelText"><c:choose><c:when test="${not empty textKey}"><spring:message code="${textKey}"/></c:when><c:when test="${not empty text}">${text}</c:when><c:otherwise>${campPath}</c:otherwise></c:choose><c:if test="${required}">*</c:if></c:set>
 <c:set var="campPlaceholder"><c:choose><c:when test="${not empty placeholderKey}"><spring:message code="${placeholderKey}"/></c:when><c:otherwise>${placeholder}</c:otherwise></c:choose></c:set>
+<c:set var="minimumResultsForSearch"><c:choose><c:when test="${not empty optionMinimumResultsForSearch}">${optionMinimumResultsForSearch}</c:when><c:otherwise>${-1}</c:otherwise></c:choose></c:set>
 <c:set var="campLabelSize" value="${4}"/><c:if test="${not empty labelSize}"><c:set var="campLabelSize" value="${labelSize}"/></c:if>
 <c:choose>
 	<c:when test="${not inline}">
 		<div class="form-group<c:if test="${not empty campErrors}"> has-error</c:if>">
 			<label class="control-label col-xs-${campLabelSize}" for="${campPath}">${campLabelText}</label>
 			<div class="controls col-xs-${12 - campLabelSize}">
-				<form:select path="${campPath}" cssClass="form-control" id="${campPath}" disabled="${disabled}" style="width:100%">
+				<form:select path="${campPath}" cssClass="form-control" id="${campPath}" disabled="${disabled}" 
+							 style="width:100%">
 					<c:if test="${emptyOption == 'true'}">
 						<c:choose>
 							<c:when test="${not empty emptyOptionTextKey}"><option value=""><spring:message code="${emptyOptionTextKey}"/></option></c:when>
@@ -99,7 +102,7 @@ $(document).ready(function() {
 		<c:if test="${not empty campPlaceholder}">placeholder: "${campPlaceholder}",</c:if>
 	    theme: "bootstrap",
 	    allowClear: <c:if test="${emptyOption == 'true'}">true</c:if><c:if test="${emptyOption != 'true'}">false</c:if>,
-	    minimumResultsForSearch: -1
+	    minimumResultsForSearch: ${minimumResultsForSearch}
 	});
 	$("#${campPath}").on('select2-open', function() {
 		var iframe = $('.modal-body iframe', window.parent.document);
