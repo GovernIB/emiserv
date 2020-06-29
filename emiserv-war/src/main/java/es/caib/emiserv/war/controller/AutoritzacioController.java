@@ -19,13 +19,17 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import es.caib.emiserv.core.api.dto.AutoritzacioDto;
+import es.caib.emiserv.core.api.dto.AutoritzacioFiltreDto;
 import es.caib.emiserv.core.api.service.ScspService;
 import es.caib.emiserv.core.api.service.ServeiService;
 import es.caib.emiserv.war.command.AutoritzacioCommand;
+import es.caib.emiserv.war.command.AutoritzacioFiltreCommand;
 import es.caib.emiserv.war.helper.DatatablesHelper;
+import es.caib.emiserv.war.helper.RequestSessionHelper;
 import es.caib.emiserv.war.helper.DatatablesHelper.DatatablesResponse;
 
 /**
@@ -38,6 +42,8 @@ import es.caib.emiserv.war.helper.DatatablesHelper.DatatablesResponse;
 @RequestMapping("/servei/{serveiId}/autoritzacio")
 public class AutoritzacioController extends BaseController {
 
+	private static final String SESSION_ATTRIBUTE_FILTRE = "AutoritzacioController.session.filtre";
+	
 	@Autowired
 	private ScspService scspService;
 	@Autowired
@@ -47,12 +53,46 @@ public class AutoritzacioController extends BaseController {
 
 	@RequestMapping(method = RequestMethod.GET)
 	public String get(
+			HttpServletRequest request,
 			@PathVariable Long serveiId,
 			Model model) {
 		model.addAttribute(
 				"servei",
 				serveiService.findById(serveiId));
+		
+		AutoritzacioFiltreCommand command = (AutoritzacioFiltreCommand)es.caib.emiserv.war.helper.RequestSessionHelper.obtenirObjecteSessio(
+				request,
+				SESSION_ATTRIBUTE_FILTRE);
+		model.addAttribute("organismes", 
+				scspService.organismeFindAll());
+		if (command == null)
+			command = new AutoritzacioFiltreCommand();
+		
+		model.addAttribute(command);
 		return "serveiAutoritzacioList";
+	}
+
+	@RequestMapping(method = RequestMethod.POST)
+	public String post(
+			HttpServletRequest request,
+			@PathVariable Long serveiId,
+			@RequestParam("accio") String accio,
+			@Valid AutoritzacioFiltreCommand command,
+			BindingResult bindingResult,
+			Model model) {
+		if ("netejar".equals(accio)) {
+			RequestSessionHelper.esborrarObjecteSessio(
+					request,
+					SESSION_ATTRIBUTE_FILTRE);
+
+		} else if (!bindingResult.hasErrors()) {
+			RequestSessionHelper.actualitzarObjecteSessio(
+					request,
+					SESSION_ATTRIBUTE_FILTRE,
+					command);
+
+		}
+		return "redirect:autoritzacio";
 	}
 
 	@RequestMapping(value = "/datatable", method = RequestMethod.GET)
@@ -60,10 +100,18 @@ public class AutoritzacioController extends BaseController {
 	public DatatablesResponse datatable(
 			@PathVariable Long serveiId,
 			HttpServletRequest request) {
+		
+		AutoritzacioFiltreCommand command = (AutoritzacioFiltreCommand)RequestSessionHelper.obtenirObjecteSessio(
+				request,
+				SESSION_ATTRIBUTE_FILTRE);
+		if (command == null)
+			command = new AutoritzacioFiltreCommand();
+		AutoritzacioFiltreDto filtre = command.toDto();
+		filtre.setServeiId(serveiId);
 		DatatablesResponse dtr = DatatablesHelper.getDatatableResponse(
 				request,
-				scspService.autoritzacioFindByServeiPaginat(
-						serveiId,
+				scspService.autoritzacioFindByFiltrePaginat(
+						filtre,
 						DatatablesHelper.getPaginacioDtoFromRequest(request)));
 		return dtr;
 	}

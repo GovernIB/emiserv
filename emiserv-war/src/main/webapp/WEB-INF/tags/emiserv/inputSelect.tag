@@ -20,6 +20,7 @@
 <%@ attribute name="inline" required="false" rtexprvalue="true"%>
 <%@ attribute name="disabled" required="false" rtexprvalue="true"%>
 <%@ attribute name="optionMinimumResultsForSearch" required="false" rtexprvalue="true"%>
+<%@ attribute name="hideLabel" required="false" rtexprvalue="true"%>
 <c:set var="campPath" value="${name}"/>
 <c:set var="campErrors"><form:errors path="${campPath}"/></c:set>
 <c:set var="campLabelText"><c:choose><c:when test="${not empty textKey}"><spring:message code="${textKey}"/></c:when><c:when test="${not empty text}">${text}</c:when><c:otherwise>${campPath}</c:otherwise></c:choose><c:if test="${required}">*</c:if></c:set>
@@ -29,7 +30,9 @@
 <c:choose>
 	<c:when test="${not inline}">
 		<div class="form-group<c:if test="${not empty campErrors}"> has-error</c:if>">
-			<label class="control-label col-xs-${campLabelSize}" for="${campPath}">${campLabelText}</label>
+			<c:if test="${hideLabel != 'true'}">
+				<label class="control-label col-xs-${campLabelSize}" for="${campPath}">${campLabelText}</label>
+			</c:if>
 			<div class="controls col-xs-${12 - campLabelSize}">
 				<form:select path="${campPath}" cssClass="form-control" id="${campPath}" disabled="${disabled}" 
 							 style="width:100%">

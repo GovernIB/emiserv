@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import es.caib.emiserv.core.api.dto.AplicacioDto;
 import es.caib.emiserv.core.api.dto.AutoritatCertificacioDto;
 import es.caib.emiserv.core.api.dto.AutoritzacioDto;
+import es.caib.emiserv.core.api.dto.AutoritzacioFiltreDto;
 import es.caib.emiserv.core.api.dto.ClauPrivadaDto;
 import es.caib.emiserv.core.api.dto.ClauPublicaDto;
 import es.caib.emiserv.core.api.dto.EmisorDto;
@@ -355,9 +356,10 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public PaginaDto<AutoritzacioDto> autoritzacioFindByServeiPaginat(
-			Long serveiId,
+	public PaginaDto<AutoritzacioDto> autoritzacioFindByFiltrePaginat(
+			AutoritzacioFiltreDto filtre,
 			PaginacioParamsDto paginacioParams) {
+		Long serveiId = filtre.getServeiId();
 		logger.debug("Consultant autoritzacions per servei amb paginació (" +
 				"serveiId=" + serveiId + ", " +
 				"paginacioParams=" + paginacioParams + ")");
@@ -365,9 +367,18 @@ public class ScspServiceImpl implements ScspService {
 		Map<String, String> mapeigOrdenacio = new HashMap<String, String>();
 		mapeigOrdenacio.put("aplicacioNom", "aplicacion.cn");
 		mapeigOrdenacio.put("organismeNom", "organismo.nombreOrganismo");
+		
+		ScspCoreEmAutorizacionOrganismoEntity organisme = filtre.getOrganismeId() != null ? 
+																scspCoreEmAutorizacionOrganismoRepository.findOne(filtre.getOrganismeId()) : 
+																null;
+
 		return paginacioHelper.toPaginaDto(
-				scspCoreEmAutorizacionCertificadoRepository.findByServicio(
-						servicio,
+				scspCoreEmAutorizacionCertificadoRepository.findByFiltre(
+						servicio, 
+						filtre.getAplicacio() == null || filtre.getAplicacio().length() == 0, 
+						filtre.getAplicacio(), 
+						organisme == null,
+						organisme,
 						paginacioHelper.toSpringDataPageable(
 								paginacioParams,
 								mapeigOrdenacio)),

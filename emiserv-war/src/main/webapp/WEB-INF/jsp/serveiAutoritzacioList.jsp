@@ -15,8 +15,30 @@
 	<script src="<c:url value="/js/webutil.common.js"/>"></script>
 	<script src="<c:url value="/js/webutil.datatable.js"/>"></script>
 	<script src="<c:url value="/js/webutil.modal.js"/>"></script>
+	
+	<link href="<c:url value="/webjars/select2/4.0.1/dist/css/select2.min.css"/>" rel="stylesheet"/>
+	<link href="<c:url value="/webjars/select2-bootstrap-theme/0.1.0-beta.4/dist/select2-bootstrap.min.css"/>" rel="stylesheet"/>
+	<script src="<c:url value="/webjars/select2/4.0.1/dist/js/select2.min.js"/>"></script>
+	<script src="<c:url value="/webjars/select2/4.0.1/dist/js/i18n/${idioma}.js"/>"></script>
 </head>
 <body>
+	<form:form action="" method="post" cssClass="well" commandName="autoritzacioFiltreCommand">
+		<div class="row">
+			<div class="col-md-4">
+				<emi:inputText name="aplicacio" placeholderKey="autoritzacio.list.filtre.aplicacio" inline="true"/>
+			</div>
+			<div class="col-md-6">
+				<emi:inputSelect name="organismeId" optionMinimumResultsForSearch="2" optionItems="${organismes}" hideLabel="true"
+						optionValueAttribute="id" optionTextAttribute="nom"  emptyOption="true" emptyOptionTextKey="comu.opcio.sense.definir"/>
+			</div>
+			<div class="col-md-2">
+				<div class="pull-right">
+					<button type="submit" name="accio" value="netejar" class="btn btn-default"><spring:message code="comu.boto.netejar"/></button>
+					<button type="submit" name="accio" value="filtrar" class="btn btn-primary"><span class="fa fa-filter"></span> <spring:message code="comu.boto.filtrar"/></button>
+				</div>
+			</div>
+		</div>
+	</form:form>
 	<table id="aplicacions" data-toggle="datatable" data-url="autoritzacio/datatable" data-search-enabled="false" data-botons-template="#botonsTemplate" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>

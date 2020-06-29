@@ -15,6 +15,7 @@ import org.springframework.ejb.interceptor.SpringBeanAutowiringInterceptor;
 import es.caib.emiserv.core.api.dto.AplicacioDto;
 import es.caib.emiserv.core.api.dto.AutoritatCertificacioDto;
 import es.caib.emiserv.core.api.dto.AutoritzacioDto;
+import es.caib.emiserv.core.api.dto.AutoritzacioFiltreDto;
 import es.caib.emiserv.core.api.dto.ClauPrivadaDto;
 import es.caib.emiserv.core.api.dto.ClauPublicaDto;
 import es.caib.emiserv.core.api.dto.EmisorDto;
@@ -144,11 +145,11 @@ public class ScspServiceBean implements ScspService {
 
 	@Override
 	@RolesAllowed("EMS_ADMIN")
-	public PaginaDto<AutoritzacioDto> autoritzacioFindByServeiPaginat(
-			Long serveiId,
+	public PaginaDto<AutoritzacioDto> autoritzacioFindByFiltrePaginat(
+			AutoritzacioFiltreDto filtre,
 			PaginacioParamsDto paginacioParams) {
-		return delegate.autoritzacioFindByServeiPaginat(
-				serveiId,
+		return delegate.autoritzacioFindByFiltrePaginat(
+				filtre,
 				paginacioParams);
 	}
 

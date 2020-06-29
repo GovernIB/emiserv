@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import es.caib.emiserv.core.api.dto.AplicacioDto;
 import es.caib.emiserv.core.api.dto.AutoritatCertificacioDto;
 import es.caib.emiserv.core.api.dto.AutoritzacioDto;
+import es.caib.emiserv.core.api.dto.AutoritzacioFiltreDto;
 import es.caib.emiserv.core.api.dto.ClauPrivadaDto;
 import es.caib.emiserv.core.api.dto.ClauPublicaDto;
 import es.caib.emiserv.core.api.dto.EmisorDto;
@@ -202,8 +203,8 @@ public interface ScspService {
 	 * @return La pàgina d'autoritzacions.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
-	public PaginaDto<AutoritzacioDto> autoritzacioFindByServeiPaginat(
-			Long serveiId,
+	public PaginaDto<AutoritzacioDto> autoritzacioFindByFiltrePaginat(
+			AutoritzacioFiltreDto filtre,
 			PaginacioParamsDto paginacioParams);
 
 	/**
