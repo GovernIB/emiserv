@@ -134,6 +134,18 @@ public interface ScspService {
 	public OrganismeDto organismeFindById(Long id) throws NotFoundException;
 
 	/**
+	 * Consulta un organisme donat el seu cif.
+	 * 
+	 * @param id
+	 *            Atribut id de l'organisme a trobar.
+	 * @return L'organisme amb l'id especificat.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap organisme amb l'id especificat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public List<OrganismeDto> organismeFindByCif(String cif) throws NotFoundException;
+	
+	/**
 	 * Consulta dels organismes amb filtre i paginació.
 	 * 
 	 * @param filtre

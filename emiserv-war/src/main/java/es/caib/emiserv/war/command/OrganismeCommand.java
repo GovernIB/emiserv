@@ -13,12 +13,14 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import es.caib.emiserv.core.api.dto.OrganismeDto;
 import es.caib.emiserv.war.helper.ConversioTipusHelper;
+import es.caib.emiserv.war.validation.CifOrganismeNoRepetit;
 
 /**
  * Informació d'un organisme per a autoritzacions.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@CifOrganismeNoRepetit(campId = "id", campCif = "cif")
 public class OrganismeCommand {
 
 	public Long id;

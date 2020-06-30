@@ -11,6 +11,7 @@ import javax.interceptor.Interceptors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ejb.interceptor.SpringBeanAutowiringInterceptor;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import es.caib.emiserv.core.api.dto.AplicacioDto;
 import es.caib.emiserv.core.api.dto.AutoritatCertificacioDto;
@@ -103,6 +104,12 @@ public class ScspServiceBean implements ScspService {
 	public OrganismeDto organismeFindById(
 			Long id) throws NotFoundException {
 		return delegate.organismeFindById(id);
+	}
+	
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public List<OrganismeDto> organismeFindByCif(String cif) throws NotFoundException {
+		return delegate.organismeFindByCif(cif);
 	}
 
 	@Override

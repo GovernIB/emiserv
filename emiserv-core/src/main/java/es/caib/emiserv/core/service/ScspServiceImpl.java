@@ -226,6 +226,15 @@ public class ScspServiceImpl implements ScspService {
 		}
 		return toOrganismeDto(entity);
 	}
+	
+	public List<OrganismeDto> organismeFindByCif(String cif) throws NotFoundException {
+		List<ScspCoreEmAutorizacionOrganismoEntity> organismes = scspCoreEmAutorizacionOrganismoRepository.findByCif(cif);
+		List<OrganismeDto> resposta = new ArrayList<OrganismeDto>();
+		for (ScspCoreEmAutorizacionOrganismoEntity organisme: organismes) {
+			resposta.add(toOrganismeDto(organisme));
+		}
+		return resposta;
+	}
 
 	@Transactional(readOnly = true)
 	@Override
