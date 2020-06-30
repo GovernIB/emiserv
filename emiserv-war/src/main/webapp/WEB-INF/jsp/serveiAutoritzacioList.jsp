@@ -61,4 +61,5 @@
 	<script id="botonsTemplate" type="text/x-jsrender">
 		<a id="accio-new" class="btn btn-default pull-right" href="autoritzacio/new" data-toggle="modal" data-datatable-id="aplicacions"><span class="fa fa-plus"></span>&nbsp;<spring:message code="autoritzacio.list.boto.nova.autoritzacio"/></a>
 	</script>
+	<a href="<c:url value="/servei"/>" class="btn btn-default pull-right"><span class="fa fa-arrow-left"></span>&nbsp;<spring:message code="comu.boto.tornar"/></a>
 </body>
