@@ -23,6 +23,9 @@ pageContext.setAttribute(
 pageContext.setAttribute(
 		"requestParameterCanviRol",
 		es.caib.emiserv.war.helper.RolHelper.getRequestParameterCanviRol());
+pageContext.setAttribute(
+		"nomUsuariActual",
+		es.caib.emiserv.war.helper.AplicacioHelper.getUsuariActual(request));
 %>
 <c:set var="hiHaEntitats" value="${fn:length(sessionEntitats) > 0}"/>
 <c:set var="hiHaMesEntitats" value="${fn:length(sessionEntitats) > 1}"/>
@@ -143,7 +146,7 @@ body {
 							<span class="fa fa-user"></span>
 							<c:choose>
 								<c:when test="${not empty dadesUsuariActual}">${dadesUsuariActual.nom}</c:when>
-								<c:otherwise>${pageContext.request.userPrincipal.name}</c:otherwise>
+								<c:otherwise>${ nomUsuariActual }</c:otherwise>
 							</c:choose>
 						</li>
 					</ul>

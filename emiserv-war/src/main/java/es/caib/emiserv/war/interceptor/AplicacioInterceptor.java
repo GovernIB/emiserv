@@ -30,6 +30,7 @@ public class AplicacioInterceptor extends HandlerInterceptorAdapter {
 			HttpServletResponse response,
 			Object handler) throws Exception {
 		AplicacioHelper.comprovarVersioActual(request, aplicacioService);
+		AplicacioHelper.getUsuariActual(request, aplicacioService);
 		return true;
 	}
 
