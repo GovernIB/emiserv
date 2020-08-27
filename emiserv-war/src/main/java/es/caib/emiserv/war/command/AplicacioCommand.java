@@ -28,7 +28,7 @@ public class AplicacioCommand {
 	@NotEmpty @Size(max = 64)
 	private String numeroSerie;
 	@NotEmpty @Size(max = 512)
-	private String codiCa;
+	private String autoridadCertifId;
 	private Date dataAlta;
 	private Date dataBaixa;
 
@@ -55,13 +55,15 @@ public class AplicacioCommand {
 	}
 	public void setNumeroSerie(String numeroSerie) {
 		this.numeroSerie = numeroSerie;
+	}	
+	public String getAutoridadCertifId() {
+		return autoridadCertifId;
 	}
-	public String getCodiCa() {
-		return codiCa;
+	
+	public void setAutoridadCertifId(String autoridadCertifId) {
+		this.autoridadCertifId = autoridadCertifId;
 	}
-	public void setCodiCa(String codiCa) {
-		this.codiCa = codiCa;
-	}
+
 	public Date getDataAlta() {
 		return dataAlta;
 	}

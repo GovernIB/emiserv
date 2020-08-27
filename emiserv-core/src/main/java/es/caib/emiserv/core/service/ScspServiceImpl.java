@@ -82,7 +82,7 @@ public class ScspServiceImpl implements ScspService {
 				aplicacio.getCertificatNif(),
 				aplicacio.getNumeroSerie(),
 				aplicacio.getCn(),
-				aplicacio.getCodiCa()).
+				aplicacio.getAutoridadCertifId()).
 				fechaAlta(aplicacio.getDataAlta()).
 				fechaBaja(aplicacio.getDataBaixa()).
 				build();
@@ -106,7 +106,7 @@ public class ScspServiceImpl implements ScspService {
 				aplicacio.getCertificatNif(),
 				aplicacio.getNumeroSerie(),
 				aplicacio.getCn(),
-				aplicacio.getCodiCa(),
+				aplicacio.getAutoridadCertifId(),
 				aplicacio.getDataAlta(),
 				aplicacio.getDataBaixa());
 	}
@@ -459,6 +459,7 @@ public class ScspServiceImpl implements ScspService {
 		List<AutoritatCertificacioDto> resposta = new ArrayList<AutoritatCertificacioDto>();
 		for (ScspCoreEmAutorizacionAutoridadCertEntity autoritat: autoritats) {
 			AutoritatCertificacioDto dto = new AutoritatCertificacioDto();
+			dto.setId(autoritat.getId());
 			dto.setCodi(autoritat.getCodca());
 			dto.setNom(autoritat.getNombre());
 			resposta.add(dto);
@@ -502,7 +503,8 @@ public class ScspServiceImpl implements ScspService {
 		dto.setNumeroSerie(entity.getNumeroSerie());
 		dto.setCn(entity.getCn());
 		dto.setDarreraComprovacio(entity.getTiempoComprobacion());
-		dto.setCodiCa(entity.getAutoridadcertif());
+		dto.setAutoridadCertifId(entity.getAutoridadcertif());
+		
 		dto.setDataAlta(entity.getFechaAlta());
 		dto.setDataBaixa(entity.getFechaBaja());
 		return dto;

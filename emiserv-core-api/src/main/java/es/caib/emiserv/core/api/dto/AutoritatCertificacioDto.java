@@ -14,6 +14,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  */
 public class AutoritatCertificacioDto implements Serializable {
 
+	private Long id;
 	private String codi;
 	private String nom;
 	
@@ -30,9 +31,20 @@ public class AutoritatCertificacioDto implements Serializable {
 		this.nom = nom;
 	}
 
+	public String getFormatName() {
+		return this.nom + " (" + this.codi + ")";
+	}
+	
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
+	}
+
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	private static final long serialVersionUID = -8620175604318725073L;

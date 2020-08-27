@@ -33,16 +33,23 @@ public class ScspCoreEmAutorizacionAplicacionEntity {
 			})
 	@GeneratedValue(generator = "sequence")
 	private Integer idAplicacion;
+	
 	@Column(length = 16)
 	private String nifCertificado;
+	
 	@Column(length = 64, nullable = false)
 	private String numeroSerie;
+	
 	@Column(length = 512)
 	private String cn;
+	
 	private Date tiempoComprobacion;
-	private String autoridadcertif;
+	
+	private Long autoridadcertif;
+	
 	@Column(name = "fechaalta")
 	private Date fechaAlta;
+	
 	@Column(name = "fechabaja")
 	private Date fechaBaja;
 
@@ -61,7 +68,7 @@ public class ScspCoreEmAutorizacionAplicacionEntity {
 	public Date getTiempoComprobacion() {
 		return tiempoComprobacion;
 	}
-	public String getAutoridadcertif() {
+	public Long getAutoridadcertif() {
 		return autoridadcertif;
 	}
 	public Date getFechaAlta() {
@@ -75,7 +82,7 @@ public class ScspCoreEmAutorizacionAplicacionEntity {
 			String nifCertificado,
 			String numeroSerie,
 			String cn,
-			String autoridadcertif,
+			Long autoridadcertif,
 			Date fechaAlta,
 			Date fechaBaja) {
 		this.nifCertificado = nifCertificado;
@@ -90,12 +97,12 @@ public class ScspCoreEmAutorizacionAplicacionEntity {
 			String nifCertificado,
 			String numeroSerie,
 			String cn,
-			String codca) {
+			Long autoridadcertif) {
 		return new Builder(
 				nifCertificado,
 				numeroSerie,
 				cn,
-				codca);
+				autoridadcertif);
 	}
 
 	public static class Builder {
@@ -104,7 +111,7 @@ public class ScspCoreEmAutorizacionAplicacionEntity {
 				String nifCertificado,
 				String numeroSerie,
 				String cn,
-				String autoridadcertif) {
+				Long autoridadcertif) {
 			built = new ScspCoreEmAutorizacionAplicacionEntity();
 			built.nifCertificado = nifCertificado;
 			built.numeroSerie = numeroSerie;

@@ -36,6 +36,8 @@
 		</thead>
 	</table>
 	<script id="botonsTemplate" type="text/x-jsrender">
-		<a id="accio-new" class="btn btn-default pull-right" href="aplicacio/new" data-toggle="modal" data-datatable-id="aplicacions"><span class="fa fa-plus"></span>&nbsp;<spring:message code="aplicacio.list.boto.nova.aplicacio"/></a>
+		<a id="accio-new" class="btn btn-default pull-right" href="aplicacio/new" data-toggle="modal" data-datatable-id="aplicacions">
+			<span class="fa fa-plus"></span>&nbsp;<spring:message code="aplicacio.list.boto.nova.aplicacio"/>
+		</a>
 	</script>
 </body>

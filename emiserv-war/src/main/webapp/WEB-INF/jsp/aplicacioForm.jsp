@@ -10,7 +10,7 @@ pageContext.setAttribute(
 		org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).getLanguage());
 %>
 <c:choose>
-	<c:when test="${empty serveiCommand.id}"><c:set var="titol"><spring:message code="aplicacio.form.titol.crear"/></c:set></c:when>
+	<c:when test="${empty aplicacioCommand.id}"><c:set var="titol"><spring:message code="aplicacio.form.titol.crear"/></c:set></c:when>
 	<c:otherwise><c:set var="titol"><spring:message code="aplicacio.form.titol.modificar"/></c:set></c:otherwise>
 </c:choose>
 <html>
@@ -36,7 +36,9 @@ $(document).ready(function() {
 		<form:hidden path="id"/>
 		<emi:inputText name="certificatNif" textKey="aplicacio.form.camp.cif" required="true"/>
 		<emi:inputText name="cn" textKey="aplicacio.form.camp.nom" required="true"/>
-		<emi:inputSelect name="codiCa" textKey="aplicacio.form.camp.ca" required="true" optionItems="${autoritatsCertificacio}" optionValueAttribute="codi" optionTextAttribute="nom"/>
+		<emi:inputSelect name="autoridadCertifId" textKey="aplicacio.form.camp.ca"
+						 required="true" optionItems="${autoritatsCertificacio}"
+						 optionValueAttribute="id" optionTextAttribute="formatName" />
 		<emi:inputText name="numeroSerie" textKey="aplicacio.form.camp.num.serie" required="true"/>
 		<emi:inputDate name="dataAlta" textKey="organisme.form.camp.data.alta"/>
 		<emi:inputDate name="dataBaixa" textKey="organisme.form.camp.data.baixa"/>

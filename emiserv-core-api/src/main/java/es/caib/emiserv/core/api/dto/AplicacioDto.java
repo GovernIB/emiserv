@@ -20,6 +20,7 @@ public class AplicacioDto {
 	private String numeroSerie;
 	private Date darreraComprovacio;
 	private String codiCa;
+	private Long autoridadCertifId;
 	private Date dataAlta;
 	private Date dataBaixa;
 
@@ -74,6 +75,12 @@ public class AplicacioDto {
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
+	}
+	public Long getAutoridadCertifId() {
+		return autoridadCertifId;
+	}
+	public void setAutoridadCertifId(Long autoridadCertifId) {
+		this.autoridadCertifId = autoridadCertifId;
 	}
 
 }
