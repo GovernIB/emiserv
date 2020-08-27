@@ -1,3 +1,11 @@
+.container-caib {
+	width: 96% !important;
+	padding-left: 60px !important;
+	padding-right: 20px !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	min-width: 1000px;
+}
 .navbar-app {
 	background-color: #ff9523;
 	height: 100px;
@@ -16,7 +24,6 @@
 .navbar-app .list-inline li.dropdown>a {
 	color: white;
 	text-decoration: none;
-	background-color: #ff9523;
 }
 .navbar-app .navbar-nav {
 	padding-top: 16px;
@@ -28,17 +35,13 @@
 #govern-logo {
 	border-right: 1px solid #FFFFFF;
 	display: block;
-	margin-top: 11px;
-	padding: 5px 24px 12px 0;
+	padding: 0px 24px 0px 12px;
 }
 #app-logo {
 	display: block;
 	padding: 0 0 0 12px;
 }
 
-.container-main>.panel-default {
- 	margin-bottom: 10px !important;
-}
 .container-main, .container-foot {
 	padding-right: 0;
 	padding-left: 0;
@@ -46,6 +49,17 @@
 .container-main .panel-heading h2 {
 	margin-top: 10px;
 	margin-bottom: 0px;
+}
+
+.container-main>.panel-default {
+	margin-bottom: 10px;
+}
+
+.container-nocappeus {
+	padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 .caret-white {
@@ -94,4 +108,28 @@ table.dataTable tr.datatable-dades-carregant div {
 	padding-top: 3.7em;
 	text-align: center;
 	background-color: white;
+}
+.ocult {
+	display: none;
+}
+
+.comentari {
+	font-size: 12px;
+	color: #999;
+	margin-bottom: 0px;
+}
+
+a.exemple_boto {
+	margin-top: 2px;
+	background-color: #d9d9d9;
+}
+
+div.exemple {
+	display: none;
+	margin-top: 2px;
+}
+
+.selection-disabled {
+	pointer-events: none;
+	opacity: .65;
 }

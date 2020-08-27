@@ -73,17 +73,11 @@ body {
 <body>
 
 	<div class="navbar navbar-default navbar-fixed-top navbar-app" role="navigation">
-		<div class="container">
+		<div class="container container-caib">
 			<div class="navbar-header">
-				<%--button class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button--%>
 				<div class="navbar-brand">
 					<div id="govern-logo" class="pull-left">
-						<img src="<c:url value="/img/govern-logo.png"/>" alt="Govern de les Illes Balears" />
+						<img src="<c:url value="/img/govern-logo.png"/>" height="65"  alt="<spring:message code="decorator.govern"/>" />
 					</div>
 					<div id="app-logo" class="pull-left">
 						<span id="app-logo-icon" class="fa-stack fa-3x">
@@ -180,7 +174,7 @@ body {
 			</div>
 		</div>
 	</div>
-	<div class="container container-main">
+	<div class="container container-main container-caib">
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<h2>
@@ -198,7 +192,7 @@ body {
 			</div>
 		</div>
 	</div>
-	<div class="container container-foot">
+	<div class="container container-foot container-caib">
 		<div class="pull-left app-version"><p>EMISERV <emi:versio/></p></div>
         <div class="pull-right govern-footer">
         	<p>
