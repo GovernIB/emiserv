@@ -9,9 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
@@ -25,6 +29,7 @@ import es.caib.emiserv.core.api.dto.AutoritzacioFiltreDto;
 import es.caib.emiserv.core.api.dto.ClauPrivadaDto;
 import es.caib.emiserv.core.api.dto.ClauPublicaDto;
 import es.caib.emiserv.core.api.dto.EmisorDto;
+import es.caib.emiserv.core.api.dto.OrganismeCessionariDto;
 import es.caib.emiserv.core.api.dto.OrganismeDto;
 import es.caib.emiserv.core.api.dto.OrganismeFiltreDto;
 import es.caib.emiserv.core.api.dto.PaginaDto;
@@ -32,19 +37,26 @@ import es.caib.emiserv.core.api.dto.PaginacioParamsDto;
 import es.caib.emiserv.core.api.exception.NotFoundException;
 import es.caib.emiserv.core.api.service.ScspService;
 import es.caib.emiserv.core.entity.ScspCoreEmAutorizacionAplicacionEntity;
-import es.caib.emiserv.core.entity.ScspCoreEmAutorizacionAutoridadCertEntity;
 import es.caib.emiserv.core.entity.ScspCoreEmAutorizacionCertificadoEntity;
 import es.caib.emiserv.core.entity.ScspCoreEmAutorizacionOrganismoEntity;
 import es.caib.emiserv.core.entity.ScspCoreServicioEntity;
 import es.caib.emiserv.core.entity.ServeiEntity;
+import es.caib.emiserv.core.entity.scsp.ClauPrivadaEntity;
+import es.caib.emiserv.core.entity.scsp.ClauPublicaEntity;
+import es.caib.emiserv.core.entity.scsp.OrganismeCessionariEntity;
+import es.caib.emiserv.core.entity.scsp.ScspCoreEmAutorizacionAutoridadCertEntity;
+import es.caib.emiserv.core.helper.ConversioTipusHelper;
 import es.caib.emiserv.core.helper.PaginacioHelper;
 import es.caib.emiserv.core.helper.PaginacioHelper.Converter;
 import es.caib.emiserv.core.repository.ScspCoreEmAutorizacionAplicacionRepository;
-import es.caib.emiserv.core.repository.ScspCoreEmAutorizacionAutoridadCertRepository;
 import es.caib.emiserv.core.repository.ScspCoreEmAutorizacionCertificadoRepository;
 import es.caib.emiserv.core.repository.ScspCoreEmAutorizacionOrganismoRepository;
 import es.caib.emiserv.core.repository.ScspCoreServicioRepository;
 import es.caib.emiserv.core.repository.ServeiRepository;
+import es.caib.emiserv.core.repository.scsp.ClauPrivadaRepository;
+import es.caib.emiserv.core.repository.scsp.ClauPublicaRepository;
+import es.caib.emiserv.core.repository.scsp.OrganismeCessionariRepository;
+import es.caib.emiserv.core.repository.scsp.ScspCoreEmAutorizacionAutoridadCertRepository;
 
 /**
  * Implementació dels mètodes per a gestionar els manteniments
@@ -67,7 +79,14 @@ public class ScspServiceImpl implements ScspService {
 	private ScspCoreEmAutorizacionAutoridadCertRepository scspCoreEmAutorizacionAutoridadCertRepository;
 	@Autowired
 	private ScspCoreEmAutorizacionCertificadoRepository scspCoreEmAutorizacionCertificadoRepository;
-
+	@Autowired
+	private ClauPrivadaRepository clauPrivadaRepository;
+	@Autowired
+	private ClauPublicaRepository clauPublicaRepository;
+	@Autowired
+	private OrganismeCessionariRepository organismeCessionariRepository;
+	@Resource
+	private ConversioTipusHelper conversioTipusHelper;
 	@Autowired
 	private PaginacioHelper paginacioHelper;
 
@@ -247,15 +266,16 @@ public class ScspServiceImpl implements ScspService {
 		Map<String, String> mapeigOrdenacio = new HashMap<String, String>();
 		mapeigOrdenacio.put("cif", "idorganismo");
 		mapeigOrdenacio.put("nom", "nombreOrganismo");
+		Page<ScspCoreEmAutorizacionOrganismoEntity> page = scspCoreEmAutorizacionOrganismoRepository.findByFiltrePaginat(
+				(filtre.getNom() == null || filtre.getNom().isEmpty()),
+				filtre.getNom() != null ? filtre.getNom(): "",
+				(filtre.getCif() == null || filtre.getCif().isEmpty()),
+				filtre.getCif(),
+				paginacioHelper.toSpringDataPageable(
+						paginacioParams,
+						mapeigOrdenacio));
 		return paginacioHelper.toPaginaDto(
-				scspCoreEmAutorizacionOrganismoRepository.findByFiltrePaginat(
-						(filtre.getNom() == null || filtre.getNom().isEmpty()),
-						filtre.getNom() != null ? filtre.getNom(): "",
-						(filtre.getCif() == null || filtre.getCif().isEmpty()),
-						filtre.getCif(),
-						paginacioHelper.toSpringDataPageable(
-								paginacioParams,
-								mapeigOrdenacio)),
+				page,
 				OrganismeDto.class,
 				new Converter<ScspCoreEmAutorizacionOrganismoEntity, OrganismeDto>() {
 					@Override
@@ -452,23 +472,6 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public List<AutoritatCertificacioDto> autoridadCertificacionFindAll() {
-		logger.debug("Consulta la llista d'autoritats de certificació SCSP");
-		List<ScspCoreEmAutorizacionAutoridadCertEntity> autoritats = scspCoreEmAutorizacionAutoridadCertRepository.findAll(
-				new Sort(new Order(Direction.ASC, "nombre")));
-		List<AutoritatCertificacioDto> resposta = new ArrayList<AutoritatCertificacioDto>();
-		for (ScspCoreEmAutorizacionAutoridadCertEntity autoritat: autoritats) {
-			AutoritatCertificacioDto dto = new AutoritatCertificacioDto();
-			dto.setId(autoritat.getId());
-			dto.setCodi(autoritat.getCodca());
-			dto.setNom(autoritat.getNombre());
-			resposta.add(dto);
-		}
-		return resposta;
-	}
-
-	@Transactional(readOnly = true)
-	@Override
 	public List<AplicacioDto> aplicacioFindAll() {
 		logger.debug("Consulta la llista d'aplicacions SCSP");
 		List<ScspCoreEmAutorizacionAplicacionEntity> aplicacions = scspCoreEmAutorizacionAplicacionRepository.findAll(
@@ -556,6 +559,275 @@ public class ScspServiceImpl implements ScspService {
 		return servicio;
 	}
 
-	private static final Logger logger = LoggerFactory.getLogger(ScspServiceImpl.class);
 
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<OrganismeCessionariDto> findAllOrganismeCessionari() {
+		logger.debug("Consulta de tots els organismes cessionaris");
+		
+		List<OrganismeCessionariEntity> llista = organismeCessionariRepository.findAll();
+		
+		return conversioTipusHelper.convertirList(
+				llista,
+				OrganismeCessionariDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PaginaDto<ClauPublicaDto> clauPublicaFindByFiltrePaginat(PaginacioParamsDto paginacioParams) {
+		logger.debug("Consulta de tots els claus públiques");
+		Pageable pageable = paginacioHelper.toSpringDataPageable(paginacioParams); 
+		Page<ClauPublicaEntity> page = clauPublicaRepository.findAll(pageable);
+		
+		return paginacioHelper.toPaginaDto(page, ClauPublicaDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ClauPublicaDto findClauPublicaById(Long id) throws NotFoundException {
+		logger.debug("Consulta un clau publica (id = " + id + ")");
+		
+		return conversioTipusHelper.convertir(
+				clauPublicaRepository.findById(id),
+				ClauPublicaDto.class);
+	}
+
+	@Override
+	@Transactional
+	public ClauPublicaDto clauPublicaCreate(ClauPublicaDto item) {
+		logger.debug("Creant una nou emissor de certificat : " + item);
+		
+		ClauPublicaEntity entity = ClauPublicaEntity.getBuilder(
+				item.getAlies(),
+				item.getNom(),
+				item.getNumSerie(),
+				item.getDataAlta(),
+				item.getDataBaixa()).build();
+		
+		return conversioTipusHelper.convertir(
+				clauPublicaRepository.save(entity),
+				ClauPublicaDto.class);
+	}
+
+	@Override
+	@Transactional
+	public ClauPublicaDto clauPublicaUpdate(ClauPublicaDto item) throws NotFoundException {
+		logger.debug("Actualitzant el clau publica (id = " + item.getId() +
+					 ") amb la informació: " + item);
+		
+		ClauPublicaEntity entity = clauPublicaRepository.findById(item.getId());
+		if (entity == null) {
+			logger.debug("No s'ha trobat el clau publica (id = " + item.getId() + ")");
+			throw new NotFoundException(item.getId(), ClauPublicaEntity.class);
+		}
+		
+		entity.update(
+				item.getAlies(),
+				item.getNom(),
+				item.getNumSerie(),
+				item.getDataAlta(),
+				item.getDataBaixa());
+		
+		return conversioTipusHelper.convertir(
+				entity,
+				ClauPublicaDto.class);
+	}
+
+	@Override
+	@Transactional
+	public void clauPublicaDelete(Long id) throws NotFoundException {
+		logger.debug("Esborrant el clau publica (id =" + id + ")");
+		
+		ClauPublicaEntity entity = clauPublicaRepository.findById(id);
+		if (entity == null) {
+			logger.debug("No s'ha trobat el clau publica (id = " + id + ")");
+			throw new NotFoundException(id, ClauPublicaEntity.class);
+		}
+		
+		clauPublicaRepository.delete(entity);
+		
+//		return dtoMappingHelper.getMapperFacade().map(
+//				entity,
+//				ClauPublicaDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PaginaDto<ClauPrivadaDto> clauPrivadaFindByFiltrePaginat(PaginacioParamsDto paginacioParams) {
+		logger.debug("Consulta de tots les claus privades");
+		Pageable pageable = paginacioHelper.toSpringDataPageable(paginacioParams); 
+
+		Page<ClauPrivadaEntity> page = clauPrivadaRepository.findAll(pageable);
+		
+		return paginacioHelper.toPaginaDto(page, ClauPrivadaDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ClauPrivadaDto findClauPrivadaById(Long id) throws NotFoundException {
+		logger.debug("Consulta una clau privada (id = " + id + ")");
+		
+		return conversioTipusHelper.convertir(
+				clauPrivadaRepository.findById(id),
+				ClauPrivadaDto.class);
+	}
+
+	@Override
+	@Transactional
+	public ClauPrivadaDto clauPrivadaCreate(ClauPrivadaDto item) {
+		logger.debug("Creant una nova clau privada : " + item);
+		
+		OrganismeCessionariEntity organisme = organismeCessionariRepository.findById(
+				item.getOrganisme());
+		ClauPrivadaEntity entity = ClauPrivadaEntity.builder()
+				.alies(item.getAlies())
+				.nom(item.getNom())
+				.password(item.getPassword())
+				.numSerie(item.getNumSerie())
+				.dataBaixa(item.getDataBaixa())
+				.dataAlta(item.getDataAlta())
+				.interoperabilitat(item.getInteroperabilitat())
+				.organisme(organisme).build();
+		
+		return conversioTipusHelper.convertir(
+				clauPrivadaRepository.save(entity),
+				ClauPrivadaDto.class);
+	}
+
+	@Override
+	@Transactional
+	public ClauPrivadaDto clauPrivadaUpdate(ClauPrivadaDto item) throws NotFoundException {
+		logger.debug("Actualitzant la clau privada (id = " + item.getId() +
+					 ") amb la informació: " + item);
+		
+		ClauPrivadaEntity entity = clauPrivadaRepository.findById(item.getId());
+		if (entity == null) {
+			logger.debug("No s'ha trobat la clau privada (id = " + item.getId() + ")");
+			throw new NotFoundException(item.getId(), ClauPublicaEntity.class);
+		}
+		
+		OrganismeCessionariEntity organisme = organismeCessionariRepository.findById(
+				item.getOrganisme());
+		entity.update(
+				item.getAlies(),
+				item.getNom(),
+				item.getPassword(),
+				item.getNumSerie(),
+				item.getDataBaixa(),
+				item.getDataAlta(),
+				item.getInteroperabilitat(),
+				organisme);
+		
+		return conversioTipusHelper.convertir(
+				entity,
+				ClauPrivadaDto.class);
+	}
+
+	@Override
+	@Transactional
+	public void clauPrivadaDelete(Long id) throws NotFoundException {
+		logger.debug("Esborrant la clau privada (id =" + id + ")");
+		
+		ClauPrivadaEntity entity = clauPrivadaRepository.findById(id);
+		if (entity == null) {
+			logger.debug("No s'ha trobat la clau privada (id = " + id + ")");
+			throw new NotFoundException(id, ClauPublicaEntity.class);
+		}
+		
+		clauPrivadaRepository.delete(entity);
+		
+//		return conversioTipusHelper.convertir(
+//				entity,
+//				ClauPrivadaDto.class);
+		
+	}
+
+
+	@Transactional(readOnly = true)
+	@Override
+	public List<AutoritatCertificacioDto> autoridadCertificacionFindAll() {
+		logger.debug("Consulta la llista d'autoritats de certificació SCSP");
+		List<ScspCoreEmAutorizacionAutoridadCertEntity> autoritats = scspCoreEmAutorizacionAutoridadCertRepository.findAll(
+				new Sort(new Order(Direction.ASC, "nombre")));
+		List<AutoritatCertificacioDto> resposta = new ArrayList<AutoritatCertificacioDto>();
+		for (ScspCoreEmAutorizacionAutoridadCertEntity autoritat: autoritats) {
+			AutoritatCertificacioDto dto = new AutoritatCertificacioDto();
+			dto.setId(autoritat.getId());
+			dto.setCodca(autoritat.getCodca());
+			dto.setNombre(autoritat.getNombre());
+			resposta.add(dto);
+		}
+		return resposta;
+	}
+
+	@Override
+	public PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(
+			PaginacioParamsDto paginacioParams) {
+		logger.debug("Consulta de tots les autoritat de certificació");
+		Pageable pageable = paginacioHelper.toSpringDataPageable(paginacioParams); 
+
+		Page<ScspCoreEmAutorizacionAutoridadCertEntity> page = scspCoreEmAutorizacionAutoridadCertRepository.findAll(pageable);
+		
+		return paginacioHelper.toPaginaDto(page, AutoritatCertificacioDto.class);
+	}
+
+	@Override
+	public AutoritatCertificacioDto autoritatCertificacioFindById(Long id) throws NotFoundException {
+		logger.debug("Consulta una autoritat de certificació (id = " + id + ")");
+		
+		return conversioTipusHelper.convertir(
+				scspCoreEmAutorizacionAutoridadCertRepository.findById(id),
+				AutoritatCertificacioDto.class);
+	}
+
+	@Override
+	public AutoritatCertificacioDto autoritatCertificacioCreate(AutoritatCertificacioDto item) {
+		logger.debug("Creant una nova autoritat de certificació : " + item);
+		
+		ScspCoreEmAutorizacionAutoridadCertEntity entity = ScspCoreEmAutorizacionAutoridadCertEntity.builder()
+				.codca(item.getCodca())
+				.nombre(item.getNombre())
+				.build();
+		
+		return conversioTipusHelper.convertir(
+				scspCoreEmAutorizacionAutoridadCertRepository.save(entity),
+				AutoritatCertificacioDto.class);
+	}
+
+	@Override
+	public AutoritatCertificacioDto autoritatCertificacioUpdate(AutoritatCertificacioDto item) throws NotFoundException {
+		logger.debug("Actualitzant la autoritat de certificació (id = " + item.getId() +
+					 ") amb la informació: " + item);
+		
+		ScspCoreEmAutorizacionAutoridadCertEntity entity = scspCoreEmAutorizacionAutoridadCertRepository.findById(item.getId());
+		if (entity == null) {
+			logger.debug("No s'ha trobat la autoritat de certificació (id = " + item.getId() + ")");
+			throw new NotFoundException(item.getId(), ClauPublicaEntity.class);
+		}
+		
+		entity.update(
+				item.getCodca(),
+				item.getNombre());
+		
+		return conversioTipusHelper.convertir(
+				entity,
+				AutoritatCertificacioDto.class);
+	}
+
+	@Override
+	public void autoritatCertificacioDelete(Long id) throws NotFoundException {
+		logger.debug("Esborrant autoritat de certificació (id =" + id + ")");
+		
+		ScspCoreEmAutorizacionAutoridadCertEntity entity = scspCoreEmAutorizacionAutoridadCertRepository.findById(id);
+		if (entity == null) {
+			logger.debug("No s'ha trobat la autoritat de certificació (id = " + id + ")");
+			throw new NotFoundException(id, ClauPublicaEntity.class);
+		}
+		
+		scspCoreEmAutorizacionAutoridadCertRepository.delete(entity);
+	}
+	
+	
+	private static final Logger logger = LoggerFactory.getLogger(ScspServiceImpl.class);
 }

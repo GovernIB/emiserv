@@ -1,29 +1,45 @@
 /**
  * 
  */
-package es.caib.emiserv.core.api.dto;
+package es.caib.emiserv.war.command;
 
-import java.io.Serializable;
 import java.util.Date;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import org.apache.commons.lang.builder.ToStringBuilder;
+import org.hibernate.validator.constraints.NotEmpty;
+
+import es.caib.emiserv.core.api.dto.ClauPrivadaDto;
+import es.caib.emiserv.war.helper.ConversioTipusHelper;
+
 
 /**
- * Informació d'una ClavePublica SCSP.
+ * Command per al manteniment d'entitats
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
-public class ClauPrivadaDto implements Serializable {
-
+public class ClauPrivadaCommand {
+	
 	private Long id;
+	@NotEmpty @Size(max=256)
 	private String alies;
+	@NotEmpty @Size(max=256)
 	private String nom;
-	private String numSerie;
+	@NotEmpty @Size(max=256)
 	private String password;
+	@NotEmpty @Size(max=256)
+	private String numSerie;
+	
 	private Date dataBaixa;
+	@NotNull
 	private Date dataAlta;
+	
 	private boolean interoperabilitat;
+	@NotNull
 	private Long organisme;
+	
 	
 	public Long getId() {
 		return id;
@@ -88,11 +104,23 @@ public class ClauPrivadaDto implements Serializable {
 		this.organisme = organisme;
 	}
 	
+	
+	public static ClauPrivadaCommand asCommand(ClauPrivadaDto dto) {
+		return ConversioTipusHelper.getMapperFacade().map(
+				dto,
+				ClauPrivadaCommand.class);
+	}
+	
+	public static ClauPrivadaDto asDto(ClauPrivadaCommand command) {
+		return ConversioTipusHelper.getMapperFacade().map(
+				command,
+				ClauPrivadaDto.class);
+	}
+	
+	
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
 	}
 	
-	private static final long serialVersionUID = -8620175604318725073L;
-
 }

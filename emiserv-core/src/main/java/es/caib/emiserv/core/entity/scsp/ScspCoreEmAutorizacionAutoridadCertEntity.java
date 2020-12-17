@@ -1,7 +1,7 @@
 /**
  * 
  */
-package es.caib.emiserv.core.entity;
+package es.caib.emiserv.core.entity.scsp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,11 +11,20 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 /**
  * Classe de model de dades per a la taula CORE_EM_AUTORIZACION_CA.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "core_em_autorizacion_ca")
 public class ScspCoreEmAutorizacionAutoridadCertEntity {
@@ -36,38 +45,11 @@ public class ScspCoreEmAutorizacionAutoridadCertEntity {
 	@Column(length = 512)
 	private String nombre;
 
-	public Long getId() {
-		return id;
+	public void update(String codca, String nombre) {
+		this.codca = codca;
+		this.nombre = nombre;
 	}
-	public String getCodca() {
-		return codca;
-	}
-	public String getNombre() {
-		return nombre;
-	}
-
-	public static Builder getBuilder(
-			String codca,
-			String nombre) {
-		return new Builder(
-				codca,
-				nombre);
-	}
-
-	public static class Builder {
-		ScspCoreEmAutorizacionAutoridadCertEntity built;
-		Builder(
-				String codca,
-				String nombre) {
-			built = new ScspCoreEmAutorizacionAutoridadCertEntity();
-			built.codca = codca;
-			built.nombre = nombre;
-		}
-		public ScspCoreEmAutorizacionAutoridadCertEntity build() {
-			return built;
-		}
-	}
-
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

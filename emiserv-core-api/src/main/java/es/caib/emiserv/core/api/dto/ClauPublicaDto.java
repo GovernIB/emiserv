@@ -4,6 +4,7 @@
 package es.caib.emiserv.core.api.dto;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -18,6 +19,8 @@ public class ClauPublicaDto implements Serializable {
 	private String alies;
 	private String nom;
 	private String numSerie;
+	private Date dataAlta;
+	private Date dataBaixa;
 
 	public Long getId() {
 		return id;
@@ -25,6 +28,7 @@ public class ClauPublicaDto implements Serializable {
 	public void setId(Long id) {
 		this.id = id;
 	}
+
 	public String getAlies() {
 		return alies;
 	}
@@ -42,6 +46,18 @@ public class ClauPublicaDto implements Serializable {
 	}
 	public void setNumSerie(String numSerie) {
 		this.numSerie = numSerie;
+	}
+	public Date getDataAlta() {
+		return dataAlta;
+	}
+	public void setDataAlta(Date dataAlta) {
+		this.dataAlta = dataAlta;
+	}
+	public Date getDataBaixa() {
+		return dataBaixa;
+	}
+	public void setDataBaixa(Date dataBaixa) {
+		this.dataBaixa = dataBaixa;
 	}
 
 	@Override

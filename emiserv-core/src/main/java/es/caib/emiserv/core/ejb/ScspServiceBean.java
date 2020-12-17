@@ -20,6 +20,7 @@ import es.caib.emiserv.core.api.dto.AutoritzacioFiltreDto;
 import es.caib.emiserv.core.api.dto.ClauPrivadaDto;
 import es.caib.emiserv.core.api.dto.ClauPublicaDto;
 import es.caib.emiserv.core.api.dto.EmisorDto;
+import es.caib.emiserv.core.api.dto.OrganismeCessionariDto;
 import es.caib.emiserv.core.api.dto.OrganismeDto;
 import es.caib.emiserv.core.api.dto.OrganismeFiltreDto;
 import es.caib.emiserv.core.api.dto.PaginaDto;
@@ -194,6 +195,105 @@ public class ScspServiceBean implements ScspService {
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public List<OrganismeDto> organismeFindAll() {
 		return delegate.organismeFindAll();
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public List<OrganismeCessionariDto> findAllOrganismeCessionari() {
+		return delegate.findAllOrganismeCessionari();
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public PaginaDto<ClauPublicaDto> clauPublicaFindByFiltrePaginat(PaginacioParamsDto paginacioParams) {
+		return delegate.clauPublicaFindByFiltrePaginat(paginacioParams);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public ClauPublicaDto findClauPublicaById(Long id) throws NotFoundException {
+		return delegate.findClauPublicaById(id);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public ClauPublicaDto clauPublicaCreate(ClauPublicaDto item) {
+		return delegate.clauPublicaCreate(item);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public ClauPublicaDto clauPublicaUpdate(ClauPublicaDto item) throws NotFoundException {
+		return delegate.clauPublicaUpdate(item);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public void clauPublicaDelete(Long id) throws NotFoundException {
+		delegate.clauPublicaDelete(id);
+		
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public PaginaDto<ClauPrivadaDto> clauPrivadaFindByFiltrePaginat(PaginacioParamsDto paginacioParams) {
+		return delegate.clauPrivadaFindByFiltrePaginat(paginacioParams);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public ClauPrivadaDto findClauPrivadaById(Long id) throws NotFoundException {
+		return delegate.findClauPrivadaById(id);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public ClauPrivadaDto clauPrivadaCreate(ClauPrivadaDto item) {
+		return delegate.clauPrivadaCreate(item);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public ClauPrivadaDto clauPrivadaUpdate(ClauPrivadaDto item) throws NotFoundException {
+		return delegate.clauPrivadaUpdate(item);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public void clauPrivadaDelete(Long id) throws NotFoundException {
+		delegate.clauPrivadaDelete(id);		
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(
+			PaginacioParamsDto paginacioParams) {
+		return delegate.autoritatCertificacioFindByFiltrePaginat(paginacioParams);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public AutoritatCertificacioDto autoritatCertificacioFindById(Long id) throws NotFoundException {
+		return delegate.autoritatCertificacioFindById(id);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public AutoritatCertificacioDto autoritatCertificacioCreate(AutoritatCertificacioDto item) {
+		return delegate.autoritatCertificacioCreate(item);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public AutoritatCertificacioDto autoritatCertificacioUpdate(
+			AutoritatCertificacioDto item) throws NotFoundException {
+		return delegate.autoritatCertificacioUpdate(item);
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public void autoritatCertificacioDelete(Long id) throws NotFoundException {
+		delegate.autoritatCertificacioDelete(id);
 	}
 
 }

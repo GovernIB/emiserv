@@ -40,7 +40,7 @@ public class ConversioTipusHelper {
 
 
 
-	private static MapperFacade getMapperFacade() {
+	public static MapperFacade getMapperFacade() {
 		if (mapperFactory == null)
 			mapperFactory = new DefaultMapperFactory.Builder().build();
 		/*mapperFactory.getConverterFactory().registerConverter(

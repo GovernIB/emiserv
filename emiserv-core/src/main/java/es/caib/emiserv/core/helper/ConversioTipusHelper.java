@@ -11,10 +11,17 @@ import ma.glasnost.orika.CustomConverter;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
+import ma.glasnost.orika.metadata.ClassMapBuilder;
 import ma.glasnost.orika.metadata.Type;
 
 import org.joda.time.DateTime;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+
+import es.caib.emiserv.core.api.dto.ClauPrivadaDto;
+import es.caib.emiserv.core.entity.scsp.ClauPrivadaEntity;
 
 /**
  * Helper per a convertir entre diferents formats de'objectes.
@@ -34,6 +41,16 @@ public class ConversioTipusHelper {
 						return source.toDate();
 					}
 				});
+		mapperFactory.getConverterFactory().registerConverter(
+				new CustomConverter<DateTime, Date>() {
+					public Date convert(DateTime source, Type<? extends Date> destinationClass) {
+						return source.toDate();
+					}
+				});
+		mapperFactory.registerClassMap(
+				ClassMapBuilder.map(ClauPrivadaEntity.class, ClauPrivadaDto.class)
+				.field("organisme.id", "organisme")
+				.byDefault().toClassMap());
 	}
 
 	public <T> T convertir(Object source, Class<T> targetType) {
@@ -58,4 +75,10 @@ public class ConversioTipusHelper {
 		return mapperFactory.getMapperFacade();
 	}
 
+	public <S, D> Page<D> pageEntities2pageDto(Page<S> pageEntities, Class<D> destinationClass, Pageable pageable) {
+		return new PageImpl<D>(
+				this.getMapperFacade().mapAsList(pageEntities.getContent(), destinationClass),
+				pageable,
+				pageEntities.getTotalElements());
+	}
 }

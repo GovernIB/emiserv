@@ -14,6 +14,7 @@ import es.caib.emiserv.core.api.dto.AutoritzacioFiltreDto;
 import es.caib.emiserv.core.api.dto.ClauPrivadaDto;
 import es.caib.emiserv.core.api.dto.ClauPublicaDto;
 import es.caib.emiserv.core.api.dto.EmisorDto;
+import es.caib.emiserv.core.api.dto.OrganismeCessionariDto;
 import es.caib.emiserv.core.api.dto.OrganismeDto;
 import es.caib.emiserv.core.api.dto.OrganismeFiltreDto;
 import es.caib.emiserv.core.api.dto.PaginaDto;
@@ -227,6 +228,24 @@ public interface ScspService {
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public List<EmisorDto> emissorFindAll();
 
+	
+	
+	// Funcions de la taula de organisme cessionari
+	
+	
+	/**
+	 * Llistat amb totes els organismes cessionaris
+	 * 
+	 * @return Un llistat dels organismes cessionaris
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public List<OrganismeCessionariDto> findAllOrganismeCessionari();
+
+	
+	
+	// Funcions de la taula de claus públiques.
+	
+	
 	/**
 	 * Consulta les claus públiques SCSP disponibles.
 	 * 
@@ -236,12 +255,49 @@ public interface ScspService {
 	public List<ClauPublicaDto> clauPublicaFindAll();
 
 	/**
+	 * Consulta les claus públiques SCSP disponibles amb paginació.
+	 * 
+	 * @param paginacioParams
+	 *            Paràmetres per a la paginació.
+	 * @return La pàgina de claus públiques SCSP.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	PaginaDto<ClauPublicaDto> clauPublicaFindByFiltrePaginat(PaginacioParamsDto paginacioParams);
+
+	ClauPublicaDto findClauPublicaById(Long id) throws NotFoundException;
+	ClauPublicaDto clauPublicaCreate(ClauPublicaDto item);
+	ClauPublicaDto clauPublicaUpdate(ClauPublicaDto item) throws NotFoundException;
+	void clauPublicaDelete(Long id) throws NotFoundException;
+
+	
+
+	// Funcions de la taula de clau privada
+
+	
+	/**
+	 * Consulta les claus privades SCSP disponibles amb paginació.
+	 * 
+	 * @param paginacioParams
+	 *            Paràmetres per a la paginació.
+	 * @return La pàgina de claus privades SCSP.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	PaginaDto<ClauPrivadaDto> clauPrivadaFindByFiltrePaginat(PaginacioParamsDto paginacioParams);
+	
+	ClauPrivadaDto findClauPrivadaById(Long id) throws NotFoundException;
+	ClauPrivadaDto clauPrivadaCreate(ClauPrivadaDto item);
+	ClauPrivadaDto clauPrivadaUpdate(ClauPrivadaDto item) throws NotFoundException;
+	void clauPrivadaDelete(Long id) throws NotFoundException;
+	
+	/**
 	 * Consulta les claus privades SCSP disponibles.
 	 * 
 	 * @return El llistat de claus privades SCSP.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public List<ClauPrivadaDto> clauPrivadaFindAll();
+
+	// Autoritats de certificació
 
 	/**
 	 * Consulta les autoritats de certificació SCSP disponibles.
@@ -251,6 +307,21 @@ public interface ScspService {
 	@PreAuthorize("hasRole('EMS_ADMIN')")
 	public List<AutoritatCertificacioDto> autoridadCertificacionFindAll();
 
+	/**
+	 * Consulta les claus privades SCSP disponibles amb paginació.
+	 * 
+	 * @param paginacioParams
+	 *            Paràmetres per a la paginació.
+	 * @return La pàgina de claus privades SCSP.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(PaginacioParamsDto paginacioParams);
+	
+	AutoritatCertificacioDto autoritatCertificacioFindById(Long id) throws NotFoundException;
+	AutoritatCertificacioDto autoritatCertificacioCreate(AutoritatCertificacioDto item);
+	AutoritatCertificacioDto autoritatCertificacioUpdate(AutoritatCertificacioDto item) throws NotFoundException;
+	void autoritatCertificacioDelete(Long id) throws NotFoundException;
+	
 	/**
 	 * Consulta les aplicacions disponibles.
 	 * 

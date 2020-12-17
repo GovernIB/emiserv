@@ -5,38 +5,32 @@ package es.caib.emiserv.core.api.dto;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
- * Informació d'una ClavePublica SCSP.
+ * Informació d'una ClauPrivada SCSP.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
-public class ClauPrivadaDto implements Serializable {
-
+public class OrganismeCessionariDto implements Serializable {
+	
+	
 	private Long id;
-	private String alies;
 	private String nom;
-	private String numSerie;
-	private String password;
+	private String cif;
 	private Date dataBaixa;
 	private Date dataAlta;
-	private boolean interoperabilitat;
-	private Long organisme;
+	private Boolean bloquejat;
+	private byte[] logo;
+	private List<ClauPrivadaDto> claus;
 	
 	public Long getId() {
 		return id;
 	}
 	public void setId(Long id) {
 		this.id = id;
-	}
-	
-	public String getAlies() {
-		return alies;
-	}
-	public void setAlies(String alies) {
-		this.alies = alies;
 	}
 	
 	public String getNom() {
@@ -46,18 +40,11 @@ public class ClauPrivadaDto implements Serializable {
 		this.nom = nom;
 	}
 	
-	public String getPassword() {
-		return password;
+	public String getCif() {
+		return cif;
 	}
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	
-	public String getNumSerie() {
-		return numSerie;
-	}
-	public void setNumSerie(String numSerie) {
-		this.numSerie = numSerie;
+	public void setCif(String cif) {
+		this.cif = cif;
 	}
 	
 	public Date getDataBaixa() {
@@ -74,19 +61,32 @@ public class ClauPrivadaDto implements Serializable {
 		this.dataAlta = dataAlta;
 	}
 	
-	public boolean getInteroperabilitat() {
-		return interoperabilitat;
+	public Boolean getBloquejat() {
+		return bloquejat;
 	}
-	public void setInteroperabilitat(boolean interoperabilitat) {
-		this.interoperabilitat = interoperabilitat;
+	public void setBloquejat(Boolean bloquejat) {
+		this.bloquejat = bloquejat;
 	}
-		
-	public Long getOrganisme() {
-		return organisme;
+	
+	public byte[] getLogo() {
+		return logo;
 	}
-	public void setOrganisme(Long organisme) {
-		this.organisme = organisme;
+	public void setLogo(byte[] logo) {
+		this.logo = logo;
 	}
+	
+	public List<ClauPrivadaDto> getClaus() {
+		return claus;
+	}
+	public void setClaus(List<ClauPrivadaDto> claus) {
+		this.claus = claus;
+	}
+	
+	
+	public String getCadenaIdentificadora() {
+		return nom + "(" + cif + ")";
+	}
+	
 	
 	@Override
 	public String toString() {
