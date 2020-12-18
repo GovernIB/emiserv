@@ -285,12 +285,12 @@
 		<dependency>
 			<groupId>org.webjars.bower</groupId>
 			<artifactId>datatables.net</artifactId>
-			<version>1.10.10</version>
+			<version>1.10.19</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars.bower</groupId>
 			<artifactId>datatables.net-bs</artifactId>
-			<version>1.10.10</version>
+			<version>1.10.19</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars.bower</groupId>
