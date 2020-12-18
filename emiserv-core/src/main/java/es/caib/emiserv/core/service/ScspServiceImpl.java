@@ -762,6 +762,7 @@ public class ScspServiceImpl implements ScspService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(
 			PaginacioParamsDto paginacioParams) {
 		logger.debug("Consulta de tots les autoritat de certificació");
@@ -773,6 +774,7 @@ public class ScspServiceImpl implements ScspService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public AutoritatCertificacioDto autoritatCertificacioFindById(Long id) throws NotFoundException {
 		logger.debug("Consulta una autoritat de certificació (id = " + id + ")");
 		
@@ -782,6 +784,7 @@ public class ScspServiceImpl implements ScspService {
 	}
 
 	@Override
+	@Transactional
 	public AutoritatCertificacioDto autoritatCertificacioCreate(AutoritatCertificacioDto item) {
 		logger.debug("Creant una nova autoritat de certificació : " + item);
 		
@@ -796,6 +799,7 @@ public class ScspServiceImpl implements ScspService {
 	}
 
 	@Override
+	@Transactional
 	public AutoritatCertificacioDto autoritatCertificacioUpdate(AutoritatCertificacioDto item) throws NotFoundException {
 		logger.debug("Actualitzant la autoritat de certificació (id = " + item.getId() +
 					 ") amb la informació: " + item);
@@ -816,6 +820,7 @@ public class ScspServiceImpl implements ScspService {
 	}
 
 	@Override
+	@Transactional
 	public void autoritatCertificacioDelete(Long id) throws NotFoundException {
 		logger.debug("Esborrant autoritat de certificació (id =" + id + ")");
 		

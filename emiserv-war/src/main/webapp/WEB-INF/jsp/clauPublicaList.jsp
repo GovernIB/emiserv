@@ -44,8 +44,8 @@
 	<div class="btn-group">
 		<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown"><i class="fas fa-cog"></i>&nbsp;<spring:message code="comu.accions"/>&nbsp;<span class="caret"></span></a>
 		<ul class="dropdown-menu">
-			<li><a href="<c:url value="/scsp/claupublica/{{:id}}"/>" ><i class="fas fa-pen"></i>&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
-			<li><a href="<c:url value="/scsp/claupublica/{{:id}}/delete"/>" class="confirm-esborrar"><i class="fas fa-trash-alt"></i>&nbsp;<spring:message code="comu.boto.esborrar"/></a></li>
+			<li><a href="<c:url value="/scsp/claupublica/{{:id}}"/>" ><i class="fa fa-pencil"></i>&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
+			<li><a href="<c:url value="/scsp/claupublica/{{:id}}/delete"/>" class="confirm-esborrar"><i class="fa fa-trash-o"></i>&nbsp;<spring:message code="comu.boto.esborrar"/></a></li>
 		</ul>
 	</div>
 					</script>
