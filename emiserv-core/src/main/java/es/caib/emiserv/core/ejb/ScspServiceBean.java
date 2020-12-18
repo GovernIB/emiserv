@@ -11,7 +11,6 @@ import javax.interceptor.Interceptors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ejb.interceptor.SpringBeanAutowiringInterceptor;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import es.caib.emiserv.core.api.dto.AplicacioDto;
 import es.caib.emiserv.core.api.dto.AutoritatCertificacioDto;

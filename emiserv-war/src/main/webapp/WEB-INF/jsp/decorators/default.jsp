@@ -166,16 +166,9 @@ body {
 								<ul class="dropdown-menu">
 									<li><a href="<c:url value="/aplicacio"/>"><spring:message code="decorator.menu.config.aplicacions"/></a></li>
 									<li><a href="<c:url value="/organisme"/>"><spring:message code="decorator.menu.config.organismes"/></a></li>
-								</ul>
-							</div>
-							<div class="btn-group">
-								<button data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
-									<spring:message code="decorator.menu.scsp"/>&nbsp;<span class="caret caret-white"></span>
-								</button>
-								<ul class="dropdown-menu">
-									<li><a href="<c:url value="/scsp/claupublica"/>"><spring:message code="decorator.menu.scsp.claus.publiques"/></a></li>
-									<li><a href="<c:url value="/scsp/clauprivada"/>"><spring:message code="decorator.menu.scsp.clau.privada"/></a></li>
-									<li><a href="<c:url value="/scsp/autoritatca"/>"><spring:message code="decorator.menu.scsp.autoritatca"/></a></li>
+									<li><a href="<c:url value="/scsp/claupublica"/>"><spring:message code="decorator.menu.config.claus.publiques"/></a></li>
+									<li><a href="<c:url value="/scsp/clauprivada"/>"><spring:message code="decorator.menu.config.claus.privades"/></a></li>
+									<li><a href="<c:url value="/scsp/autoritatca"/>"><spring:message code="decorator.menu.config.autoritatca"/></a></li>
 								</ul>
 							</div>
 						</c:if>

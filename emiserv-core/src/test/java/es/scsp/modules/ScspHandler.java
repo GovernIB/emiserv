@@ -266,7 +266,7 @@ public abstract class ScspHandler
   }
   
   protected String evalXPathExp(String exp, OMElement message)
-    throws JaxenException
+    throws JaxenException, ScspException
   {
     XpathManager manager = new XpathManager();
     return manager.evalXPathExp(exp, message);
