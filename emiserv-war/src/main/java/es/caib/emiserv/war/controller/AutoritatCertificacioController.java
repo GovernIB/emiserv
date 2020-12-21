@@ -90,10 +90,10 @@ public class AutoritatCertificacioController extends BaseController {
 
 		if (command.getId() == null) {
 			scspService.autoritatCertificacioCreate(AutoritzacioCaCommand.asDto(command));
-			MissatgeHelper.success(request, getMessage(request, "claupublica.controller.creat.ok"));
+			MissatgeHelper.success(request, getMessage(request, "autoritatca.controller.creat.ok"));
 		} else {
 			scspService.autoritatCertificacioUpdate(AutoritzacioCaCommand.asDto(command));
-			MissatgeHelper.success(request, getMessage(request, "claupublica.controller.modificat.ok"));
+			MissatgeHelper.success(request, getMessage(request, "autoritatca.controller.modificat.ok"));
 		}
 
 		return "redirect:/scsp/autoritatca";
@@ -105,7 +105,7 @@ public class AutoritatCertificacioController extends BaseController {
 
 		scspService.autoritatCertificacioDelete(autoritatcaId);
 
-		MissatgeHelper.success(request, getMessage(request, "claupublica.controller.esborrat.ok"));
+		MissatgeHelper.success(request, getMessage(request, "autoritatca.controller.esborrat.ok"));
 
 		return "redirect:/scsp/autoritatca";
 	}

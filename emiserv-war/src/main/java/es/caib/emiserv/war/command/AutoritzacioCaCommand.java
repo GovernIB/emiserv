@@ -1,11 +1,17 @@
 package es.caib.emiserv.war.command;
 
+import javax.validation.constraints.Size;
+
+import org.hibernate.validator.constraints.NotEmpty;
+
 import es.caib.emiserv.core.api.dto.AutoritatCertificacioDto;
 import es.caib.emiserv.war.helper.ConversioTipusHelper;
 
 public class AutoritzacioCaCommand {
 	private Long id;
+	@NotEmpty @Size(max=256)
 	private String codca;
+	@NotEmpty @Size(max=256)
 	private String nombre;
 	
 	
