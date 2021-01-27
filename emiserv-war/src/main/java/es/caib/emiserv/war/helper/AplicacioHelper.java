@@ -1,11 +1,14 @@
-/**
- * 
- */
 package es.caib.emiserv.war.helper;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import es.caib.emiserv.core.api.service.AplicacioService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 /**
  * Utilitat per a gestionar accions de context d'aplicació.
@@ -56,6 +59,27 @@ public class AplicacioHelper {
 				APPLICATION_ATTRIBUTE_VERSIO_ACTUAL);
 	}
 
+	public static String processarLocale(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			AplicacioService aplicacioService) {
+		if (request.getUserPrincipal() != null) {
+			try {
+				String idioma_usuari = aplicacioService.getUsuariActual().getIdioma();
+
+				LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+				localeResolver.setLocale(
+						request,
+						response,
+						StringUtils.parseLocaleString(idioma_usuari));
+				return idioma_usuari;
+			} catch (Exception e) {
+				LOGGER.error("Error establint l'idioma de l'usuari " + request.getUserPrincipal(), e);
+			}
+		}
+		return RequestContextUtils.getLocale(request).getLanguage();
+	}
+
 	public static void processarAutenticacio(
 			HttpServletRequest request,
 			AplicacioService aplicacioService) {
@@ -74,4 +98,5 @@ public class AplicacioHelper {
 		return request.getSession().getAttribute(SESSION_ATTRIBUTE_AUTH_PROCESSADA) != null;
 	}
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(AplicacioHelper.class);
 }

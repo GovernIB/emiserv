@@ -3,6 +3,9 @@
  */
 package es.caib.emiserv.core.api.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 
 
@@ -11,30 +14,13 @@ import java.io.Serializable;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Getter @Setter
 public class UsuariDto implements Serializable {
 
 	private String codi;
 	private String nom;
 	private String nif;
-
-	public String getCodi() {
-		return codi;
-	}
-	public void setCodi(String codi) {
-		this.codi = codi;
-	}
-	public String getNom() {
-		return nom;
-	}
-	public void setNom(String nom) {
-		this.nom = nom;
-	}
-	public String getNif() {
-		return nif;
-	}
-	public void setNif(String nif) {
-		this.nif = nif;
-	}
+	private String idioma;
 
 	private static final long serialVersionUID = -139254994389509932L;
 

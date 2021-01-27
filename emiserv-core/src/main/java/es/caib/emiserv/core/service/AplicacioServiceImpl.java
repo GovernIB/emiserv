@@ -102,6 +102,19 @@ public class AplicacioServiceImpl implements AplicacioService {
 				UsuariDto.class);
 	}
 
+	@Transactional
+	@Override
+	public UsuariDto updateUsuariActual(UsuariDto dto) {
+		logger.debug("Actualitzant configuració de usuari actual");
+		UsuariEntity usuari = usuariRepository.findOne(dto.getCodi());
+		usuari.updateIdioma(
+				dto.getIdioma());
+
+		return conversioTipusHelper.convertir(
+				usuari,
+				UsuariDto.class);
+	}
+
 	@Transactional(readOnly = true)
 	@Override
 	public UsuariDto findUsuariAmbCodi(String codi) {

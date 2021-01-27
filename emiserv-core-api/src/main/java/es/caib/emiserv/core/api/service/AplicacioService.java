@@ -28,7 +28,7 @@ public interface AplicacioService {
 	/**
 	 * Processa l'autenticació d'un usuari.
 	 * 
-	 * @throws UsuariNotFoundException
+	 * @throws NotFoundException
 	 *             Si l'usuari no es troba al plugin d'usuaris.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
@@ -41,6 +41,14 @@ public interface AplicacioService {
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public UsuariDto getUsuariActual();
+
+	/**
+	 * Modifica la configuració de l'usuari actual
+	 *
+	 * @return L'usuari actual.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	UsuariDto updateUsuariActual(UsuariDto dto);
 
 	/**
 	 * Obté un usuari donat el seu codi.
