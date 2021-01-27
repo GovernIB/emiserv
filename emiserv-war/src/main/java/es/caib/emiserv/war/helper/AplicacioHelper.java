@@ -39,7 +39,7 @@ public class AplicacioHelper {
 		String nomUsuariActual = getUsuariActual(request);
 		if (request.getUserPrincipal() != null && nomUsuariActual == null) {
 			nomUsuariActual = aplicacioService.getUsuariActual().getNom();
-			request.getSession().getServletContext().setAttribute(
+			request.getSession().setAttribute(
 					SESSION_ATTRIBUTE_USUARI_ACTUAL,
 					nomUsuariActual);
 		}		
@@ -47,9 +47,8 @@ public class AplicacioHelper {
 	}
 	
 	public static String getUsuariActual(HttpServletRequest request) {
-		String nomUsuariActual = (String)request.getSession().getServletContext().getAttribute(
+		return (String)request.getSession().getAttribute(
 				SESSION_ATTRIBUTE_USUARI_ACTUAL);
-		return nomUsuariActual;
 	}
 	
 	public static String getVersioActual(HttpServletRequest request) {
