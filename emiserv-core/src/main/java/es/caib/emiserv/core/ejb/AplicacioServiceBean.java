@@ -55,6 +55,13 @@ public class AplicacioServiceBean implements AplicacioService {
 
 	@Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public UsuariDto updateUsuariActual(UsuariDto dto) {
+		logger.debug("Update usuari actual (EJB)");
+		return delegate.updateUsuariActual(dto);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public UsuariDto findUsuariAmbCodi(String codi) {
 		logger.debug("Obtenint usuari amb codi (EJB) (codi=" + codi + ")");
 		return delegate.findUsuariAmbCodi(codi);

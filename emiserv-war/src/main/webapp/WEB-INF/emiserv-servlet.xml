@@ -57,4 +57,6 @@
 
 	<bean name="informeGeneralEstatExcelView" class="es.caib.emiserv.war.view.InformeGeneralEstatExcelView"/>
 
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver" />
+
 </beans>

@@ -1,2 +1,6 @@
 /.project
 /.settings
+
+# intellij files
+.idea/
+*.iml

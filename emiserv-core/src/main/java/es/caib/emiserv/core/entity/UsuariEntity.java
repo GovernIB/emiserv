@@ -1,7 +1,6 @@
-/**
- * 
- */
 package es.caib.emiserv.core.entity;
+
+import lombok.Data;
 
 import java.io.Serializable;
 
@@ -16,6 +15,7 @@ import javax.persistence.Version;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Data
 @Entity
 @Table(name = "ems_usuari")
 public class UsuariEntity implements Serializable {
@@ -31,26 +31,10 @@ public class UsuariEntity implements Serializable {
 	private String email;
 	@Column(name = "inicialitzat")
 	private boolean inicialitzat = false;
+	@Column(name="idioma", length = 2)
+	private String idioma;
 	@Version
 	private long version = 0;
-
-
-
-	public String getCodi() {
-		return codi;
-	}
-	public String getNom() {
-		return nom;
-	}
-	public String getNif() {
-		return nif;
-	}
-	public String getEmail() {
-		return email;
-	}
-	public boolean isInicialitzat() {
-		return inicialitzat;
-	}
 
 	public void update(
 			String nom,
@@ -60,6 +44,10 @@ public class UsuariEntity implements Serializable {
 		this.nif = nif;
 		this.email = email;
 		this.inicialitzat = true;
+	}
+
+	public void updateIdioma(String idioma) {
+		this.idioma = idioma;
 	}
 
 	public static Builder getBuilder(
