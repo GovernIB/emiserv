@@ -362,8 +362,7 @@
 			<artifactId>scsp-emisor</artifactId>
 			<version>${scsp.emisor.version}</version>
 			<type>war</type>
-			<scope>system</scope>
-			<systemPath>${basedir}/scsp-emisor-${scsp.emisor.version}.war</systemPath>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<profiles>

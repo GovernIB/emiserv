@@ -17,7 +17,7 @@
 		<ehcache.version>2.10.4</ehcache.version>
 		<scsp.core.version>4.20.0</scsp.core.version>
 		<scsp.beans.version>4.3.0</scsp.beans.version>
-		<scsp.emisor.version>4-22-0</scsp.emisor.version>
+		<scsp.emisor.version>4.22.0</scsp.emisor.version>
 		<scsp.rampart.core.version>1.6.4.1</scsp.rampart.core.version>
 		<scsp.emisor.demo.version>3.3.0</scsp.emisor.demo.version>
 		<axis2.version>1.6.4</axis2.version>
