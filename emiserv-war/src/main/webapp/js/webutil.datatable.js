@@ -78,14 +78,12 @@
 				domPrefix = '<"row"<"col-md-' + colMd50p + '"i><"col-md-' + colMd50p + '"<"botons">>>';
 			// var language = window.navigator.userLanguage || window.navigator.language;
 			var language = requestLocale.toLowerCase();
-			console.log(language);
 			// Només acceptam es i ca com a llengues //
 			if (language.startsWith("es")) {
 				language = "es";
 			} else {
 				language = "ca";
 			}
-			console.log(language);
 			var dataTableOptions = {
 				language: {
 					url: webutilContextPath() + '/js/datatables/i18n/datatables.' + language + '.json'
