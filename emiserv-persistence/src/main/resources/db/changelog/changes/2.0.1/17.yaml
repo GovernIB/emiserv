@@ -1,0 +1,17 @@
+databaseChangeLog:
+- changeSet:
+    id: 1618396425533-1
+    author: limit
+    changes:
+    - dropColumn:
+        columnName: nom
+        tableName: ems_usuari
+    - dropColumn:
+        columnName: nif
+        tableName: ems_usuari
+    - dropColumn:
+        columnName: email
+        tableName: ems_usuari
+    - dropColumn:
+        columnName: inicialitzat
+        tableName: ems_usuari

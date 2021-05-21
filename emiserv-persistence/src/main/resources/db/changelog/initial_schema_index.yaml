@@ -1,0 +1,59 @@
+databaseChangeLog:
+- changeSet:
+    id: init-index-1
+    author: limit (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: codi
+        indexName: ems_servei_codi_i
+        tableName: ems_servei
+        unique: true
+- changeSet:
+    id: init-index-2
+    author: limit (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: emisor
+        indexName: core_servicio_index_emisor
+        tableName: core_servicio
+- changeSet:
+    id: init-index-3
+    author: limit (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: idpeticion
+        indexName: core_transmision_index_idpet
+        tableName: core_transmision
+- changeSet:
+    id: init-index-4
+    author: limit (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: idcertificado
+        - column:
+            name: idorganismo
+        - column:
+            name: idaplicacion
+        - column:
+            name: fechabaja
+        indexName: unique_serv_apl_org_baja
+        tableName: core_em_autorizacion_cert
+        unique: true
+- changeSet:
+    id: init-index-5
+    author: limit (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: organismo
+        indexName: cesionarios_index_organismo
+        tableName: core_req_cesionarios_servicios

@@ -1,0 +1,10 @@
+databaseChangeLog:
+- changeSet:
+    id: init-data-scsp-1
+    author: limit
+    changes:
+    - sqlFile:
+        path: db/changelog/initial_data_scsp.sql
+    - sql:
+        dbms: oracle
+        sql: SELECT id_autorizacion_ca_seq.nextval FROM core_em_autorizacion_ca;

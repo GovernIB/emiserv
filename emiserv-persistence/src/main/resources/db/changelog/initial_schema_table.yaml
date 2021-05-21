@@ -1,0 +1,1749 @@
+databaseChangeLog:
+- changeSet:
+    id: init-1
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_backoffice_com_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: peticio_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: peticio_data
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: peticio_xml
+            type: CLOB
+        - column:
+            name: solicitud_id
+            type: BIGINT
+        - column:
+            name: resposta_data
+            type: TIMESTAMP
+        - column:
+            name: resposta_xml
+            type: CLOB
+        - column:
+            name: error
+            type: CLOB
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_backoffice_com
+- changeSet:
+    id: init-2
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_backoffice_pet_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: peticio_id
+            type: VARCHAR(26)
+        - column:
+            constraints:
+              nullable: false
+            name: estat
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: ter_data
+            type: TIMESTAMP
+        - column:
+            name: darrera_sol_data
+            type: TIMESTAMP
+        - column:
+            name: darrera_sol_id
+            type: VARCHAR(256)
+        - column:
+            name: processades_error
+            type: INTEGER
+        - column:
+            name: processades_total
+            type: INTEGER
+        - column:
+            name: comunicacio_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_backoffice_pet
+- changeSet:
+    id: init-3
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_backoffice_sol_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: peticio_id
+            type: BIGINT
+        - column:
+            name: solicitud_id
+            type: VARCHAR(256)
+        - column:
+            name: comunicacio_id
+            type: BIGINT
+        - column:
+            name: estat
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_backoffice_sol
+- changeSet:
+    id: init-4
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_redir_msg_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: tipus
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: peticio_id
+            type: BIGINT
+        - column:
+            name: xml
+            type: CLOB
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_redir_missatge
+- changeSet:
+    id: init-5
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_redir_pet_pk
+            name: id
+            type: BIGINT
+        - column:
+            name: data_comprovacio
+            type: TIMESTAMP
+        - column:
+            name: data_peticio
+            type: TIMESTAMP
+        - column:
+            name: data_resposta
+            type: TIMESTAMP
+        - column:
+            name: emissor_codi
+            type: INTEGER
+        - column:
+            name: error
+            type: CLOB
+        - column:
+            constraints:
+              nullable: false
+            name: estat
+            type: VARCHAR(16)
+        - column:
+            constraints:
+              nullable: false
+            name: num_enviaments
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: num_transmissions
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: peticio_id
+            type: VARCHAR(128)
+        - column:
+            constraints:
+              nullable: false
+            name: servei_codi
+            type: VARCHAR(256)
+        - column:
+            name: sincrona
+            type: BOOLEAN
+        - column:
+            name: ter
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_redir_peticio
+- changeSet:
+    id: init-6
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_redir_sol_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: solicitud_id
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: solicitant_id
+            type: VARCHAR(40)
+        - column:
+            name: solicitant_nom
+            type: VARCHAR(256)
+        - column:
+            name: consentiment
+            type: VARCHAR(3)
+        - column:
+            name: data_generacio
+            type: TIMESTAMP
+        - column:
+            name: error
+            type: CLOB
+        - column:
+            name: estat
+            type: VARCHAR(4)
+        - column:
+            name: finalitat
+            type: VARCHAR(256)
+        - column:
+            name: funcionari_doc
+            type: VARCHAR(16)
+        - column:
+            name: funcionari_nom
+            type: VARCHAR(160)
+        - column:
+            name: procediment_codi
+            type: VARCHAR(256)
+        - column:
+            name: procediment_nom
+            type: VARCHAR(256)
+        - column:
+            name: titular_doc
+            type: VARCHAR(16)
+        - column:
+            name: titular_llinatge1
+            type: VARCHAR(160)
+        - column:
+            name: titular_llinatge2
+            type: VARCHAR(160)
+        - column:
+            name: titular_nom
+            type: VARCHAR(160)
+        - column:
+            name: titular_nom_sencer
+            type: VARCHAR(256)
+        - column:
+            name: transmision_id
+            type: VARCHAR(256)
+        - column:
+            name: unitat_tramitadora
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: peticio_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_redir_solicitud
+- changeSet:
+    id: init-7
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_servei_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: codi
+            type: VARCHAR(64)
+        - column:
+            constraints:
+              nullable: false
+            name: nom
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: tipus
+            type: INTEGER
+        - column:
+            name: descripcio
+            type: VARCHAR(1024)
+        - column:
+            name: configurat
+            type: BOOLEAN
+        - column:
+            name: actiu
+            type: BOOLEAN
+        - column:
+            name: backcaib_async_ter
+            type: INTEGER
+        - column:
+            name: backcaib_async_tipus
+            type: INTEGER
+        - column:
+            name: backcaib_autenticacio
+            type: INTEGER
+        - column:
+            name: backcaib_url
+            type: VARCHAR(256)
+        - column:
+            name: backoffice_class
+            type: VARCHAR(256)
+        - column:
+            name: resolver_class
+            type: VARCHAR(256)
+        - column:
+            name: response_resolver_class
+            type: VARCHAR(256)
+        - column:
+            name: url_per_defecte
+            type: VARCHAR(256)
+        - column:
+            name: xsd_activa
+            type: BOOLEAN
+        - column:
+            name: xsd_esquema_bak
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: createdby_codi
+            type: VARCHAR(64)
+        - column:
+            constraints:
+              nullable: false
+            name: createddate
+            type: TIMESTAMP
+        - column:
+            name: lastmodifiedby_codi
+            type: VARCHAR(64)
+        - column:
+            name: lastmodifieddate
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_servei
+- changeSet:
+    id: init-8
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_servei_rut_des_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: entitat_codi
+            type: VARCHAR(64)
+        - column:
+            name: ordre
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: url
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: servei_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: createdby_codi
+            type: VARCHAR(64)
+        - column:
+            constraints:
+              nullable: false
+            name: createddate
+            type: TIMESTAMP
+        - column:
+            name: lastmodifiedby_codi
+            type: VARCHAR(64)
+        - column:
+            name: lastmodifieddate
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_servei_ruta_desti
+- changeSet:
+    id: init-9
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_usuari_pk
+            name: codi
+            type: VARCHAR(64)
+        - column:
+            constraints:
+              nullable: false
+            name: nom
+            type: VARCHAR(200)
+        - column:
+            constraints:
+              nullable: false
+            name: nif
+            type: VARCHAR(9)
+        - column:
+            name: email
+            type: VARCHAR(200)
+        - column:
+            name: inicialitzat
+            type: BOOLEAN
+        - column:
+            defaultValue: CA
+            name: idioma
+            type: VARCHAR(2)
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: BIGINT
+        tableName: ems_usuari
+- changeSet:
+    id: init-10
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_acl_sid_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: principal
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: sid
+            type: VARCHAR(100)
+        tableName: ems_acl_sid
+- changeSet:
+    id: init-11
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_acl_class_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: class
+            type: VARCHAR(100)
+        tableName: ems_acl_class
+- changeSet:
+    id: init-12
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_acl_object_identity_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: object_id_class
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: object_id_identity
+            type: BIGINT
+        - column:
+            name: parent_object
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: owner_sid
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: entries_inheriting
+            type: BOOLEAN
+        tableName: ems_acl_object_identity
+- changeSet:
+    id: init-13
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: ems_acl_entry_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: acl_object_identity
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: ace_order
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: sid
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: mask
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: granting
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: audit_success
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: audit_failure
+            type: BOOLEAN
+        tableName: ems_acl_entry
+- changeSet:
+    id: init-14
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_cache_certificados_pk
+            name: numserie
+            remarks: Número de serie del certificado
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_cache_certificados_pk
+            name: autoridadcertif
+            remarks: Autoridad certificadora que emitió el certificado
+            type: VARCHAR(512)
+        - column:
+            constraints:
+              nullable: false
+            name: tiempocomprobacion
+            remarks: Fecha en la que se realizó el proceso de validación del certificado por última vez
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: revocado
+            remarks: "Valor booleano (1 o 0) que indicará: -1: si el proceso de validación revocó el certificado. -0: si el proceso de validación aceptó el certificado"
+            type: INTEGER
+            defaultValueNumeric: 1
+        remarks: Tabla que registra el resultado de la validación de los certificados empleados en la firma de los mensajes recibidos por el requirente o por el emisor. Así mismo se registra la fecha en la que se realizó dicha validación para poder calcular el periodo de tiempo en la que dicha validación esta vigente.
+        tableName: core_cache_certificados
+- changeSet:
+    id: init-15
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_clave_privada_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: alias
+            remarks: Alias que identifica de manera unívoca a la clave privada dentro del almacén de certificados que haya sido configurado en la tabla core_parametro_configuracion bajo el nombre keystoreFile
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: nombre
+            remarks: Nombre descriptivo de la clave privada
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: passwd
+            remarks: Password de la clave privada necesaria para hacer uso de la misma
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: numeroserie
+            remarks: Numero de serie de la clave privada
+            type: VARCHAR(256)
+        - column:
+            name: fechabaja
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: fechaalta
+            type: TIMESTAMP
+        - column:
+            name: organismo
+            type: BIGINT
+        - column:
+            name: interoperabilidad
+            type: BOOLEAN
+        remarks: Esta tabla almacenará los datos de configuración necesarios para acceder a las claves privadas disponibles en el almacén de certificados configurado. Las claves privadas aquí configuradas serán utilizadas para la firma de los mensajes emitidos
+        tableName: core_clave_privada
+- changeSet:
+    id: init-15a
+    author: limit (generated)
+    context: caib
+    changes:
+    - sql:
+        sql: ALTER TABLE core_clave_privada RENAME COLUMN passwd TO password;
+- changeSet:
+    id: init-16
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_clave_publica_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: alias
+            remarks: Alias que identifica de manera unívoca a la clave pública dentro del almacén de certificados que haya sido configurado en la tabla core_parametro_configuracion bajo el nombre keystoreFile
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: nombre
+            remarks: Nombre descriptivo de la clave pública
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: numeroserie
+            remarks: Numero de serie de la clave pública
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: fechaalta
+            type: TIMESTAMP
+        - column:
+            name: fechabaja
+            type: TIMESTAMP
+        remarks: Esta tabla almacenará los datos de configuración necesarios para acceder a las claves públicas disponibles en el almacén de certificados configurado. Las claves públicas aquí configuradas serán utilizadas para el posible cifrado de los  mensajes emitidos.
+        tableName: core_clave_publica
+- changeSet:
+    id: init-17
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_codigo_error_pk
+            name: codigo
+            remarks: Código identificativo del error
+            type: VARCHAR(4)
+        - column:
+            constraints:
+              nullable: false
+            name: descripcion
+            remarks: Litreral descriptivo del error
+            type: VARCHAR(1024)
+        remarks: Tabla que registrarálos posibles errores genéricos que toda comunicación SCSP puede generar
+        tableName: core_codigo_error
+- changeSet:
+    id: init-18
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_emisor_certificado_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: nombre
+            remarks: CIF identificativo del organismo emisor de servicios
+            type: VARCHAR(50)
+        - column:
+            constraints:
+              nullable: false
+            name: cif
+            remarks: Nombre descriptivo del organismo emisor de servicios
+            type: VARCHAR(16)
+        - column:
+            name: fechaalta
+            type: TIMESTAMP
+        - column:
+            name: fechabaja
+            remarks: Fecha de Baja de emisores de certificados
+            type: TIMESTAMP
+        remarks: Esta tabla almacenará los diferentes emisores de servicio configurados
+        tableName: core_emisor_certificado
+- changeSet:
+    id: init-19
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_estado_peticion_pk
+            name: codigo
+            remarks: Código identificativo del estado
+            type: VARCHAR(4)
+        - column:
+            constraints:
+              nullable: false
+            name: mensaje
+            remarks: Literal descriptivo del estado
+            type: VARCHAR(256)
+        remarks: "Tabla que almacena los posibles estados en los que se puede encontrar una petición SCSP. Sus posibles valores serán: 0001 - Pendiente, 0002 - En proceso, 0003 - Tramitada"
+        tableName: core_estado_peticion
+- changeSet:
+    id: init-20
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_modulo_pk
+            name: nombre
+            remarks: Nombre del módulo
+            type: VARCHAR(256)
+        - column:
+            name: descripcion
+            remarks: Literal descriptivo del modulo a configurar su activación
+            type: VARCHAR(512)
+        - column:
+            constraints:
+              nullable: false
+            name: activoentrada
+            remarks: Valor que indica si el módulo esta activo en la emisión de mensajes. Puede tomar valor 1 (Activo) o 0 (Inactivo)
+            type: INTEGER
+            defaultValueNumeric: 1
+        - column:
+            constraints:
+              nullable: false
+            name: activosalida
+            remarks: Valor que indica si el módulo esta activo en la recepción de mensajes. Puede tomar valor 1 (Activo) o 0 (Inactivo).
+            type: INTEGER
+            defaultValueNumeric: 1
+        remarks: Tabla que almacena la configuración de activación o desactivación de los módulos que componen el ciclo de ejecución de las librerías SCSP
+        tableName: core_modulo
+- changeSet:
+    id: init-21
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_modulo_config_pk
+            name: certificado
+            remarks: Código del certificado solicitado
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_modulo_config_pk
+            name: modulo
+            remarks: Nombre del módulo a configurar
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: activoentrada
+            remarks: Valor que indica si el módulo esta activo en la emisión de mensajes. Puede tomar valor 1 (Activo) o 0 (Inactivo).
+            type: INTEGER
+            defaultValueNumeric: 1
+        - column:
+            constraints:
+              nullable: false
+            name: activosalida
+            remarks: Valor que indica si el módulo esta activo en la recepción de mensajes. Puede tomar valor 1 (Activo) o 0 (Inactivo).
+            type: INTEGER
+            defaultValueNumeric: 1
+        remarks: Tabla que permite la sobreescritura de la configuración de activación de un módulo para un servicio concreto
+        tableName: core_modulo_configuracion
+- changeSet:
+    id: init-22
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_req_modulo_pdf_pk
+            name: nombre
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: activo
+            type: INTEGER
+            defaultValueNumeric: 1
+        - column:
+            constraints:
+              nullable: false
+            name: orden
+            type: INTEGER
+        tableName: core_req_modulo_pdf
+- changeSet:
+    id: init-23
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_req_modpdf_ces_pk
+            name: servicio
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_req_modpdf_ces_pk
+            name: organismo
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_req_modpdf_ces_pk
+            name: modulo
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            defaultValueNumeric: 1
+            name: activo
+            type: INTEGER
+        tableName: core_req_modulo_pdf_cesionario
+- changeSet:
+    id: init-24
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_em_autorizacion_org_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: idorganismo
+            remarks: Identificador del organismo
+            type: VARCHAR(16)
+        - column:
+            constraints:
+              nullable: false
+            name: fechaalta
+            remarks: Fecha en la que se da de alta el organismo
+            type: TIMESTAMP
+        - column:
+            name: fechabaja
+            remarks: Fecha a partir de la cual el organismo no va a poder enviar peticiones
+            type: TIMESTAMP
+        - column:
+            name: nombreorganismo
+            remarks: Nombre descriptivo del organismo requirente de servicios
+            type: VARCHAR(64)
+        remarks: Organismos que están dados de alta en el emisor y que van a poder consultar los servicios ofrecidos por este a través de alguna de las aplicaciones que tienen autorización para consultar los servicios
+        tableName: core_em_autorizacion_organismo
+- changeSet:
+    id: init-25
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_organismo_cesionario_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: fechaalta
+            type: TIMESTAMP
+        - column:
+            name: fechabaja
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: nombre
+            type: VARCHAR(50)
+        - column:
+            constraints:
+              nullable: false
+            name: cif
+            type: VARCHAR(50)
+        - column:
+            constraints:
+              nullable: false
+            name: bloqueado
+            type: INTEGER
+            defaultValueNumeric: 0
+        - column:
+            name: logo
+            type: BLOB
+        - column:
+            name: codigounidadtramitadora;
+            type: VARCHAR(9)
+        tableName: core_organismo_cesionario
+- changeSet:
+    id: init-26
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_parametro_config_pk
+            name: nombre
+            remarks: Nombre identificativo del parámetro
+            type: VARCHAR(64)
+        - column:
+            constraints:
+              nullable: false
+            name: valor
+            remarks: Valor del parámetro
+            type: VARCHAR(512)
+        - column:
+            name: descripcion
+            remarks: Literal descriptivo de la utilidad del parámetro
+            type: VARCHAR(512)
+        remarks: Tabla  que almacena aquellos parámetros de configuración que son globales a todos los servicios y entornos para un mismo cliente integrador de las librerias SCSP
+        tableName: core_parametro_configuracion
+- changeSet:
+    id: init-27
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_peticion_respuesta_pk
+            name: idpeticion
+            remarks: Identificador unívoco de la petición de servicio
+            type: VARCHAR(26)
+        - column:
+            constraints:
+              nullable: false
+            name: certificado
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: estado
+            remarks: Codigo identificativo del estado de la petición. Tomará sus valores de las tablas scsp_estado_peticion y scsp_codigo_error
+            type: VARCHAR(4)
+        - column:
+            name: estadosecundario
+            type: VARCHAR(16)
+        - column:
+            name: fechapeticion
+            remarks: Timestamp que indica la fecha en la que se generó la petición
+            type: TIMESTAMP
+        - column:
+            name: fecharespuesta
+            remarks: Timestamp que indica la fecha en la cual se recibió la respuesta a nuestra petición
+            type: TIMESTAMP
+        - column:
+            name: ter
+            remarks: Timestamp que indica la fecha a partir de la cual una petición de tipo asíncrono podrá solicitar una respuesta definitiva al servicio
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: numeroenvios
+            remarks: Valor que indica el número de veces que se ha reenviado una petición al servicio
+            type: INTEGER
+            defaultValueNumeric: 0
+        - column:
+            constraints:
+              nullable: false
+            name: numerotransmisiones
+            remarks: Número de Solicitudes de Transmisión que se enviaron en la petición
+            type: INTEGER
+            defaultValueNumeric: 1
+        - column:
+            name: fechaultimosondeo
+            remarks: Timestamp que indica la fecha del último reenvio de una petición
+              de tipo asincrono
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: transmisionsincrona
+            remarks: 'Valor binario que indica si la petición fue solicitada a un servicio de tipo síncrono o asincrono. Podrá tomar los valores: 0: La comunicación fue de tipo asíncrono, 1: La comunicación fue de tipo síncrono'
+            type: INTEGER
+            defaultValueNumeric: 1
+        - column:
+            name: descompuesta
+            remarks: 'Caracter que indica el estado del procesamiento de las transmisiones de la respuesta recibida. Podrá tomar los siguientes valores:    - S: Se ha procesado correctamente la respuesta, habiendo obtenido todas las transmisiones en ella incluidas y registradas en la tabla core_transmision. - N: No ha sido procesadas las transmisiones de la respuesta. - E: La respuesta terminó correctamente  (estado 0003), pero se ha producido un error al procesar sus trasmisiones'
+            type: VARCHAR(1)
+        - column:
+            name: error
+            type: VARCHAR(4000)
+        - column:
+            name: errorsecundario
+            type: VARCHAR(1024)
+        remarks: Esta tabla registrará un histórico de las peticiones y respuestas intercambiadas entre los requirentes y los emisores de servicios
+        tableName: core_peticion_respuesta
+- changeSet:
+    id: init-28
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_servicio_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: codcertificado
+            remarks: Código del certificado que lo identifica unívocamente en las comunicaciones SCSP
+            type: VARCHAR(64)
+        - column:
+            constraints:
+              nullable: false
+            name: descripcion
+            remarks: Literal descriptivo del servicio a solicitar utilizando el código de certificado
+            type: VARCHAR(512)
+        - column:
+            name: urlsincrona
+            remarks: Endpoint de acceso al servicio de tipo síncrono
+            type: VARCHAR(256)
+        - column:
+            name: urlasincrona
+            remarks: Endpoint de acceso al servicio de tipo asíncrono del certificado
+            type: VARCHAR(256)
+        - column:
+            name: actionsincrona
+            remarks: Valor del Soap:Action de la petición síncrona utilizado por el servidor WS en el caso de que sea necesario
+            type: VARCHAR(256)
+        - column:
+            name: actionasincrona
+            remarks: Valor del Soap:Action de la petición asíncrona utilizado por el servidor WS en el caso de que sea necesario
+            type: VARCHAR(256)
+        - column:
+            name: actionsolicitud
+            remarks: Valor del Soap:Action de la solicitud asíncrona de respuesta utilizado por el servidor WS en el caso de que sea necesario
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: versionesquema
+            remarks: Indica la versión de esquema utilizado en los mensajes SCSP pudiendo tomar los valores V2 y V3 (existe la posibilidad de añadir otros valores utilizando configuraciones avandadas de binding)
+            type: VARCHAR(32)
+        - column:
+            constraints:
+              nullable: false
+            name: tiposeguridad
+            remarks: Indica la politica de seguridad utilizada en la securización de los mensajes, pudiendo tomar los valores [XMLSignature| WS-Security]
+            type: VARCHAR(16)
+        - column:
+            name: prefijopeticion
+            remarks: Literal con una longitud máxima de 8 caracteres, el cual será utilizado para la construcción de los identificadores de petición, anteponiendose a un valor secuencial. Mediante este literal pueden personalizarse los identificadores de petición haciendolos más descriptivos
+            type: VARCHAR(9)
+        - column:
+            name: xpathcifradosincrono
+            remarks: Literal que identifica el nodo del mensaje XML a cifrar en caso de que los mensajes intercambiados con el emisor de servicio viajasen cifrados. Se corresponde con una expresión xpath que permite localizar al nodo en el mensaje XML, presentará el siguiente formato //*[local-name()="NODO_A_CIFRAR"], donde "NODO_A_CIFRAR" es el local name del nodo que se desea cifrar. Este nodo será empleado en el caso de realizar comunicaciones síncronas
+            type: VARCHAR(256)
+        - column:
+            name: xpathcifradoasincrono
+            remarks: Literal que identifica el nodo del mensaje XML a cifrar en caso de que los mensajes intercambiados con el emisor de servicio viajasen cifrados. Se corresponde con una expresión xpath que permite localizar al nodo en el mensaje XML, presentará el siguiente formato //*[local-name()="NODO_A_CIFRAR"], donde "NODO_A_CIFRAR" es el local name del nodo que se desea cifrar. Este nodo será empleado en el caso de realizar comunicaciones asíncronas
+            type: VARCHAR(256)
+        - column:
+            name: esquemas
+            remarks: Ruta que indica el directorio donde se encuentran los esquemas (*.xsd) con el que se validará el XML de los diferentes mensajes intercambiados. Esta ruta podrá tomar un valor relativo haciendo referencia al classpath de la aplicación o  un path absoluto
+            type: VARCHAR(256)
+        - column:
+            name: clavecifrado
+            type: BIGINT
+        - column:
+            name: clavefirma
+            type: BIGINT
+        - column:
+            name: algoritmocifrado
+            remarks: 'Literal que identifica el algoritmo utilizado para el cifrado de los mensajes enviados al emisor. Debe poseer un valor reconocido por las librerías de Rampart: - Basic128Rsa15 - TripleDesRsa15  - Basic256Rsa15'
+            type: VARCHAR(32)
+        - column:
+            constraints:
+              nullable: false
+            name: numeromaximoreenvios
+            remarks: Valor que indica en el caso del requirente, el número máximo de reenvios que pueden llevarse a cabo sobre una petición asíncrona. En el caso del emisor, hace referencia al número máximo de veces que procesará y creará una respuesta para una petición con un mismo identificador
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: maxsolicitudespeticion
+            remarks: Número máximo de solicitudes de transmisión que se van a permitir por petición
+            type: INTEGER
+        - column:
+            name: prefijoidtransmision
+            remarks: Semilla empleada por el emisor para generar los identificadores de transmisión de las respuestas. Será un valor alfanumérico con un mínimo de 3 caracteres y un máximo de 8
+            type: VARCHAR(9)
+        - column:
+            constraints:
+              nullable: false
+            name: emisor
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: fechaalta
+            remarks: Timestamp con la fecha en la cual el certificado se dio de alta en el sistema y por lo tanto a partir de la cual se podrán emitir peticiones al mismo
+            type: TIMESTAMP
+        - column:
+            name: fechabaja
+            remarks: Timestamp con la fecha en la cual el certificado se dio de baja en el sistema y por tanto a partir de la cual no se podran emitir peticiones al mismo
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: caducidad
+            remarks: Número de dias que deberán sumarse a la fecharespuesta de una petición, para calcular la fecha a partir de la cual se podrá considerar que la respuesta esta caducada y se devolvera el error scsp correspondiente para indicar que la respuesta ha perdido su valor
+            type: INTEGER
+            defaultValueNumeric: 0
+        - column:
+            name: xpathliteralerror
+            remarks: Xpath para recuperar el literal del error de los datos específicos
+            type: VARCHAR(256)
+        - column:
+            name: xpathcodigoerror
+            remarks: Xpath para recuperar el codigo de error de los datos específicos
+            type: VARCHAR(256)
+        - column:
+            name: xpathcodigoerrorsecundario
+            type: VARCHAR(256 BYTE)
+        - column:
+            constraints:
+              nullable: false
+            name: timeout
+            remarks: Timeout que se establecerá para el envío de las peticiones a los servicios
+            type: INTEGER
+            defaultValueNumeric: 60
+        - column:
+            name: validacionfirma
+            remarks: Parámetro que indica si se admite otro tipo de firma en el servicio además del configurado
+            type: VARCHAR(32)
+            defaultValue: estricto
+        - column:
+            name: plantillaxslt
+            type: VARCHAR(512)
+        remarks: Esta tabla registrará cada uno de los certificados SCSP que van a ser utilizados por el sistema tanto de la parte requirente como de la parte emisora
+        tableName: core_servicio
+- changeSet:
+    id: init-29
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_tipo_mensaje_pk
+            name: tipo
+            remarks: Tipo identificativo del mensaje
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: descripcion
+            remarks: Literal descriptivo del tipo de mensaje
+            type: VARCHAR(32)
+        remarks: "Tabla maestra que almacena los diferentes tipos de mensajes que pueden ser intercambiados a lo largo de un ciclo de comunicación SCSP. Estos valores serán: 0: Peticion, 1: ConfirmacionPeticion, 2: SolicitudRespuesta, 3: Respuesta, 4: Fault"
+        tableName: core_tipo_mensaje
+- changeSet:
+    id: init-30
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_token_data_pk
+            name: idpeticion
+            remarks: Identificador de la petición a la cual est� asociado el XML
+            type: VARCHAR(26)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_token_data_pk
+            name: tipomensaje
+            remarks: 'Tipo de mensaje almacenado que podrá ser: Peticion, Respuesta, SolicitudRespuesta, ConfirmacionPeticion, Fault'
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            name: datos
+            remarks: Bytes del mensaje almacenado
+            type: CLOB
+        - column:
+            name: clave
+            remarks: Clave simétrica utilizada para el cifrado de los datos
+            type: VARCHAR(256)
+        - column:
+            name: modoencriptacion
+            remarks: Modo de encriptación utilizado para el proceso de cifrado. Por defecto será TransportKey
+            type: VARCHAR(32)
+        - column:
+            name: algoritmoencriptacion
+            remarks: 'Algoritmo empleado en la encriptación del mensaje. Podrá tomar los siguientes valores: - AES128 - AES256 -DESDe'
+            type: VARCHAR(32)
+        remarks: Esta tabla almacenará el contenido de los mensajes intercambiados en un proceso de comunicación SCSP
+        tableName: core_token_data
+- changeSet:
+    id: init-31
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_transmision_pk
+            name: idsolicitud
+            remarks: Indentificador de la solicitud de transmisión
+            type: VARCHAR(64)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_transmision_pk
+            name: idpeticion
+            remarks: Indentificador de la petición en la que se incluyó la solicitud de transmisión
+            type: VARCHAR(26)
+        - column:
+            name: idtransmision
+            remarks: Indentificador de la transmisión que responde a la petición de servicio de la Solicitud de transmisión identificada con idSolicitud
+            type: VARCHAR(64)
+        - column:
+            constraints:
+              nullable: false
+            name: idsolicitante
+            remarks: CIF de organismo solicitante del servicio
+            type: VARCHAR(10)
+        - column:
+            name: nombresolicitante
+            remarks: Nombre del organismo solicitante de servicio
+            type: VARCHAR(256)
+        - column:
+            name: doctitular
+            remarks: Documento identificativo del titular sobre el cual se está realizando la petición de servicio
+            type: VARCHAR(30)
+        - column:
+            name: nombretitular
+            remarks: Nombre del titular sobre el que se realiza la petición del servicio
+            type: VARCHAR(40)
+        - column:
+            name: apellido1titular
+            remarks: Primer apellido del titular sobre el que se realiza la petición del servicio
+            type: VARCHAR(40)
+        - column:
+            name: apellido2titular
+            remarks: Segundo apellido del titular sobre el que se realiza la petición del servicio
+            type: VARCHAR(40)
+        - column:
+            name: nombrecompletotitular
+            remarks: Nombre completo del titular sobre el que se realiza la petición del servicio
+            type: VARCHAR(122)
+        - column:
+            name: docfuncionario
+            remarks: Documento identificativo del funcionario que generó la solicitud de transmisión
+            type: VARCHAR(16)
+        - column:
+            name: nombrefuncionario
+            remarks: Nombre del Funcionario que generó la solicitud de transmisión
+            type: VARCHAR(128)
+        - column:
+            name: seudonimofuncionario
+            type: VARCHAR(32)
+        - column:
+            name: fechageneracion
+            remarks: Fecha en la que se generó la transmisión
+            type: TIMESTAMP
+        - column:
+            name: unidadtramitadora
+            remarks: Unidad Tramitadora asociada a la solicitud de transmisión
+            type: VARCHAR(250)
+        - column:
+            name: codigounidadtramitadora
+            type: VARCHAR(9)
+        - column:
+            name: codigoprocedimiento
+            remarks: Código del procedimiento en base al cual se puede solicitar el servicio
+            type: VARCHAR(256)
+        - column:
+            name: nombreprocedimiento
+            remarks: Nombre del procedimiento en base al cual se puede solicitar el servicio
+            type: VARCHAR(256)
+        - column:
+            name: expediente
+            remarks: Expediente asociado a la solicitud de transmisión
+            type: VARCHAR(65)
+        - column:
+            name: finalidad
+            remarks: Finalidad por la cual se emiti� la solicitud de transmisión
+            type: VARCHAR(256)
+        - column:
+            name: consentimiento
+            remarks: 'Tipo de consentimiento asociado a la transmisión. Deberá tomar uno de los dos posibles valores: Si, Ley'
+            type: VARCHAR(3)
+        - column:
+            name: error
+            type: VARCHAR(4000)
+        - column:
+            name: xmltransmision
+            remarks: El XML de la transmisión. Su almacenamiento será opcional, dependiendo de un parametro global almacenado en la tabla core_parametro_configuracion
+            type: CLOB
+        - column:
+            name: estado
+            remarks: Estado concreto en el que se encuentra la transmisión
+            type: VARCHAR(10)
+        - column:
+            name: estadosecundario
+            type: VARCHAR(16)
+        remarks: Esta tabla almacenará la información específica de cada transmisión que haya sido incluida en una respuesta de un servicio SCSP
+        tableName: core_transmision
+- changeSet:
+    id: init-32
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_em_aplicacion_pk
+            name: idaplicacion
+            remarks: Identificador de la aplicación. Se va a generar automáticamente
+            type: INTEGER
+        - column:
+            name: nifcertificado
+            remarks: Nif del certificado con el que la aplicación firmara las peticiones
+            type: VARCHAR(16)
+        - column:
+            constraints:
+              nullable: false
+            name: numeroserie
+            remarks: Numero de serie del certificado con el que la aplicación firmara las peticiones
+            type: VARCHAR(64)
+        - column:
+            name: cn
+            remarks: Common Name del certificado con el que la aplicación firmara las peticiones
+            type: VARCHAR(512)
+        - column:
+            name: tiempocomprobacion
+            remarks: Fecha en que se realizo la operación de validar el certificado
+            type: TIMESTAMP
+        - column:
+            constraints:
+              nullable: false
+            name: autoridadcertif
+            type: BIGINT
+        - column:
+            name: fechaalta
+            remarks: Fecha en la que se da de alta la aplicación
+            type: TIMESTAMP
+        - column:
+            name: fechabaja
+            remarks: Fecha a partir de la cual la aplicación no va a poder acceder a ningún servicio
+            type: TIMESTAMP
+        - column:
+            name: descripcion
+            type: VARCHAR(512)
+        remarks: Aplicaciones dadas de alta en el emisor que van a emplear los organismos para poder realizar consultas a los servicios ofrecidos por este
+        tableName: core_em_aplicacion
+- changeSet:
+    id: init-33
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_em_autorizacion_ca_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: codca
+            remarks: 'Codigo de la autoridad de certificación (Ej: FNMT)'
+            type: VARCHAR(512)
+        - column:
+            name: nombre
+            remarks: 'Nombre de la autoridad de certificación  (Ej: Fabrica Nacional de Moneda y Timbre)'
+            type: VARCHAR(256)
+        remarks: Contiene la información relativa a las distintas autoridades de certificación reconocidas por la aplicación
+        tableName: core_em_autorizacion_ca
+- changeSet:
+    id: init-34
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_em_autorizacion_cert_pk
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: idcertificado
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: idorganismo
+            remarks: Identificador del organismo
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: idaplicacion
+            remarks: Identificador de la aplicación autorizada
+            type: INTEGER
+        - column:
+            name: fechaalta
+            remarks: Fecha de alta de la autorización
+            type: TIMESTAMP
+        - column:
+            name: fechabaja
+            remarks: Fecha de baja de la autorización
+            type: TIMESTAMP
+        remarks: Contiene la información relativa a las autorizaciones de los distintas aplicaciones para acceder a los servicios ofrecidos por el emisor
+        tableName: core_em_autorizacion_cert
+- changeSet:
+    id: init-35
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_em_cod_error_secun_pk
+            name: codigo
+            remarks: Código identificativo del error especifico secundario
+            type: VARCHAR(4)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_em_cod_error_secun_pk
+            name: codigosecundario
+            remarks: Codigo de error SCSP al que esta asociado el error secundario
+            type: VARCHAR(16)
+        - column:
+            constraints:
+              nullable: false
+            name: descripcion
+            remarks: Literal descriptivo del mensaje de error secundario
+            type: CLOB
+        remarks: Tabla de errores que permitirá almacenar aquellos mensajes de excepción gestionados por cada lógica de negocio específica de cada emisor, y que está asociado a un error genérico de SCSP
+        tableName: core_em_codigo_error_secun
+- changeSet:
+    id: init-36
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_em_backoffice_pk
+            name: certificado
+            type: BIGINT
+        - column:
+            name: beanname
+            remarks: Identificador del bean del contexto de Spring que contiene la clase que ofrece la puerta de entrada al backoffice
+            type: VARCHAR(256)
+        - column:
+            name: classname
+            remarks: Nombre completo  de la clase que ofrece la puerta de entrada al backoffice
+            type: VARCHAR(256)
+        - column:
+            constraints:
+              nullable: false
+            name: ter
+            remarks: Número de horas que harán esperar a un requirente para la generación de una respuesta definitiva ante una petición asíncrona
+            type: INTEGER
+        remarks: Tabla en la que se configura el módulo de backoffice del emisor que enlaza las comunicaciones SCSP con la logica de negocio especifica de cada organismo
+        tableName: core_em_backoffice
+- changeSet:
+    id: init-37
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_em_secuencia_idtrans_pk
+            name: prefijo
+            remarks: Prefijo de IdTransmisiones al que estará asociada la secuencia
+            type: VARCHAR(9)
+        - column:
+            constraints:
+              nullable: false
+            name: secuencia
+            remarks: Valor actual de la secuencia alfanumérica asociada al prefijo
+            type: VARCHAR(26)
+        - column:
+            constraints:
+              nullable: false
+            name: fechageneracio
+            remarks: Última fecha en la que se ha generado un valor de secuencia
+            type: TIMESTAMP
+        remarks: Tabla utilizada para la generación de los valores de los nodos IdTransmisión en los emisores
+        tableName: core_em_secuencia_idtrans
+- changeSet:
+    id: init-38
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_req_secuencia_id_pet_pk
+            name: prefijo
+            remarks: Prefijo utilizado para la construccion de los identificadores. Dicho valor podrá ser el prefijo especificado a ser utilizado para cada servicio o ante la no existencia del mismo, el número de serie del certificado digital firmante  de los mensajes.
+            type: VARCHAR(9)
+        - column:
+            constraints:
+              nullable: false
+            name: secuencia
+            remarks: Valor secuencial que será concatenado al prefijo para generar los identificadores de petición. Este secuencial será de tipo alfanumérico, de tal forma que el siguiente valor a 00000009 sería 0000000A.
+            type: VARCHAR(23)
+        - column:
+            constraints:
+              nullable: false
+            name: fechageneracion
+            remarks: Fecha en la que se registró el secuencial
+            type: TIMESTAMP
+        remarks: Tabla que almacena las semillas (secuenciales) utilizadas para la generación de los identificadores de peticion. Existirá un secuencial asociado a cada posible prefijo o número de serie de certificado digital firmante.
+        tableName: core_req_secuencia_id_peticion
+- changeSet:
+    id: init-39
+    author: limit (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: core_req_cesionarios_serv_pk
+            name: id
+            type: BIGINT
+        - column:
+            name: servicio
+            type: BIGINT
+        - column:
+            name: claveprivada
+            type: BIGINT
+        - column:
+            name: organismo
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: fechaalta
+            type: TIMESTAMP(6)
+        - column:
+            name: fechabaja
+            type: TIMESTAMP(6)
+        - column:
+            constraints:
+              nullable: false
+            name: bloqueado
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: sslflag
+            type: BOOLEAN
+        tableName: core_req_cesionarios_servicios

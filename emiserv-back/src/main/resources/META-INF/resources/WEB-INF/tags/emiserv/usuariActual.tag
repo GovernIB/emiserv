@@ -1,0 +1,1 @@
+<%=es.caib.emiserv.back.helper.JspHelper.getCurrentUserName()%>

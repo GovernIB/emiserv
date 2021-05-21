@@ -1,1 +1,0 @@
-<%=es.caib.emiserv.war.helper.AplicacioHelper.getVersioActual(request)%>

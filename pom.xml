@@ -4,51 +4,63 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>es.caib.emiserv</groupId>
 	<artifactId>emiserv</artifactId>
-	<version>1.4.11</version>
+	<version>2.0.1</version>
 	<packaging>pom</packaging>
 	<name>Emissor SCSP CAIB</name>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.4.4</version>
+		<relativePath />
+	</parent>
 	<properties>
-		<spring.version>3.2.16.RELEASE</spring.version>
-		<spring-security.version>3.2.9.RELEASE</spring-security.version>
-		<spring-data-jpa.version>1.6.6.RELEASE</spring-data-jpa.version>
-		<spring-ws.version>2.2.4.RELEASE</spring-ws.version>
-		<hibernate.version>5.0.7.Final</hibernate.version>
-		<hibernate.validator.version>4.1.0.Final</hibernate.validator.version>
-		<ehcache.version>2.10.4</ehcache.version>
+		<spring-boot.version>2.4.2</spring-boot.version>
+		<node.version>v10.16.3</node.version>
+		<liquibase.version>4.3.3</liquibase.version>
+		<orika.starter.version>1.8.0</orika.starter.version>
+		<reflections.version>0.9.11</reflections.version>
+		<rsql.version>2.1.0</rsql.version>
+		<jasperreports.version>6.12.2</jasperreports.version>
+		<xdocreport.version>2.0.2</xdocreport.version>
+		<opencsv.version>4.6</opencsv.version>
+		<springdoc-openapi.version>1.2.25</springdoc-openapi.version>
+		<keycloak.version>11.0.1</keycloak.version>
+
+		<sitemesh.version>2.4.2</sitemesh.version>
+		<commons-lang.version>2.6</commons-lang.version>
+		<commons-httpclient.version>3.1</commons-httpclient.version>
+		<commons-fileupload.version>1.4</commons-fileupload.version>
+		<commons-beanutils.version>1.9.4</commons-beanutils.version>
+		<commons-io.version>2.8.0</commons-io.version>
+		<poi.version>3.15</poi.version>
+		<webjars-locator.version>0.40</webjars-locator.version>
 		<scsp.core.version>4.20.0</scsp.core.version>
 		<scsp.beans.version>4.3.0</scsp.beans.version>
 		<scsp.emisor.version>4.22.0</scsp.emisor.version>
 		<scsp.rampart.core.version>1.6.4.1</scsp.rampart.core.version>
 		<scsp.emisor.demo.version>3.3.0</scsp.emisor.demo.version>
-		<axis2.version>1.6.4</axis2.version>
-		<jackson.version>2.6.3</jackson.version>
-		<poi.version>3.9</poi.version>
-		<axiom.version>1.2.15</axiom.version>
-		<rampart.version>1.6.4</rampart.version>
-		<compiler.plugin.version>3.1</compiler.plugin.version>
-		<slf4j.version>1.7.7</slf4j.version>
-		<maven.test.skip>true</maven.test.skip>
-		<maven.compiler.source>1.6</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
+
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<build.timestamp>${maven.build.timestamp}</build.timestamp>
-		<version.full>${project.version}</version.full>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<skipTests>true</skipTests>
 	</properties>
 	<modules>
-		<module>emiserv-war</module>
-		<module>emiserv-core</module>
-		<module>emiserv-core-api</module>
-		<module>emiserv-ear</module>
-		<module>emiserv-plugin</module>
+		<module>emiserv-back</module>
 		<module>emiserv-backoffice</module>
-		<module>emiserv-plugin-impl</module>
-		<module>emiserv-lib-common</module>
+		<module>emiserv-back-war</module>
+		<module>emiserv-boot</module>
+		<module>emiserv-ear</module>
+		<module>emiserv-ejb</module>
+		<module>emiserv-persistence</module>
+		<module>emiserv-service</module>
+		<module>emiserv-service-intf</module>
+		<module>emiserv-api-externa</module>
 	</modules>
 	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.8.1</version>
 				<configuration>
 					<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
 				</configuration>
@@ -80,23 +92,6 @@
 						<phase>deploy</phase>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>pl.project13.maven</groupId>
-				<artifactId>git-commit-id-plugin</artifactId>
-				<version>2.2.0</version>
-				<executions>
-					<execution>
-						<id>get-the-git-infos</id>
-						<goals>
-							<goal>revision</goal>
-						</goals>
-						<phase>validate</phase>
-					</execution>
-				</executions>
-				<configuration>
-					<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>

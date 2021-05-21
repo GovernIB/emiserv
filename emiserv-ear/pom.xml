@@ -4,87 +4,151 @@
 	<parent>
 		<groupId>es.caib.emiserv</groupId>
 		<artifactId>emiserv</artifactId>
-		<version>1.4.11</version>
+		<version>2.0.1</version>
 	</parent>
 	<artifactId>emiserv-ear</artifactId>
 	<packaging>ear</packaging>
 	<dependencies>
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-validator-legacy</artifactId>
-			<version>4.0.2.GA</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
 			<exclusions>
 				<exclusion>
-					<artifactId>slf4j-api</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>hibernate-core</artifactId>
-					<groupId>org.hibernate</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>
-						hibernate-commons-annotations
-					</artifactId>
-					<groupId>org.hibernate</groupId>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>provided</scope>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-lib-common</artifactId>
-			<version>${project.version}</version>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-plugin-impl</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-core</artifactId>
+			<artifactId>emiserv-ejb</artifactId>
 			<version>${project.version}</version>
 			<type>ejb</type>
+			<exclusions>
+				<exclusion>
+					<groupId>org.liquibase</groupId>
+					<artifactId>liquibase-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-war</artifactId>
+			<artifactId>emiserv-back-war</artifactId>
 			<version>${project.version}</version>
 			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>emiserv-api-externa</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<!-- 
+			 La següent dependència ja està inclosa a dins el .war. Només s'inclou aquí per a que l'ear
+			 contengui les seves dependències. Després s'haurà d'excloure el fitxer emiserv-back*.jar
+			 de dins la carpeta lib per a evitar conflictes per classes duplicades.
+		-->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>emiserv-back</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<!--
+					Excloem la dependència de keycloak perquè si no ho feim ens dona errors en les classes
+					org.keycloak.* perquè estan carregades a dos classloaders diferents.
+				-->
+				<exclusion>
+					<groupId>org.keycloak</groupId>
+					<artifactId>keycloak-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>get-the-git-infos</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+						<phase>validate</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<verbose>false</verbose>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<verbose>true</verbose>
+					<images>
+						<image>
+							<name>280421/%g</name>
+							<alias>${project.parent.artifactId}</alias>
+							<build>
+								<assembly>
+									<descriptorRef>artifact</descriptorRef>
+								</assembly>
+								<dockerFile>Dockerfile</dockerFile>
+								<tags>
+									<tag>latest</tag>
+									<tag>${project.version}</tag>
+								</tags>
+							</build>
+						</image>
+					</images>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-ear-plugin</artifactId>
 				<configuration>
-					<finalName>emiserv</finalName>
-					<version>5</version>
+					<generateApplicationXml>true</generateApplicationXml>
+					<defaultLibBundleDir>/lib</defaultLibBundleDir>
+					<includeLibInApplicationXml>false</includeLibInApplicationXml>
+					<packagingExcludes>lib/emiserv-back-*.jar</packagingExcludes>
+					<version>6</version>
+					<initializeInOrder>true</initializeInOrder>
+					<archive>
+						<manifestEntries>
+							<Build-Timestamp>${maven.build.timestamp}</Build-Timestamp>
+							<Implementation-Vendor>Límit Tecnologies</Implementation-Vendor>
+							<Implementation-Version>${project.version}</Implementation-Version>
+							<Implementation-SCM-Branch>${git.branch}</Implementation-SCM-Branch>
+							<Implementation-SCM-Revision>${git.commit.id}</Implementation-SCM-Revision>
+						</manifestEntries>
+					</archive>
 					<modules>
 						<ejbModule>
 							<groupId>${project.groupId}</groupId>
-							<artifactId>emiserv-core</artifactId>
+							<artifactId>emiserv-ejb</artifactId>
 							<bundleFileName>emiserv.jar</bundleFileName>
 						</ejbModule>
 						<webModule>
 							<groupId>${project.groupId}</groupId>
-							<artifactId>emiserv-war</artifactId>
-							<contextRoot>/emiserv</contextRoot>
-							<bundleFileName>emiserv.war</bundleFileName>
+							<artifactId>emiserv-back-war</artifactId>
+							<contextRoot>/emiservback</contextRoot>
+							<bundleFileName>emiserv-back.war</bundleFileName>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>emiserv-api-externa</artifactId>
+							<contextRoot>/emiservapi/externa</contextRoot>
+							<bundleFileName>emiserv-api-externa.war</bundleFileName>
 						</webModule>
 					</modules>
-					<artifactTypeMappings>
-						<artifactTypeMapping type="mar" mapping="jar" />
-					</artifactTypeMappings>
-					<defaultJavaBundleDir>lib/</defaultJavaBundleDir>
 				</configuration>
 			</plugin>
 		</plugins>

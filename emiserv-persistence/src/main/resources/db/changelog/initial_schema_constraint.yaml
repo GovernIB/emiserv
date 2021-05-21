@@ -1,0 +1,288 @@
+databaseChangeLog:
+- changeSet:
+    id: init-constraint-1
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: peticio_id
+        baseTableName: ems_backoffice_com
+        constraintName: ems_backcom_backpet_fk
+        referencedColumnNames: id
+        referencedTableName: ems_backoffice_pet
+    - addForeignKeyConstraint:
+        baseColumnNames: solicitud_id
+        baseTableName: ems_backoffice_com
+        constraintName: ems_backcom_backsol_fk
+        referencedColumnNames: id
+        referencedTableName: ems_backoffice_sol
+- changeSet:
+    id: init-constraint-2
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: comunicacio_id
+        baseTableName: ems_backoffice_pet
+        constraintName: ems_backpet_backcom_fk
+        referencedColumnNames: id
+        referencedTableName: ems_backoffice_com
+    - addForeignKeyConstraint:
+        baseColumnNames: peticio_id
+        baseTableName: ems_backoffice_pet
+        constraintName: ems_backpet_scsppet_fk
+        referencedColumnNames: idpeticion
+        referencedTableName: core_peticion_respuesta
+- changeSet:
+    id: init-constraint-3
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: comunicacio_id
+        baseTableName: ems_backoffice_sol
+        constraintName: ems_backsol_backcom_fk
+        referencedColumnNames: id
+        referencedTableName: ems_backoffice_com
+    - addForeignKeyConstraint:
+        baseColumnNames: peticio_id
+        baseTableName: ems_backoffice_sol
+        constraintName: ems_backsol_backpet_fk
+        referencedColumnNames: id
+        referencedTableName: ems_backoffice_pet
+- changeSet:
+    id: init-constraint-4
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: peticio_id
+        baseTableName: ems_redir_missatge
+        constraintName: ems_redmsg_peticio_fk
+        referencedColumnNames: id
+        referencedTableName: ems_redir_peticio
+- changeSet:
+    id: init-constraint-5
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: peticio_id
+        baseTableName: ems_redir_solicitud
+        constraintName: ems_redsol_peticio_fk
+        referencedColumnNames: id
+        referencedTableName: ems_redir_peticio
+- changeSet:
+    id: init-constraint-6
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: servei_id
+        baseTableName: ems_servei_ruta_desti
+        constraintName: ems_serrutadesti_servei_fk
+        referencedColumnNames: id
+        referencedTableName: ems_servei
+- changeSet:
+    id: init-constraint-7
+    author: limit (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: sid, principal
+        constraintName: ems_acl_sid_uk
+        tableName: ems_acl_sid
+    - addUniqueConstraint:
+        columnNames: class
+        constraintName: ems_acl_class_uk
+        tableName: ems_acl_class
+    - addUniqueConstraint:
+        columnNames: object_id_class, object_id_identity
+        constraintName: ems_acl_oid_uk
+        tableName: ems_acl_object_identity
+    - addForeignKeyConstraint:
+        baseColumnNames: parent_object
+        baseTableName: ems_acl_object_identity
+        constraintName: ems_acl_oid_parent_fk
+        referencedColumnNames: id
+        referencedTableName: ems_acl_object_identity
+    - addForeignKeyConstraint:
+        baseColumnNames: object_id_class
+        baseTableName: ems_acl_object_identity
+        constraintName: ems_acl_oid_class_fk
+        referencedColumnNames: id
+        referencedTableName: ems_acl_class
+    - addForeignKeyConstraint:
+        baseColumnNames: owner_sid
+        baseTableName: ems_acl_object_identity
+        constraintName: ems_acl_oid_owner_fk
+        referencedColumnNames: id
+        referencedTableName: ems_acl_sid
+    - addUniqueConstraint:
+        columnNames: acl_object_identity, ace_order
+        constraintName: ems_acl_entry_uk
+        tableName: ems_acl_entry
+    - addForeignKeyConstraint:
+        baseColumnNames: acl_object_identity
+        baseTableName: ems_acl_entry
+        constraintName: ems_acl_entry_object_fk
+        referencedColumnNames: id
+        referencedTableName: ems_acl_object_identity
+    - addForeignKeyConstraint:
+        baseColumnNames: sid
+        baseTableName: ems_acl_entry
+        constraintName: ems_acl_entry_acl_fk
+        referencedColumnNames: id
+        referencedTableName: ems_acl_sid
+- changeSet:
+    id: init-constraint-8
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: organismo
+        baseTableName: core_clave_privada
+        constraintName: clave_privada_organismo
+        referencedColumnNames: id
+        referencedTableName: core_organismo_cesionario
+- changeSet:
+    id: init-constraint-9
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: modulo
+        baseTableName: core_modulo_configuracion
+        constraintName: mod_conf_modulo
+        referencedColumnNames: nombre
+        referencedTableName: core_modulo
+    - addForeignKeyConstraint:
+        baseColumnNames: certificado
+        baseTableName: core_modulo_configuracion
+        constraintName: mod_conf_servicio
+        referencedColumnNames: id
+        referencedTableName: core_servicio
+- changeSet:
+    id: init-constraint-10
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: modulo
+        baseTableName: core_req_modulo_pdf_cesionario
+        constraintName: fk_modulo_mod_pdf
+        referencedColumnNames: nombre
+        referencedTableName: core_modulo
+    - addForeignKeyConstraint:
+        baseColumnNames: servicio
+        baseTableName: core_req_modulo_pdf_cesionario
+        constraintName: fk_servicio_mod_pdf
+        referencedColumnNames: id
+        referencedTableName: core_servicio
+    - addForeignKeyConstraint:
+        baseColumnNames: organismo
+        baseTableName: core_req_modulo_pdf_cesionario
+        constraintName: fk_org_cesionario_mod_pdf
+        referencedColumnNames: id
+        referencedTableName: core_organismo_cesionario
+- changeSet:
+    id: init-constraint-11
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: certificado
+        baseTableName: core_peticion_respuesta
+        constraintName: pet_resp_servicio
+        referencedColumnNames: id
+        referencedTableName: core_servicio
+- changeSet:
+    id: init-constraint-12
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: emisor
+        baseTableName: core_servicio
+        constraintName: serv_emisor
+        referencedColumnNames: id
+        referencedTableName: core_emisor_certificado
+        validate: true
+    - addForeignKeyConstraint:
+        baseColumnNames: clavecifrado
+        baseTableName: core_servicio
+        constraintName: serv_clavecifrado
+        referencedColumnNames: id
+        referencedTableName: core_clave_publica
+    - addForeignKeyConstraint:
+        baseColumnNames: clavefirma
+        baseTableName: core_servicio
+        constraintName: serv_clavefirma
+        referencedColumnNames: id
+        referencedTableName: core_clave_privada
+- changeSet:
+    id: init-constraint-13
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: idpeticion
+        baseTableName: core_token_data
+        constraintName: token_peticion
+        referencedColumnNames: idpeticion
+        referencedTableName: core_peticion_respuesta
+    - addForeignKeyConstraint:
+        baseColumnNames: tipomensaje
+        baseTableName: core_token_data
+        constraintName: token_tipo
+        referencedColumnNames: tipo
+        referencedTableName: core_tipo_mensaje
+- changeSet:
+    id: init-constraint-14
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: idpeticion
+        baseTableName: core_transmision
+        constraintName: trans_peticion
+        referencedColumnNames: idpeticion
+        referencedTableName: core_peticion_respuesta
+- changeSet:
+    id: init-constraint-15
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: autoridadcertif
+        baseTableName: core_em_aplicacion
+        constraintName: apli_codca
+        referencedColumnNames: id
+        referencedTableName: core_em_autorizacion_ca
+- changeSet:
+    id: init-constraint-16
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: idcertificado
+        baseTableName: core_em_autorizacion_cert
+        constraintName: aut_cert_servicio
+        referencedColumnNames: id
+        referencedTableName: core_servicio
+    - addForeignKeyConstraint:
+        baseColumnNames: idorganismo
+        baseTableName: core_em_autorizacion_cert
+        constraintName: aut_cert_organismo
+        referencedColumnNames: id
+        referencedTableName: core_em_autorizacion_organismo
+    - addForeignKeyConstraint:
+        baseColumnNames: idaplicacion
+        baseTableName: core_em_autorizacion_cert
+        constraintName: aut_cert_aplicacion
+        referencedColumnNames: idaplicacion
+        referencedTableName: core_em_aplicacion
+- changeSet:
+    id: init-constraint-17
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: codigo
+        baseTableName: core_em_codigo_error_secun
+        constraintName: codigosecundario_fk
+        referencedColumnNames: codigo
+        referencedTableName: core_codigo_error
+- changeSet:
+    id: init-constraint-18
+    author: limit (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: certificado
+        baseTableName: core_em_backoffice
+        constraintName: emisor_bo_servicio
+        referencedColumnNames: id
+        referencedTableName: core_servicio
