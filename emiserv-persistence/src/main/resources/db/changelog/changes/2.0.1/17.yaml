@@ -3,6 +3,13 @@ databaseChangeLog:
     id: 1618396425533-1
     author: limit
     changes:
+    - renameSequence:
+        oldSequenceName: hibernate_sequence
+        newSequenceName: ems_hibernate_sequence
+- changeSet:
+    id: 1618396425533-2
+    author: limit
+    changes:
     - dropColumn:
         columnName: nom
         tableName: ems_usuari

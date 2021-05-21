@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: db/changelog/db.changelog-master.yaml
--- Ran at: 04/05/21 12:22
+-- Ran at: 21/05/21 09:51
 -- Against: null@offline:oracle?changeLogFile=liquibase/databasechangelog.csv
 -- Liquibase version: 4.3.3
 -- *********************************************************************
@@ -521,7 +521,7 @@ CREATE UNIQUE INDEX unique_serv_apl_org_baja ON core_em_autorizacion_cert(idcert
 CREATE INDEX cesionarios_index_organismo ON core_req_cesionarios_servicios(organismo);
 
 -- Changeset db/changelog/initial_schema_sequence.yaml::init-sequence-1::limit (generated)
-CREATE SEQUENCE ems_hibernate_sequence START WITH 1;
+CREATE SEQUENCE hibernate_sequence START WITH 1;
 
 -- Changeset db/changelog/initial_schema_sequence.yaml::init-sequence-2::limit (generated)
 CREATE SEQUENCE ems_acl_sid_seq START WITH 1;
@@ -566,13 +566,21 @@ CREATE SEQUENCE id_autorizacion_certific_seq START WITH 1;
 CREATE SEQUENCE id_servicio_cesionario_seq START WITH 1;
 
 -- Changeset db/changelog/initial_schema_trigger.yaml::init-trigger-1::limit (generated)
-CREATE OR REPLACE TRIGGER ems_acl_sid_idgen BEFORE INSERT ON ems_acl_sid FOR EACH ROW BEGIN SELECT ems_acl_sid_seq.NEXTVAL INTO :NEW.ID FROM DUAL END;
+CREATE OR REPLACE TRIGGER ems_acl_sid_idgen BEFORE INSERT ON ems_acl_sid FOR EACH ROW BEGIN SELECT ems_acl_sid_seq.NEXTVAL INTO :NEW.ID FROM DUAL;
 
-CREATE OR REPLACE TRIGGER ems_acl_class_idgen BEFORE INSERT ON ems_acl_class FOR EACH ROW BEGIN SELECT ems_acl_class_seq.NEXTVAL INTO :NEW.ID FROM DUAL END;
+END;
 
-CREATE OR REPLACE TRIGGER ems_acl_oid_idgen BEFORE INSERT ON ems_acl_object_identity FOR EACH ROW BEGIN SELECT ems_acl_oid_seq.NEXTVAL INTO :NEW.ID FROM DUAL END;
+CREATE OR REPLACE TRIGGER ems_acl_class_idgen BEFORE INSERT ON ems_acl_class FOR EACH ROW BEGIN SELECT ems_acl_class_seq.NEXTVAL INTO :NEW.ID FROM DUAL;
 
-CREATE OR REPLACE TRIGGER ems_acl_entry_idgen BEFORE INSERT ON ems_acl_entry FOR EACH ROW BEGIN SELECT ems_acl_entry_seq.NEXTVAL INTO :NEW.ID FROM DUAL END;
+END;
+
+CREATE OR REPLACE TRIGGER ems_acl_oid_idgen BEFORE INSERT ON ems_acl_object_identity FOR EACH ROW BEGIN SELECT ems_acl_oid_seq.NEXTVAL INTO :NEW.ID FROM DUAL;
+
+END;
+
+CREATE OR REPLACE TRIGGER ems_acl_entry_idgen BEFORE INSERT ON ems_acl_entry FOR EACH ROW BEGIN SELECT ems_acl_entry_seq.NEXTVAL INTO :NEW.ID FROM DUAL;
+
+END;
 
 -- Changeset db/changelog/initial_schema_lob.yaml::lob-1::limit (generated)
 ALTER TABLE ems_backoffice_com MOVE LOB(peticio_xml) STORE AS ems_backcom_petxml_lob(TABLESPACE emiserv_lob INDEX ems_backcom_petxml_lob_i);
