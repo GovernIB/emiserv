@@ -1,7 +1,7 @@
 /**
  * 
  */
-package es.caib.emiserv.logic.base;
+package es.caib.emiserv.logic.config;
 
 import java.util.Optional;
 

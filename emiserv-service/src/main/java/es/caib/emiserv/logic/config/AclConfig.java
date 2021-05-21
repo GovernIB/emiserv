@@ -1,7 +1,7 @@
 /**
  * 
  */
-package es.caib.emiserv.logic.base;
+package es.caib.emiserv.logic.config;
 
 import java.util.List;
 
@@ -86,10 +86,10 @@ public class AclConfig {
 			+ "and parent.object_id_identity = ? and parent.object_id_class = ("
 			+ "select id from " + TABLE_CLASS + " where " + TABLE_CLASS + ".class = ?)";
 
-	private static final String CLASS_IDENTITY_QUERY_ORACLE = "SELECT ACL_CLASS_SQ.CURRVAL FROM DUAL";
-	private static final String SID_IDENTITY_QUERY_ORACLE = "SELECT ACL_SID_SQ.CURRVAL FROM DUAL";
-	private static final String CLASS_IDENTITY_QUERY_POSTGRES = "select currval(pg_get_serial_sequence('acl_class', 'id'))";
-	private static final String SID_IDENTITY_QUERY_POSTGRES = "select currval(pg_get_serial_sequence('acl_sid', 'id'))";
+	private static final String CLASS_IDENTITY_QUERY_ORACLE = "SELECT ems_acl_class_seq.CURRVAL FROM DUAL";
+	private static final String SID_IDENTITY_QUERY_ORACLE = "SELECT ems_acl_sid_seq.CURRVAL FROM DUAL";
+	private static final String CLASS_IDENTITY_QUERY_POSTGRES = "select currval(pg_get_serial_sequence('" + TABLE_CLASS + "', 'id'))";
+	private static final String SID_IDENTITY_QUERY_POSTGRES = "select currval(pg_get_serial_sequence('" + TABLE_SID + "', 'id'))";
 	private static final String CLASS_IDENTITY_QUERY_HYPERSONIC = "call identity()";
 	private static final String SID_IDENTITY_QUERY_HYPERSONIC = "call identity()";
 
