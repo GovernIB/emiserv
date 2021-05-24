@@ -8,7 +8,7 @@ ARG KEYCLOAK_FILE=configuration/keycloak.xml
 ARG LOGGING_FILE=configuration/logging.xml
 ARG APP_NAME=emiserv
 
-ENV KEYCLOAK_URL http://docker.limit.es:8081/auth/
+ENV KEYCLOAK_URL http://docker.limit.es:21234/auth/
 ENV KEYCLOAK_REALM GOIB
 ENV KEYCLOAK_RESOURCE goib-default
 ENV DATABASE_URL jdbc:oracle:thin:@10.35.3.242:1521:orcl
