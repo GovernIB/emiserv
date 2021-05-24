@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: db/changelog/db.changelog-master.yaml
--- Ran at: 21/05/21 10:13
+-- Ran at: 24/05/21 15:51
 -- Against: null@offline:oracle?changeLogFile=liquibase/databasechangelog.csv
 -- Liquibase version: 4.3.3
 -- *********************************************************************
@@ -161,7 +161,7 @@ COMMENT ON COLUMN core_em_autorizacion_organismo.fechabaja IS 'Fecha a partir de
 COMMENT ON COLUMN core_em_autorizacion_organismo.nombreorganismo IS 'Nombre descriptivo del organismo requirente de servicios';
 
 -- Changeset db/changelog/initial_schema_table.yaml::init-25::limit (generated)
-CREATE TABLE core_organismo_cesionario (id NUMBER(38, 0) NOT NULL, fechaalta TIMESTAMP NOT NULL, fechabaja TIMESTAMP, nombre VARCHAR2(50) NOT NULL, cif VARCHAR2(50) NOT NULL, bloqueado INTEGER DEFAULT 0 NOT NULL, logo BLOB, "codigounidadtramitadora;" VARCHAR2(9), CONSTRAINT core_organismo_cesionario_pk PRIMARY KEY (id));
+CREATE TABLE core_organismo_cesionario (id NUMBER(38, 0) NOT NULL, fechaalta TIMESTAMP NOT NULL, fechabaja TIMESTAMP, nombre VARCHAR2(50) NOT NULL, cif VARCHAR2(50) NOT NULL, bloqueado INTEGER DEFAULT 0 NOT NULL, logo BLOB, codigounidadtramitadora VARCHAR2(9), CONSTRAINT core_organismo_cesionario_pk PRIMARY KEY (id));
 
 -- Changeset db/changelog/initial_schema_table.yaml::init-26::limit (generated)
 CREATE TABLE core_parametro_configuracion (nombre VARCHAR2(64) NOT NULL, valor VARCHAR2(512) NOT NULL, descripcion VARCHAR2(512), CONSTRAINT core_parametro_config_pk PRIMARY KEY (nombre));
@@ -975,6 +975,18 @@ INSERT INTO core_parametro_configuracion(nombre, valor, descripcion) VALUES ('pr
 INSERT INTO core_parametro_configuracion(nombre, valor, descripcion) VALUES ('version.datamodel.scsp','4.2.0','Especifica la versión del modelo de datos actual');
 
 INSERT INTO core_parametro_configuracion(nombre, valor, descripcion) VALUES ('validate.nif.emisor.enabled','true','Flag que indica si se valida el valor del nodo <NifEmisor> de la petición');
+
+INSERT INTO core_modulo(nombre, descripcion, activoentrada, activosalida) VALUES ('AlmacenarBaseDatos','AlmacenarBaseDatos',1,1);
+
+INSERT INTO core_modulo(nombre, descripcion, activoentrada, activosalida) VALUES ('ValidarCertificado','ValidarCertificado',0,0);
+
+INSERT INTO core_modulo(nombre, descripcion, activoentrada, activosalida) VALUES ('AlmacenarFichero','AlmacenarFichero',0,0);
+
+INSERT INTO core_modulo(nombre, descripcion, activoentrada, activosalida) VALUES ('ValidarEsquema','ValidarEsquema',0,0);
+
+INSERT INTO core_modulo(nombre, descripcion, activoentrada, activosalida) VALUES ('AlmacenarFicheroPlain','AlmacenarFicheroPlain',0,0);
+
+INSERT INTO core_modulo(nombre, descripcion, activoentrada, activosalida) VALUES ('AutorizacionPeticion','AutorizacionPeticion',0,0);
 
 SELECT id_autorizacion_ca_seq.nextval FROM core_em_autorizacion_ca;
 
