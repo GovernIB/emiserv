@@ -4,10 +4,14 @@
 package es.caib.emiserv.back.helper;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 
 /**
  * Helper per a mostrar missatges d'alerta o informació.
@@ -54,7 +58,7 @@ public class MissatgeHelper {
 				text);
 	}
 
-	public List<String> getErrors(
+	public static List<String> getErrors(
 			HttpServletRequest request,
 			boolean delete) {
 		return getMissatges(
@@ -62,7 +66,7 @@ public class MissatgeHelper {
 				SESSION_ATTRIBUTE_ERROR,
 				delete);
 	}
-	public List<String> getWarnings(
+	public static List<String> getWarnings(
 			HttpServletRequest request,
 			boolean delete) {
 		return getMissatges(
@@ -70,7 +74,7 @@ public class MissatgeHelper {
 				SESSION_ATTRIBUTE_WARNING,
 				delete);
 	}
-	public List<String> getSuccesses(
+	public static List<String> getSuccesses(
 			HttpServletRequest request,
 			boolean delete) {
 		return getMissatges(
@@ -78,7 +82,7 @@ public class MissatgeHelper {
 				SESSION_ATTRIBUTE_SUCCESS,
 				delete);
 	}
-	public List<String> getInfos(
+	public static List<String> getInfos(
 			HttpServletRequest request,
 			boolean delete) {
 		return getMissatges(
@@ -87,6 +91,23 @@ public class MissatgeHelper {
 				delete);
 	}
 
+	public static List<String> getGlobalErrorsFromCommands(HttpServletRequest request) {
+		List<String> response = new ArrayList<String>();
+		Enumeration<String> attributeNames = request.getAttributeNames();
+		while (attributeNames.hasMoreElements()) {
+			String attributeName = attributeNames.nextElement();
+			if (!attributeName.contains(".") && attributeName.contains("ommand")) {
+				BindingResult bindingResult = (BindingResult)request.getAttribute("org.springframework.validation.BindingResult." + attributeName);
+				if (bindingResult.getGlobalErrorCount() > 0) {
+					List<ObjectError> globalErrors = bindingResult.getGlobalErrors();
+					for (ObjectError globalError: globalErrors) {
+						response.add(globalError.getDefaultMessage());
+					}
+				}
+			}
+		}
+		return response;
+	}
 
 	@SuppressWarnings("unchecked")
 	private static void newMissatge(

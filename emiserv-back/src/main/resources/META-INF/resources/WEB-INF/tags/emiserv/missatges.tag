@@ -1,7 +1,8 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
-<c:forEach var="attributeName" items="${pageContext.request.attributeNames}">
+<%-- Mostra els errors de validació globals, però peta amb JBoss 7 --%>
+<%--c:forEach var="attributeName" items="${pageContext.request.attributeNames}">
 	<c:if test="${not fn:contains(attributeName, '.') && fn:contains(attributeName, 'ommand')}">
 		<spring:hasBindErrors name="${attributeName}">
 			<c:if test="${not empty errors.globalErrors}">
@@ -14,11 +15,15 @@
 			</c:if>
 		</spring:hasBindErrors>
 	</c:if>
-</c:forEach>
+</c:forEach--%>
+<%
+es.caib.emiserv.back.helper.MissatgeHelper.getGlobalErrorsFromCommands(request);
+%>
+
 <%
 	request.setAttribute(
 		"sessionErrors",
-		session.getAttribute(es.caib.emiserv.back.helper.MissatgeHelper.SESSION_ATTRIBUTE_ERROR));
+		es.caib.emiserv.back.helper.MissatgeHelper.getErrors(request, true));
 %>
 <c:forEach var="text" items="${sessionErrors}">
 	<div class="alert alert-danger">
@@ -26,14 +31,11 @@
 		${text}
 	</div>
 </c:forEach>
-<%
-	session.removeAttribute(es.caib.emiserv.back.helper.MissatgeHelper.SESSION_ATTRIBUTE_ERROR);
-%>
 
 <%
 	request.setAttribute(
 		"sessionWarnings",
-		session.getAttribute(es.caib.emiserv.back.helper.MissatgeHelper.SESSION_ATTRIBUTE_WARNING));
+		es.caib.emiserv.back.helper.MissatgeHelper.getWarnings(request, true));
 %>
 <c:forEach var="text" items="${sessionWarnings}">
 	<div class="alert alert-warning">
@@ -41,14 +43,11 @@
 		${text}
 	</div>
 </c:forEach>
-<%
-	session.removeAttribute(es.caib.emiserv.back.helper.MissatgeHelper.SESSION_ATTRIBUTE_WARNING);
-%>
 
 <%
 	request.setAttribute(
 		"sessionSuccesses",
-		session.getAttribute(es.caib.emiserv.back.helper.MissatgeHelper.SESSION_ATTRIBUTE_SUCCESS));
+		es.caib.emiserv.back.helper.MissatgeHelper.getSuccesses(request, true));
 %>
 <c:forEach var="text" items="${sessionSuccesses}">
 	<div class="alert alert-success">
@@ -56,14 +55,11 @@
 		${text}
 	</div>
 </c:forEach>
-<%
-	session.removeAttribute(es.caib.emiserv.back.helper.MissatgeHelper.SESSION_ATTRIBUTE_SUCCESS);
-%>
 
 <%
 	request.setAttribute(
 		"sessionInfos",
-		session.getAttribute(es.caib.emiserv.back.helper.MissatgeHelper.SESSION_ATTRIBUTE_INFO));
+		es.caib.emiserv.back.helper.MissatgeHelper.getInfos(request, true));
 %>
 <c:forEach var="text" items="${sessionInfos}">
 	<div class="alert alert-info">
@@ -71,6 +67,3 @@
 		${text}
 	</div>
 </c:forEach>
-<%
-	session.removeAttribute(es.caib.emiserv.back.helper.MissatgeHelper.SESSION_ATTRIBUTE_INFO);
-%>
