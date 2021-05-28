@@ -24,7 +24,7 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-backoffice</artifactId>
+			<artifactId>emiserv-scsp</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
@@ -62,7 +62,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		<finalName>emiserv-emisor</finalName>
+		<finalName>emiservapi-externa</finalName>
 	</build>
 	<repositories>
 		<repository>

@@ -34,7 +34,7 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-back</artifactId>
+			<artifactId>emiserv-controller</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

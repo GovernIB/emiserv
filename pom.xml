@@ -45,9 +45,9 @@
 		<skipTests>true</skipTests>
 	</properties>
 	<modules>
+		<module>emiserv-controller</module>
+		<module>emiserv-scsp</module>
 		<module>emiserv-back</module>
-		<module>emiserv-backoffice</module>
-		<module>emiserv-back-war</module>
 		<module>emiserv-boot</module>
 		<module>emiserv-ear</module>
 		<module>emiserv-ejb</module>

@@ -2,3 +2,5 @@
 /.settings/
 /.project
 /.classpath
+/appserv_jboss
+/appserv_tomcat

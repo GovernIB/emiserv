@@ -37,7 +37,7 @@
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-back-war</artifactId>
+			<artifactId>emiserv-back</artifactId>
 			<version>${project.version}</version>
 			<type>war</type>
 		</dependency>
@@ -49,12 +49,12 @@
 		</dependency>
 		<!-- 
 			 La següent dependència ja està inclosa a dins el .war. Només s'inclou aquí per a que l'ear
-			 contengui les seves dependències. Després s'haurà d'excloure el fitxer emiserv-back*.jar
+			 contengui les seves dependències. Després s'haurà d'excloure el fitxer emiserv-controller*.jar
 			 de dins la carpeta lib per a evitar conflictes per classes duplicades.
 		-->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-back</artifactId>
+			<artifactId>emiserv-controller</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<!--
@@ -118,7 +118,7 @@
 					<generateApplicationXml>true</generateApplicationXml>
 					<defaultLibBundleDir>/lib</defaultLibBundleDir>
 					<includeLibInApplicationXml>false</includeLibInApplicationXml>
-					<packagingExcludes>lib/emiserv-back-*.jar</packagingExcludes>
+					<packagingExcludes>lib/emiserv-controller-*.jar</packagingExcludes>
 					<version>6</version>
 					<initializeInOrder>true</initializeInOrder>
 					<archive>
@@ -138,15 +138,15 @@
 						</ejbModule>
 						<webModule>
 							<groupId>${project.groupId}</groupId>
-							<artifactId>emiserv-back-war</artifactId>
+							<artifactId>emiserv-back</artifactId>
 							<contextRoot>/emiservback</contextRoot>
-							<bundleFileName>emiserv-back.war</bundleFileName>
+							<bundleFileName>emiservback.war</bundleFileName>
 						</webModule>
 						<webModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>emiserv-api-externa</artifactId>
 							<contextRoot>/emiservapi/externa</contextRoot>
-							<bundleFileName>emiserv-api-externa.war</bundleFileName>
+							<bundleFileName>emiservapi-externa.war</bundleFileName>
 						</webModule>
 					</modules>
 				</configuration>
