@@ -16,8 +16,8 @@ import es.caib.emiserv.logic.intf.service.ScspService;
  */
 @Configuration
 @PropertySource(ignoreResourceNotFound = true, value = {
-	"${" + ScspService.APP_PROPERTIES + "}",
-	"${" + ScspService.APP_SYSTEM_PROPERTIES + "}"})
+	"file://${" + ScspService.APP_PROPERTIES + "}",
+	"file://${" + ScspService.APP_SYSTEM_PROPERTIES + "}"})
 public class SystemPropertiesConfig {
 
 	/*public static class ScspPropertiesEventListener implements ApplicationListener<ApplicationPreparedEvent> {
@@ -27,6 +27,6 @@ public class SystemPropertiesConfig {
 		public void onApplicationEvent(ApplicationPreparedEvent event) {
 			scspService.propagateScspPropertiesToDb();
 		}
-    }*/
+	}*/
 
 }

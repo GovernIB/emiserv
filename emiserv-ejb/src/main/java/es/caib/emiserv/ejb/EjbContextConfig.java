@@ -45,8 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 @ComponentScan({ "es.caib.emiserv.logic", "es.caib.emiserv.persist" })
 @PropertySource(ignoreResourceNotFound = true, value = {
 		"classpath:application.properties",
-		"${" + ScspService.APP_PROPERTIES + "}",
-		"${" + ScspService.APP_SYSTEM_PROPERTIES + "}"})
+		"file://${" + ScspService.APP_PROPERTIES + "}",
+		"file://${" + ScspService.APP_SYSTEM_PROPERTIES + "}"})
 public class EjbContextConfig {
 
 	@Value("${spring.datasource.jndi-name:java:jboss/datasources/emiservDS}")
