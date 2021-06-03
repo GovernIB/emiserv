@@ -15,8 +15,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import javax.management.InstanceNotFoundException;
-import javax.management.MalformedObjectNameException;
 import javax.naming.NamingException;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
@@ -623,7 +621,7 @@ public class BackofficeHelper {
 					}
 					respuesta.setTransmisiones(transmisiones);
 					estado.setCodigoEstado("0003");
-					atributos.setNumElementos(new Integer(solicituds.size()).toString());
+					atributos.setNumElementos(Integer.valueOf(solicituds.size()).toString());
 				} else {
 					estado.setCodigoEstado("0002");
 					estado.setTiempoEstimadoRespuesta(
@@ -976,7 +974,7 @@ public class BackofficeHelper {
 		if (restaEnHores <= 0) {
 			return 0;
 		} else {
-			return new Double(Math.ceil(restaEnHores)).intValue();
+			return Double.valueOf(Math.ceil(restaEnHores)).intValue();
 		}
 	}
 
@@ -984,7 +982,7 @@ public class BackofficeHelper {
 			String identificacio,
 			ServeiEntity servei,
 			PeticioRespostaHandler peticioRespostaHandler,
-			DatosEspecificosHandler datosEspecificosHandler) throws InstanceNotFoundException, MalformedObjectNameException, RemoteException, NamingException, MalformedURLException {
+			DatosEspecificosHandler datosEspecificosHandler) throws RemoteException, NamingException, MalformedURLException {
 		if (isPropertyBackofficeMock() && testBackoffice == null) {
 			testBackoffice = new EmiservBackofficeHandlerProxy(
 					new EmiservBackofficeImpl());
@@ -1117,7 +1115,7 @@ public class BackofficeHelper {
 		if (processar == null) {
 			return false;
 		} else {
-			return new Boolean(processar).booleanValue();
+			return Boolean.valueOf(processar).booleanValue();
 		}
 	}
 
@@ -1257,7 +1255,7 @@ public class BackofficeHelper {
 	private boolean isPropertyBackofficeMock() {
 		String backofficeMock = env.getProperty("es.caib.emiserv.backoffice.mock");
 		if (backofficeMock != null) {
-			return new Boolean(backofficeMock);
+			return Boolean.valueOf(backofficeMock);
 		} else {
 			return false;
 		}

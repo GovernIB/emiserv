@@ -769,7 +769,7 @@ public class ServeiServiceImpl implements ServeiService {
 			scspEmisorBackoffice = ScspCoreEmBackofficeEntity.getBuilder(
 					coreServicioId,
 					servei.getBackofficeClass(),
-					new Integer(DEFAULT_BACKOFFICE_TER)).build();
+					Integer.valueOf(DEFAULT_BACKOFFICE_TER)).build();
 			scspEmisorBackofficeRepository.save(scspEmisorBackoffice);
 		}
 		return scspEmisorBackoffice;
@@ -782,7 +782,7 @@ public class ServeiServiceImpl implements ServeiService {
 					coreServicioId);
 			scspEmisorBackoffice.update(
 					servei.getBackofficeClass(),
-					new Integer(DEFAULT_BACKOFFICE_TER));
+					Integer.valueOf(DEFAULT_BACKOFFICE_TER));
 		}
 	}
 
@@ -795,7 +795,7 @@ public class ServeiServiceImpl implements ServeiService {
 					serveiCodi,
 					ScspCoreServicioEntity.class);
 		}
-		return new Long(scspCoreServicio.getId());
+		return Long.valueOf(scspCoreServicio.getId());
 	}
 
 }

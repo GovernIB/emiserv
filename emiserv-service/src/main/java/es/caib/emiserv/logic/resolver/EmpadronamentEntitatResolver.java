@@ -76,7 +76,7 @@ public class EmpadronamentEntitatResolver implements EntitatResolver {
 		public String getPrefix(String namespaceURI) {
 			return null;
 		}
-		@SuppressWarnings("rawtypes")
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
 		public Iterator getPrefixes(String namespaceURI) {
 			return null;

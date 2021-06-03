@@ -9,8 +9,6 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.management.InstanceNotFoundException;
-import javax.management.MalformedObjectNameException;
 import javax.naming.NamingException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
@@ -33,7 +31,7 @@ public class WsClientHelper<T> {
 			String password,
 			String soapAction,
 			Class<T> clazz,
-			Handler<?>... handlers) throws MalformedURLException, InstanceNotFoundException, MalformedObjectNameException, RemoteException, NamingException {
+			Handler<?>... handlers) throws MalformedURLException, RemoteException, NamingException {
 		URL url = wsdlResourceUrl;
 		if (url == null) {
 			if (!endpoint.endsWith("?wsdl"))
@@ -90,7 +88,7 @@ public class WsClientHelper<T> {
 			String password,
 			String soapAction,
 			Class<T> clazz,
-			Handler<?>... handlers) throws MalformedURLException, InstanceNotFoundException, MalformedObjectNameException, RemoteException, NamingException {
+			Handler<?>... handlers) throws MalformedURLException, RemoteException, NamingException {
 		return this.generarClientWs(
 				null,
 				endpoint,

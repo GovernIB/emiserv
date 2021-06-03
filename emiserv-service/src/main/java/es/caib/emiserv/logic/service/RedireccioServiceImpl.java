@@ -232,7 +232,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 							if (resolverClass != null) {
 								@SuppressWarnings("unchecked")
 								Class<EntitatResolver> entitatResolverClass = (Class<EntitatResolver>)Class.forName(resolverClass);
-								EntitatResolver entitatResolver = entitatResolverClass.newInstance();
+								EntitatResolver entitatResolver = entitatResolverClass.getDeclaredConstructor().newInstance();
 								Document doc = getDocumentXml(xml);
 								String entitatCodi = entitatResolver.resolve(doc.getDocumentElement());
 								ServeiRutaDestiEntity serveiRutaDesti = serveiRutaDestiRepository.findByServeiAndEntitatCodi(
@@ -488,7 +488,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 					@SuppressWarnings("unchecked")
 					Class<ResponseResolver> responseResolverClass = (Class<ResponseResolver>) Class.forName(responseResolverClassName);
 					ResponseResolver responseResolver;
-					responseResolver = responseResolverClass.newInstance();
+					responseResolver = responseResolverClass.getDeclaredConstructor().newInstance();
 					// Crea la llista de claus de rutes ordenades per ordre
 					List<String> codisEntitatsOrdenades = new ArrayList<String>();
 					for (ServeiRutaDestiEntity rutaDesti : serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(servei))

@@ -91,6 +91,7 @@
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.36.0</version>
 				<configuration>
 					<verbose>true</verbose>
 					<images>
@@ -114,6 +115,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-ear-plugin</artifactId>
+				<version>3.2.0</version>
 				<configuration>
 					<generateApplicationXml>true</generateApplicationXml>
 					<defaultLibBundleDir>/lib</defaultLibBundleDir>

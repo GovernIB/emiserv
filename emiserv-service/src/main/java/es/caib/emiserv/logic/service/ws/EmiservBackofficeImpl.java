@@ -51,7 +51,7 @@ public class EmiservBackofficeImpl implements EmiservBackoffice {
 			estado.setCodigoEstado("0003");
 			estado.setCodigoEstadoSecundario("2");
 			estado.setLiteralError("Peticion procesada correctamente.");
-			estado.setTiempoEstimadoRespuesta(new Integer(0));
+			estado.setTiempoEstimadoRespuesta(Integer.valueOf(0));
 			atributos.setEstado(estado);
 			respuesta.setAtributos(atributos);
 		}
