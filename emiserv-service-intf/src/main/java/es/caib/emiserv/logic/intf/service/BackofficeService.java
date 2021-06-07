@@ -12,11 +12,7 @@ import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
 import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.ServeiConfigScspDto;
-import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.exception.BackofficeException;
-import es.caib.emiserv.logic.intf.exception.NotActiveException;
-import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.scsp.bean.common.ConfirmacionPeticion;
 import es.scsp.bean.common.Peticion;
 import es.scsp.bean.common.Respuesta;
@@ -29,32 +25,32 @@ import es.scsp.bean.common.SolicitudRespuesta;
  */
 public interface BackofficeService {
 
-	/**
-	 * Consulta la informació del servei donat el seu codi.
-	 * 
-	 * @param codi
-	 *            el codi del servei.
-	 * @return la informació del servei
-	 * @throws NotFoundException
-	 *             si no existeix cap servei amb el codi especificat.
-	 * @throws NotActiveException
-	 *             si el servei no està actiu.
-	 */
-	public ServeiDto serveiFindByCodi(String codi) throws NotFoundException, NotActiveException;
-
-	/**
-	 * Consulta la configuració SCSP del servei.
-	 * 
-	 * @param codi
-	 *            el codi del servei.
-	 * @return la configuració del servei
-	 * @throws NotFoundException
-	 *             si no existeix el servei especificat.
-	 * @throws NotActiveException
-	 *             si el servei no està actiu.
-	 */
-	public ServeiConfigScspDto serveiFindConfiguracioScsp(
-			String codi) throws NotFoundException, NotActiveException;
+//	/**
+//	 * Consulta la informació del servei donat el seu codi.
+//	 * 
+//	 * @param codi
+//	 *            el codi del servei.
+//	 * @return la informació del servei
+//	 * @throws NotFoundException
+//	 *             si no existeix cap servei amb el codi especificat.
+//	 * @throws NotActiveException
+//	 *             si el servei no està actiu.
+//	 */
+//	public ServeiDto serveiFindByCodi(String codi) throws NotFoundException, NotActiveException;
+//
+//	/**
+//	 * Consulta la configuració SCSP del servei.
+//	 * 
+//	 * @param codi
+//	 *            el codi del servei.
+//	 * @return la configuració del servei
+//	 * @throws NotFoundException
+//	 *             si no existeix el servei especificat.
+//	 * @throws NotActiveException
+//	 *             si el servei no està actiu.
+//	 */
+//	public ServeiConfigScspDto serveiFindConfiguracioScsp(
+//			String codi) throws NotFoundException, NotActiveException;
 
 	/**
 	 * Consulta el llistat de peticions rebudes als backoffices.

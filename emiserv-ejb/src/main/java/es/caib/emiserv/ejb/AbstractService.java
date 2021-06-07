@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Slf4j
-public abstract class AbstractServiceBean<S> {
+public abstract class AbstractService<S> {
 
 	private S delegateService;
 	private Class<S> serviceClass;

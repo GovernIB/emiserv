@@ -70,7 +70,7 @@ public class NodecoHelper {
 	private static void marcarNodeco(HttpServletRequest request) {
 		request.setAttribute(
 				REQUEST_ATTRIBUTE_NODECO,
-				new Boolean(true));
+				Boolean.valueOf(true));
 	}
 
 }

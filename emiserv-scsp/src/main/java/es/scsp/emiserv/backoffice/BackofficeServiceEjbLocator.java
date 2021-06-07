@@ -22,8 +22,8 @@ import es.caib.emiserv.logic.intf.service.BackofficeService;
 @Configuration
 public class BackofficeServiceEjbLocator implements ApplicationContextAware {
 
-	private static final String EJB_JNDI_PREFIX = "java:app/emiserv/";
-	private static final String EJB_JNDI_SUFFIX = "Bean";
+	private static final String EJB_JNDI_PREFIX = "java:app/emiserv-ejb/";
+	private static final String EJB_JNDI_SUFFIX = "";
 	private static ApplicationContext applicationContext;
 
 	public static BackofficeService getBackofficeService() {

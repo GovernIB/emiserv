@@ -74,7 +74,7 @@ public class ModalHelper {
 	private static void marcarModal(HttpServletRequest request) {
 		request.setAttribute(
 				REQUEST_ATTRIBUTE_MODAL,
-				new Boolean(true));
+				Boolean.valueOf(true));
 	}
 
 }

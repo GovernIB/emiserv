@@ -6,12 +6,12 @@
 		</dependencies>
 	</deployment>
 	<ear-subdeployments-isolated>false</ear-subdeployments-isolated>
-	<sub-deployment name="emiservback.war">
+	<sub-deployment name="emiserv-back.war">
 		<exclude-subsystems>
 			<subsystem name="jsf"/>
 		</exclude-subsystems>
 	</sub-deployment>
-	<sub-deployment name="emiservapi-externa.war">
+	<sub-deployment name="emiserv-api-externa.war">
 		<exclusions>
 			<module name="emiserv.ear" />
 		</exclusions>

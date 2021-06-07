@@ -136,19 +136,19 @@
 						<ejbModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>emiserv-ejb</artifactId>
-							<bundleFileName>emiserv.jar</bundleFileName>
+							<bundleFileName>emiserv-ejb.jar</bundleFileName>
 						</ejbModule>
 						<webModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>emiserv-back</artifactId>
 							<contextRoot>/emiservback</contextRoot>
-							<bundleFileName>emiservback.war</bundleFileName>
+							<bundleFileName>emiserv-back.war</bundleFileName>
 						</webModule>
 						<webModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>emiserv-api-externa</artifactId>
-							<contextRoot>/emiservapi/externa</contextRoot>
-							<bundleFileName>emiservapi-externa.war</bundleFileName>
+							<contextRoot>/emiserv/apiexterna</contextRoot>
+							<bundleFileName>emiserv-api-externa.war</bundleFileName>
 						</webModule>
 					</modules>
 				</configuration>

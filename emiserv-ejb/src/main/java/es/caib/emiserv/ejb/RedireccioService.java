@@ -20,7 +20,6 @@ import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.exception.ScspParseException;
-import es.caib.emiserv.logic.intf.service.RedireccioService;
 
 /**
  * Implementació de RedireccioService com a EJB que empra una clase
@@ -29,7 +28,7 @@ import es.caib.emiserv.logic.intf.service.RedireccioService;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Stateless
-public class RedireccioServiceBean extends AbstractServiceBean<RedireccioService> implements RedireccioService {
+public class RedireccioService extends AbstractService<RedireccioService> implements es.caib.emiserv.logic.intf.service.RedireccioService {
 
 	@Autowired
 	RedireccioService delegate;

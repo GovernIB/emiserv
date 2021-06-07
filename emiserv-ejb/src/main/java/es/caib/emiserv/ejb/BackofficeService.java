@@ -13,10 +13,6 @@ import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
 import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.ServeiConfigScspDto;
-import es.caib.emiserv.logic.intf.dto.ServeiDto;
-import es.caib.emiserv.logic.intf.exception.NotFoundException;
-import es.caib.emiserv.logic.intf.service.BackofficeService;
 import es.scsp.bean.common.ConfirmacionPeticion;
 import es.scsp.bean.common.Peticion;
 import es.scsp.bean.common.Respuesta;
@@ -29,19 +25,19 @@ import es.scsp.bean.common.SolicitudRespuesta;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Stateless
-public class BackofficeServiceBean extends AbstractServiceBean<BackofficeService> implements BackofficeService {
+public class BackofficeService extends AbstractService<BackofficeService> implements es.caib.emiserv.logic.intf.service.BackofficeService {
 
-	@Override
-	public ServeiDto serveiFindByCodi(
-			String codi) {
-		return getDelegateService().serveiFindByCodi(codi);
-	}
-
-	@Override
-	public ServeiConfigScspDto serveiFindConfiguracioScsp(
-			String codi) throws NotFoundException {
-		return getDelegateService().serveiFindConfiguracioScsp(codi);
-	}
+//	@Override
+//	public ServeiDto serveiFindByCodi(
+//			String codi) {
+//		return getDelegateService().serveiFindByCodi(codi);
+//	}
+//
+//	@Override
+//	public ServeiConfigScspDto serveiFindConfiguracioScsp(
+//			String codi) throws NotFoundException {
+//		return getDelegateService().serveiFindConfiguracioScsp(codi);
+//	}
 
 	@Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})

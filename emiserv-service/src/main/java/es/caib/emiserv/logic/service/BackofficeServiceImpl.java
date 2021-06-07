@@ -36,10 +36,7 @@ import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
-import es.caib.emiserv.logic.intf.dto.ServeiConfigScspDto;
-import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.exception.BackofficeException;
-import es.caib.emiserv.logic.intf.exception.NotActiveException;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
 import es.caib.emiserv.logic.intf.service.BackofficeService;
@@ -98,51 +95,51 @@ public class BackofficeServiceImpl implements BackofficeService {
 	@Autowired
 	private BackofficeHelper backofficeHelper;
 
-	@Transactional(readOnly = true)
-	@Override
-	public ServeiDto serveiFindByCodi(String codi) {
-		log.debug(
-				"Consulta de servei amb codi pel backoffice (" +
-				"codi=" + codi + ")");
-		ServeiEntity servei = serveiRepository.findByCodi(codi);
-		if (servei == null) {
-			throw new NotFoundException(
-					codi,
-					ServeiEntity.class);
-		}
-		if (!servei.isActiu()) {
-			throw new NotActiveException(
-					codi,
-					ServeiEntity.class);
-		}
-		return conversioTipusHelper.convertir(
-				servei,
-				ServeiDto.class);
-	}
-
-	@Transactional(readOnly = true)
-	@Override
-	public ServeiConfigScspDto serveiFindConfiguracioScsp(
-			String codi) {
-		log.debug("Obté la configuració SCSP del servei per a un backoffice (" +
-				"codi=" + codi + ")");
-		ServeiEntity servei = serveiRepository.findByCodi(codi);
-		if (servei == null) {
-			throw new NotFoundException(
-					codi,
-					ServeiEntity.class);
-		}
-		if (!servei.isActiu()) {
-			throw new NotActiveException(
-					codi,
-					ServeiEntity.class);
-		}
-		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.findByCodigoCertificado(
-				servei.getCodi());
-		return conversioTipusHelper.convertir(
-				scspCoreServicio,
-				ServeiConfigScspDto.class);
-	}
+//	@Transactional(readOnly = true)
+//	@Override
+//	public ServeiDto serveiFindByCodi(String codi) {
+//		log.debug(
+//				"Consulta de servei amb codi pel backoffice (" +
+//				"codi=" + codi + ")");
+//		ServeiEntity servei = serveiRepository.findByCodi(codi);
+//		if (servei == null) {
+//			throw new NotFoundException(
+//					codi,
+//					ServeiEntity.class);
+//		}
+//		if (!servei.isActiu()) {
+//			throw new NotActiveException(
+//					codi,
+//					ServeiEntity.class);
+//		}
+//		return conversioTipusHelper.convertir(
+//				servei,
+//				ServeiDto.class);
+//	}
+//
+//	@Transactional(readOnly = true)
+//	@Override
+//	public ServeiConfigScspDto serveiFindConfiguracioScsp(
+//			String codi) {
+//		log.debug("Obté la configuració SCSP del servei per a un backoffice (" +
+//				"codi=" + codi + ")");
+//		ServeiEntity servei = serveiRepository.findByCodi(codi);
+//		if (servei == null) {
+//			throw new NotFoundException(
+//					codi,
+//					ServeiEntity.class);
+//		}
+//		if (!servei.isActiu()) {
+//			throw new NotActiveException(
+//					codi,
+//					ServeiEntity.class);
+//		}
+//		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.findByCodigoCertificado(
+//				servei.getCodi());
+//		return conversioTipusHelper.convertir(
+//				scspCoreServicio,
+//				ServeiConfigScspDto.class);
+//	}
 
 	@Transactional(readOnly = true)
 	@Override

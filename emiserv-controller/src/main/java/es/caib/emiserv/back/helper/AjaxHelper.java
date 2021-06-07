@@ -95,7 +95,7 @@ public class AjaxHelper {
 	private static void marcarAjax(HttpServletRequest request) {
 		request.setAttribute(
 				REQUEST_ATTRIBUTE_AJAX,
-				new Boolean(true));
+				Boolean.valueOf(true));
 	}
 
 	public static class AjaxFormResponse {

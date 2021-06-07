@@ -62,7 +62,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		<finalName>emiservapi-externa</finalName>
+		<finalName>emiserv-api-externa</finalName>
 	</build>
 	<repositories>
 		<repository>

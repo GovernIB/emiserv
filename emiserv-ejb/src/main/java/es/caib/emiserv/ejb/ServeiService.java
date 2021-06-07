@@ -23,7 +23,6 @@ import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiXsdDto;
 import es.caib.emiserv.logic.intf.dto.XsdTipusEnumDto;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
-import es.caib.emiserv.logic.intf.service.ServeiService;
 
 /**
  * Implementació de ServeiService com a EJB que empra una clase
@@ -32,10 +31,10 @@ import es.caib.emiserv.logic.intf.service.ServeiService;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Stateless
-public class ServeiServiceBean extends AbstractServiceBean<ServeiService> implements ServeiService {
+@RolesAllowed("EMS_ADMIN")
+public class ServeiService extends AbstractService<ServeiService> implements es.caib.emiserv.logic.intf.service.ServeiService {
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
 	public ServeiDto create(ServeiDto servei) {
 		return getDelegateService().create(servei);
 	}
@@ -47,7 +46,6 @@ public class ServeiServiceBean extends AbstractServiceBean<ServeiService> implem
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
 	public ServeiDto updateActiu(
 			Long id,
 			boolean actiu) {
@@ -55,7 +53,6 @@ public class ServeiServiceBean extends AbstractServiceBean<ServeiService> implem
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
 	public ServeiDto delete(Long id) {
 		return getDelegateService().delete(id);
 	}
@@ -194,14 +191,12 @@ public class ServeiServiceBean extends AbstractServiceBean<ServeiService> implem
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
 	public List<PermisDto> permisFindByServei(
 			Long id) throws NotFoundException {
 		return getDelegateService().permisFindByServei(id);
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
 	public void permisUpdate(
 			Long id,
 			PermisDto permis) {
@@ -209,7 +204,6 @@ public class ServeiServiceBean extends AbstractServiceBean<ServeiService> implem
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
 	public void permisDelete(
 			Long id,
 			Long permisId) {
@@ -217,7 +211,6 @@ public class ServeiServiceBean extends AbstractServiceBean<ServeiService> implem
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
 	public List<InformeGeneralEstatDto> informeGeneralEstat(
 			Date dataInici, 
 			Date dataFi,

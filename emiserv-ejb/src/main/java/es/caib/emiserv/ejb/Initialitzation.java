@@ -14,7 +14,7 @@ import javax.ejb.Startup;
  */
 @Singleton
 @Startup
-public class InitialitzationBean {
+public class Initialitzation {
 
 	@PostConstruct
 	private void startup() {

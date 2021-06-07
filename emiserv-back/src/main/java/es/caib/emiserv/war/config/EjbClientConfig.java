@@ -23,8 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class EjbClientConfig {
 
-	private static final String EJB_JNDI_PREFIX = "java:app/emiserv/";
-	private static final String EJB_JNDI_SUFFIX = "Bean";
+	private static final String EJB_JNDI_PREFIX = "java:app/emiserv-ejb/";
+	private static final String EJB_JNDI_SUFFIX = "";
 
 	@Bean
 	public LocalStatelessSessionProxyFactoryBean aplicacioService() {

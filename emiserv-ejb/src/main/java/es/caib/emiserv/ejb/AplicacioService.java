@@ -6,8 +6,6 @@ package es.caib.emiserv.ejb;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 
-import es.caib.emiserv.logic.intf.service.AplicacioService;
-
 /**
  * Implementació de AplicacioService com a EJB que empra una clase
  * delegada per accedir a la funcionalitat del servei.
@@ -16,7 +14,7 @@ import es.caib.emiserv.logic.intf.service.AplicacioService;
  */
 @Stateless
 @RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
-public class AplicacioServiceBean extends AbstractServiceBean<AplicacioService> implements AplicacioService {
+public class AplicacioService extends AbstractService<AplicacioService> implements es.caib.emiserv.logic.intf.service.AplicacioService {
 
 	@Override
 	public String getIdiomaUsuariActual() {

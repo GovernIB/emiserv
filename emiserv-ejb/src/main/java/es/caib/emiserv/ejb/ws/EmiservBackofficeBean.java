@@ -12,7 +12,7 @@ import javax.jws.soap.SOAPBinding;
 
 import org.jboss.ws.api.annotation.WebContext;
 
-import es.caib.emiserv.ejb.AbstractServiceBean;
+import es.caib.emiserv.ejb.AbstractService;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.EmiservBackoffice;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
@@ -35,7 +35,7 @@ import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
 		serviceName = EmiservBackoffice.SERVICE_NAME + "Service",
 		portName = EmiservBackoffice.SERVICE_NAME + "Port",
 		targetNamespace = EmiservBackoffice.NAMESPACE_URI)
-public class EmiservBackofficeBean extends AbstractServiceBean<EmiservBackoffice> implements EmiservBackoffice {
+public class EmiservBackofficeBean extends AbstractService<EmiservBackoffice> implements EmiservBackoffice {
 
 	@Override
 	@WebMethod
