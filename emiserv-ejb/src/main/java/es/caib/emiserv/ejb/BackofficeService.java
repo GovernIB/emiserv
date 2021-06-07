@@ -5,6 +5,7 @@ package es.caib.emiserv.ejb;
 
 import java.util.List;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 
@@ -134,24 +135,28 @@ public class BackofficeService extends AbstractService<es.caib.emiserv.logic.int
 	}
 
 	@Override
+	@PermitAll
 	public Respuesta peticioBackofficeSincrona(
 			Peticion peticion) {
 		return getDelegateService().peticioBackofficeSincrona(peticion);
 	}
 
 	@Override
+	@PermitAll
 	public ConfirmacionPeticion peticioBackofficeAsincrona(
 			Peticion peticion) {
 		return getDelegateService().peticioBackofficeAsincrona(peticion);
 	}
 
 	@Override
+	@PermitAll
 	public Respuesta peticioBackofficeSolicitudRespuesta(
 			SolicitudRespuesta solicitudRespuesta) {
 		return getDelegateService().peticioBackofficeSolicitudRespuesta(solicitudRespuesta);
 	}
 
 	@Override
+	@PermitAll
 	public void peticioBackofficeAsyncProcessarPendents() {
 		getDelegateService().peticioBackofficeAsyncProcessarPendents();
 	}

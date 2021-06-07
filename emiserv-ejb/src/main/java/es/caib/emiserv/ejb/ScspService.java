@@ -5,6 +5,7 @@ package es.caib.emiserv.ejb;
 
 import java.util.List;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 
@@ -255,6 +256,7 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	}
 
 	@Override
+	@PermitAll
 	public void propagateScspPropertiesToDb() {
 		getDelegateService().propagateScspPropertiesToDb();
 	}

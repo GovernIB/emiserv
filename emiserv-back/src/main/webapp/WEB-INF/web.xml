@@ -4,7 +4,7 @@
 		version="4.0">
 	<display-name>EMISERV</display-name>
 	<login-config>
-		<auth-method>BASIC</auth-method>
+		<auth-method>KEYCLOAK</auth-method>
 		<realm-name>Govern de les Illes Balears</realm-name>
 	</login-config>
 	<security-role>

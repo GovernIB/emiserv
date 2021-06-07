@@ -6,6 +6,7 @@ package es.caib.emiserv.ejb;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 
@@ -34,12 +35,14 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 	RedireccioService delegate;
 
 	@Override
+	@PermitAll
 	public RedireccioProcessarResultatDto processarPeticio(
 			byte[] xml) throws ScspParseException {
 		return getDelegateService().processarPeticio(xml);
 	}
 
 	@Override
+	@PermitAll
 	public void processarResposta(
 			String peticioId,
 			String serveiCodi,
@@ -51,6 +54,7 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 	}
 	
 	@Override
+	@PermitAll
 	public String escollirResposta(RedireccioProcessarResultatDto resultat,
 			Map<String, byte[]> xmls) {
 		return getDelegateService().escollirResposta(resultat, xmls);
@@ -58,6 +62,7 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 	
 
 	@Override
+	@PermitAll
 	public String generarSoapFault(
 			RedireccioProcessarResultatDto redireccioProcessarResultat) {
 		return getDelegateService().generarSoapFault(redireccioProcessarResultat);
