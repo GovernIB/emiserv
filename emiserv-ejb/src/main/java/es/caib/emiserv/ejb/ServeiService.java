@@ -32,7 +32,7 @@ import es.caib.emiserv.logic.intf.exception.NotFoundException;
  */
 @Stateless
 @RolesAllowed("EMS_ADMIN")
-public class ServeiService extends AbstractService<ServeiService> implements es.caib.emiserv.logic.intf.service.ServeiService {
+public class ServeiService extends AbstractService<es.caib.emiserv.logic.intf.service.ServeiService> implements es.caib.emiserv.logic.intf.service.ServeiService {
 
 	@Override
 	public ServeiDto create(ServeiDto servei) {

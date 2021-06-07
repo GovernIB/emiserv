@@ -30,7 +30,7 @@ import es.caib.emiserv.logic.intf.exception.NotFoundException;
  */
 @Stateless
 @RolesAllowed("EMS_ADMIN")
-public class ScspService extends AbstractService<ScspService> implements es.caib.emiserv.logic.intf.service.ScspService {
+public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.service.ScspService> implements es.caib.emiserv.logic.intf.service.ScspService {
 
 	@Override
 	public AplicacioDto aplicacioCreate(

@@ -25,7 +25,7 @@ import es.scsp.bean.common.SolicitudRespuesta;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Stateless
-public class BackofficeService extends AbstractService<BackofficeService> implements es.caib.emiserv.logic.intf.service.BackofficeService {
+public class BackofficeService extends AbstractService<es.caib.emiserv.logic.intf.service.BackofficeService> implements es.caib.emiserv.logic.intf.service.BackofficeService {
 
 //	@Override
 //	public ServeiDto serveiFindByCodi(

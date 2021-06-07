@@ -3,7 +3,7 @@
                 <auth-server-url>${env.KEYCLOAK_URL}</auth-server-url>
                 <ssl-required>EXTERNAL</ssl-required>
             </realm>
-            <secure-deployment name="emiservback.war">
+            <secure-deployment name="emiserv-back.war">
                 <realm>${env.KEYCLOAK_REALM}</realm>
                 <resource>${env.KEYCLOAK_RESOURCE}</resource>
                 <use-resource-role-mappings>true</use-resource-role-mappings>

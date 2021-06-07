@@ -14,7 +14,7 @@ import javax.ejb.Stateless;
  */
 @Stateless
 @RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
-public class AplicacioService extends AbstractService<AplicacioService> implements es.caib.emiserv.logic.intf.service.AplicacioService {
+public class AplicacioService extends AbstractService<es.caib.emiserv.logic.intf.service.AplicacioService> implements es.caib.emiserv.logic.intf.service.AplicacioService {
 
 	@Override
 	public String getIdiomaUsuariActual() {

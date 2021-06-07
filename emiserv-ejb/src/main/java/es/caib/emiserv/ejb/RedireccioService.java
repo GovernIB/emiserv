@@ -28,7 +28,7 @@ import es.caib.emiserv.logic.intf.exception.ScspParseException;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Stateless
-public class RedireccioService extends AbstractService<RedireccioService> implements es.caib.emiserv.logic.intf.service.RedireccioService {
+public class RedireccioService extends AbstractService<es.caib.emiserv.logic.intf.service.RedireccioService> implements es.caib.emiserv.logic.intf.service.RedireccioService {
 
 	@Autowired
 	RedireccioService delegate;
