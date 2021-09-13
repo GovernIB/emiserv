@@ -147,7 +147,7 @@
 						<webModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>emiserv-api-externa</artifactId>
-							<contextRoot>/emiserv/apiexterna</contextRoot>
+							<contextRoot>/emiservapi/externa</contextRoot>
 							<bundleFileName>emiserv-api-externa.war</bundleFileName>
 						</webModule>
 					</modules>
