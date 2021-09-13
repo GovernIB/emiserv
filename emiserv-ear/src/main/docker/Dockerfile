@@ -8,8 +8,8 @@ ARG KEYCLOAK_FILE=configuration/keycloak.xml
 ARG LOGGING_FILE=configuration/logging.xml
 ARG APP_NAME=emiserv
 
-ENV KEYCLOAK_URL http://docker.limit.es:21234/auth/
-ENV KEYCLOAK_REALM GOIB
+ENV KEYCLOAK_URL https://dev.caib.es/auth
+ENV KEYCLOAK_REALM webdes
 ENV KEYCLOAK_RESOURCE goib-default
 ENV DATABASE_URL jdbc:oracle:thin:@10.35.3.242:1521:orcl
 ENV DATABASE_DRIVER oracle
@@ -40,6 +40,7 @@ RUN rm -fr standalone_xml_history
 ADD --chown=${JBOSS_USER} webapps/ ${JBOSS_HOME}/../webapps/
 RUN mkdir /home/jboss/webapps/${APP_NAME}
 RUN echo 'JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,address=8787,server=y,suspend=n"' >> ${JBOSS_HOME}/bin/standalone.conf
+RUN echo 'JAVA_OPTS="$JAVA_OPTS -Djavax.net.ssl.trustStore=${JBOSS_HOME}/../webapps/config/keystores/truststore.jks -Djavax.net.ssl.trustStorePassword=tecnologies"' >> ${JBOSS_HOME}/bin/standalone.conf
 COPY --chown=${JBOSS_USER} maven/${project.build.finalName}.ear ${JBOSS_HOME}/standalone/deployments/
 WORKDIR ${JBOSS_HOME}
 EXPOSE 8080
