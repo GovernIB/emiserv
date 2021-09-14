@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.war.config;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.keycloak.KeycloakPrincipal;
+import org.keycloak.representations.AccessToken.Access;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
@@ -44,6 +47,11 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Value("${es.caib.emiserv.security.mappableRoles:EMS_ADMIN,EMS_RESP}")
+	private String mappableRoles;
+	@Value("${es.caib.emiserv.security.useResourceRoleMappings:false}")
+	private boolean useResourceRoleMappings;
 
 	private static final String ROLE_PREFIX = "";
 
@@ -119,28 +127,42 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			@Override
 			public PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails buildDetails(HttpServletRequest context) {
 				Collection<String> j2eeUserRoles = getUserRoles(context);
-				Collection<? extends GrantedAuthority> userGas = j2eeUserRoles2GrantedAuthoritiesMapper.getGrantedAuthorities(
-						j2eeUserRoles);
-				if (logger.isDebugEnabled()) {
-					logger.debug("J2EE roles [" + j2eeUserRoles + "] mapped to Granted Authorities: [" + userGas + "]");
-				}
+				logger.debug("Roles from ServletRequest for " + context.getUserPrincipal().getName() + ": " + j2eeUserRoles);
 				PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails result;
 				if (context.getUserPrincipal() instanceof KeycloakPrincipal) {
 					KeycloakPrincipal<?> keycloakPrincipal = ((KeycloakPrincipal<?>)context.getUserPrincipal());
-					Set<String> roles = keycloakPrincipal.getKeycloakSecurityContext().getToken().getResourceAccess(
-							keycloakPrincipal.getKeycloakSecurityContext().getToken().getIssuedFor()).getRoles();
+					Set<String> roles = new HashSet<String>();
+					roles.addAll(j2eeUserRoles);
+					Access realmAccess = keycloakPrincipal.getKeycloakSecurityContext().getToken().getRealmAccess();
+					if (realmAccess.getRoles() != null) {
+						logger.debug("Keycloak token realm roles: " + realmAccess.getRoles());
+						roles.addAll(realmAccess.getRoles());
+					}
+					if (useResourceRoleMappings) {
+						Access resourceAccess = keycloakPrincipal.getKeycloakSecurityContext().getToken().getResourceAccess(
+								keycloakPrincipal.getKeycloakSecurityContext().getToken().getIssuedFor());
+						if (resourceAccess.getRoles() != null) {
+							logger.debug("Keycloak token resource roles: " + resourceAccess.getRoles());
+							roles.addAll(resourceAccess.getRoles());
+						}
+					}
+					logger.debug("Creating WebAuthenticationDetails for " + keycloakPrincipal.getName() + " with roles " + roles);
 					result = new KeycloakWebAuthenticationDetails(
 							context,
 							j2eeUserRoles2GrantedAuthoritiesMapper.getGrantedAuthorities(roles),
 							keycloakPrincipal);
 				} else {
-					result = new PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails(context, userGas);
+					logger.debug("Creating WebAuthenticationDetails for " + context.getUserPrincipal().getName() + " with roles " + j2eeUserRoles);
+					result = new PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails(
+							context,
+							j2eeUserRoles2GrantedAuthoritiesMapper.getGrantedAuthorities(j2eeUserRoles));
 				}
 				return result;
 			}
 		};
 		SimpleMappableAttributesRetriever mappableAttributesRetriever = new SimpleMappableAttributesRetriever();
-		mappableAttributesRetriever.setMappableAttributes(new HashSet<String>());
+		mappableAttributesRetriever.setMappableAttributes(
+				new HashSet<String>(Arrays.asList(mappableRoles.split(","))));
 		authenticationDetailsSource.setMappableRolesRetriever(mappableAttributesRetriever);
 		SimpleAttributes2GrantedAuthoritiesMapper attributes2GrantedAuthoritiesMapper = new SimpleAttributes2GrantedAuthoritiesMapper();
 		attributes2GrantedAuthoritiesMapper.setAttributePrefix(ROLE_PREFIX);

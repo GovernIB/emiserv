@@ -1,6 +1,7 @@
-        <subsystem xmlns="urn:jboss:domain:logging:8.0">
+        <subsystem xmlns="urn:jboss:domain:logging:6.0">
+        	<use-deployment-logging-config value="false"/>
             <console-handler name="CONSOLE">
-                <level name="DEBUG"/>
+                <level name="INFO"/>
                 <formatter>
                     <named-formatter name="COLOR-PATTERN"/>
                 </formatter>
@@ -25,6 +26,21 @@
             <logger category="org.springframework">
                 <level name="INFO"/>
             </logger>
+            <logger category="es.caib.emiserv.backoffice">
+                <level name="DEBUG"/>
+            </logger>
+            <!--logger category="es.caib.emiserv.war.config">
+                <level name="DEBUG"/>
+            </logger>
+            <logger category="es.caib.emiserv.backoffice">
+                <level name="DEBUG"/>
+            </logger>
+            <logger category="es.caib.emiserv.logic.helper.BackofficeHelper">
+                <level name="DEBUG"/>
+            </logger>
+            <logger category="es.scsp">
+                <level name="DEBUG"/>
+            </logger-->
             <root-logger>
                 <level name="INFO"/>
                 <handlers>
