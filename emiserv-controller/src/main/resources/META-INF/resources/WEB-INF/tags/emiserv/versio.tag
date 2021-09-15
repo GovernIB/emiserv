@@ -1,1 +1,2 @@
 <%=es.caib.emiserv.back.helper.JspHelper.getApplicationVersion(request)%>
+<span id="versioData" style="color:rgba(0,0,0,0);">(<%=es.caib.emiserv.back.helper.JspHelper.getBuildTimestamp(request)%>)</span>
