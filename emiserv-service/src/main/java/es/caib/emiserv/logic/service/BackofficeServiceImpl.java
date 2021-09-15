@@ -40,6 +40,10 @@ import es.caib.emiserv.logic.intf.exception.BackofficeException;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
 import es.caib.emiserv.logic.intf.service.BackofficeService;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
 import es.caib.emiserv.persist.entity.BackofficePeticioEntity;
 import es.caib.emiserv.persist.entity.BackofficeSolicitudEntity;
 import es.caib.emiserv.persist.entity.ServeiEntity;
@@ -53,11 +57,6 @@ import es.caib.emiserv.persist.repository.scsp.ScspCorePeticionRespuestaReposito
 import es.caib.emiserv.persist.repository.scsp.ScspCoreServicioRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTokenDataRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
-import es.scsp.bean.common.ConfirmacionPeticion;
-import es.scsp.bean.common.Peticion;
-import es.scsp.bean.common.Respuesta;
-import es.scsp.bean.common.SolicitudRespuesta;
-import es.scsp.bean.common.SolicitudTransmision;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -445,38 +444,38 @@ public class BackofficeServiceImpl implements BackofficeService {
 	@Override
 	public Respuesta peticioBackofficeSincrona(
 			Peticion peticion) {
-		es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionBackoffice = conversioTipusHelper.convertir(
+		/*es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionBackoffice = conversioTipusHelper.convertir(
 				peticion,
-				es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion.class);
-		copiarDatosEspecificosPeticion(
+				es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion.class);*/
+		/*copiarDatosEspecificosPeticion(
 				peticion,
-				peticionBackoffice);
-		RespuestaAmbException respuestaAmbException = backofficeHelper.peticioSincrona(peticionBackoffice);
+				peticionBackoffice);*/
+		RespuestaAmbException respuestaAmbException = backofficeHelper.peticioSincrona(peticion/*peticionBackoffice*/);
 		if (respuestaAmbException.getException() != null) {
 			throw new BackofficeException(
 					"Error processant petició síncrona: " +  ExceptionUtils.getRootCauseMessage(respuestaAmbException.getException()),
 					respuestaAmbException.getException());
 		} else {
-			Respuesta respuesta = conversioTipusHelper.convertir(
+			/*Respuesta respuesta = conversioTipusHelper.convertir(
 					respuestaAmbException.getRespuesta(),
-					Respuesta.class);
-			copiarDatosEspecificosRespuesta(
+					Respuesta.class);*/
+			/*copiarDatosEspecificosRespuesta(
 					respuestaAmbException.getRespuesta(),
-					respuesta);
-			return respuesta;
+					respuesta);*/
+			return respuestaAmbException.getRespuesta();
 		}
 	}
 
 	@Override
 	public ConfirmacionPeticion peticioBackofficeAsincrona(
 			Peticion peticion) {
-		es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionBackoffice = conversioTipusHelper.convertir(
+		/*es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionBackoffice = conversioTipusHelper.convertir(
 				peticion,
 				es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion.class);
 		copiarDatosEspecificosPeticion(
 				peticion,
-				peticionBackoffice);
-		ConfirmacionPeticionAmbException confirmacionPeticionAmbException = backofficeHelper.peticioAsincrona(peticionBackoffice);
+				peticionBackoffice);*/
+		ConfirmacionPeticionAmbException confirmacionPeticionAmbException = backofficeHelper.peticioAsincrona(peticion/*peticionBackoffice*/);
 		if (confirmacionPeticionAmbException.getException() != null) {
 			throw new BackofficeException(
 					"Error processant petició asíncrona: " + ExceptionUtils.getRootCauseMessage(confirmacionPeticionAmbException.getException()),
@@ -491,22 +490,22 @@ public class BackofficeServiceImpl implements BackofficeService {
 	@Override
 	public Respuesta peticioBackofficeSolicitudRespuesta(
 			SolicitudRespuesta solicitudRespuesta) {
-		RespuestaAmbException respuestaAmbException = backofficeHelper.solicitudResposta(
+		RespuestaAmbException respuestaAmbException = backofficeHelper.solicitudResposta(solicitudRespuesta/*
 				conversioTipusHelper.convertir(
 						solicitudRespuesta,
-						es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta.class));
+						es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta.class)*/);
 		if (respuestaAmbException.getException() != null) {
 			throw new BackofficeException(
 					"Error processant sol·licitud de resposta: " +  ExceptionUtils.getRootCauseMessage(respuestaAmbException.getException()),
 					respuestaAmbException.getException());
 		} else {
-			Respuesta respuesta = conversioTipusHelper.convertir(
+			/*Respuesta respuesta = conversioTipusHelper.convertir(
 					respuestaAmbException.getRespuesta(),
-					Respuesta.class);
-			copiarDatosEspecificosRespuesta(
+					Respuesta.class);*/
+			/*copiarDatosEspecificosRespuesta(
 					respuestaAmbException.getRespuesta(),
-					respuesta);
-			return respuesta;
+					respuesta);*/
+			return respuestaAmbException.getRespuesta();
 		}
 	}
 
@@ -603,7 +602,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 		return peticio;
 	}
 
-	private void copiarDatosEspecificosPeticion(
+/*	private void copiarDatosEspecificosPeticion(
 			Peticion peticionOrigen,
 			es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionDesti) {
 		// Si no es copies d'aquesta forma els DatosEspecificos copiats amb orika
@@ -619,7 +618,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 		}
 	}
 
-	private void copiarDatosEspecificosRespuesta(
+	private void copiarDatosEspecificosRespuestaa(
 			es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta respuestaOrigen,
 			Respuesta respuesta) {
 		// Si no es copies d'aquesta forma els DatosEspecificos copiats amb orika
@@ -633,6 +632,6 @@ public class BackofficeServiceImpl implements BackofficeService {
 						transmisionesOrigen.get(i).getDatosEspecificos());
 			}
 		}
-	}
+	}*/
 
 }

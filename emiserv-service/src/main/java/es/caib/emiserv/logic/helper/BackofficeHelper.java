@@ -28,8 +28,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -88,12 +86,14 @@ import es.caib.emiserv.persist.repository.scsp.ScspCoreTokenDataRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
 import es.caib.loginModule.auth.ControladorSesion;
 import es.caib.loginModule.client.AuthorizationToken;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Helper per a operacions amb els backoffices.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Slf4j
 @Component
 public class BackofficeHelper {
 
@@ -160,7 +160,7 @@ public class BackofficeHelper {
 			Long peticioId) {
 		BackofficePeticioEntity peticio = backofficePeticioRepository.getOne(peticioId);
 		ScspCorePeticionRespuestaEntity scspPeticionRespuesta = peticio.getScspPeticionRespuesta();
-		logger.debug("Processant petició pendent (" +
+		log.debug("Processant petició pendent (" +
 				"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " +
 				"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " +
 				"darreraSolicitudId=" + peticio.getDarreraSolicitudId() + ")");
@@ -171,7 +171,7 @@ public class BackofficeHelper {
 		for (BackofficeSolicitudEntity solicitud: solicituds) {
 			if (!trobada) {
 				trobada = solicitud.getSolicitudId().equals(peticio.getDarreraSolicitudId());
-				logger.debug("Comprovant sol·licitud a enviar (" +
+				log.debug("Comprovant sol·licitud a enviar (" +
 						"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " + 
 						"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " + 
 						"idSolicitud=" + solicitud.getSolicitudId() + ", " +
@@ -184,7 +184,7 @@ public class BackofficeHelper {
 			}
 		}
 		if (!trobada) {
-			logger.error("No s'han trobat sol·licituds pendents d'enviar per a la petició (" +
+			log.error("No s'han trobat sol·licituds pendents d'enviar per a la petició (" +
 					"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " +
 					"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " +
 					"darreraSolicitudId=" + peticio.getDarreraSolicitudId() + ")");
@@ -283,7 +283,7 @@ public class BackofficeHelper {
 					ScspCoreServicioEntity.class);
 		}
 		if (excepcio == null) {
-			logger.debug("Enviant al backoffice una petició síncrona provinent d'una petició asíncrona (" +
+			log.debug("Enviant al backoffice una petició síncrona provinent d'una petició asíncrona (" +
 					"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " + 
 					"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " +
 					"idSolicitud=" + backofficeSolicitud.getSolicitudId() + ")");
@@ -378,7 +378,7 @@ public class BackofficeHelper {
 			}
 		}
 		if (excepcio != null) {
-			logger.error("Error al enviar al backoffice una petició síncrona provinent d'una petició asíncrona (" +
+			log.error("Error al enviar al backoffice una petició síncrona provinent d'una petició asíncrona (" +
 					"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " + 
 					"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " +
 					"idSolicitud=" + backofficeSolicitud.getSolicitudId() + ")",
@@ -412,7 +412,7 @@ public class BackofficeHelper {
 		DatosEspecificosHandler datosEspecificosHandler = new DatosEspecificosHandler();
 		try {
 			if (generarLogs) {
-				logger.debug("Enviant petició síncrona al backoffice " +
+				log.debug("Enviant petició síncrona al backoffice " +
 						getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + "(" +
 						"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipus() + ", " +
 						"backofficeUrl=" + servei.getBackofficeCaibUrl() + ")");
@@ -435,7 +435,7 @@ public class BackofficeHelper {
 								idSolicitud);
 						if (datosEspecificos != null) {
 							if (generarLogs) {
-								logger.debug("Copiant dades específiques a la resposta(idSolicitud=" + idSolicitud + "): " + datosEspecificosHandler.getDatosEspecificosRespostaComString(idSolicitud) + ".");
+								log.debug("Copiant dades específiques a la resposta(idSolicitud=" + idSolicitud + "): " + datosEspecificosHandler.getDatosEspecificosRespostaComString(idSolicitud) + ".");
 							}
 							transmisionDatos.setDatosEspecificos(datosEspecificos);
 						}
@@ -448,11 +448,20 @@ public class BackofficeHelper {
 			emplenarCampsBuits(respuesta);
 		} catch (Exception ex) {
 			if (generarLogs) {
-				logger.error("Error al enviar la petició síncrona al backoffice " +
+				log.error("Error al enviar la petició síncrona al backoffice " +
 						getIdentificacioDelsAtributsScsp(peticion.getAtributos()),
 						ex);
 			}
 			excepcioDurantPeticio = ex;
+			if (xmlPeticio.size() == 0) {
+				StringWriter sw = new StringWriter();
+				JAXB.marshal(backofficePeticio, sw);
+				try {
+					xmlPeticio.write(sw.toString().getBytes());
+				} catch (IOException ioex) {
+					log.error("Error al convertir objecte de petició a XML", ioex);
+				}
+			}
 		} finally {
 			processarComunicacioBackoffice(
 					backofficePeticio,
@@ -473,7 +482,7 @@ public class BackofficeHelper {
 		String serveiCodi = peticion.getAtributos().getCodigoCertificado();
 		ServeiEntity servei = serveiRepository.findByCodi(serveiCodi);
 		if (BackofficeAsyncTipusEnumDto.REENVIAR_BACKOFFICE.equals(servei.getBackofficeCaibAsyncTipus())) {
-			logger.debug("Reenviant petició asíncrona al backoffice " +
+			log.debug("Reenviant petició asíncrona al backoffice " +
 					getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + "(" +
 					"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipus() + ", " +
 					"backofficeUrl=" + servei.getBackofficeCaibUrl() + ")");
@@ -493,9 +502,18 @@ public class BackofficeHelper {
 						null);
 				confirmacionPeticion = emiservBackoffice.peticionAsincrona(peticion);
 			} catch (Exception ex) {
-				logger.error("Error al reenviar la petició asíncrona al backoffice " +
+				log.error("Error al reenviar la petició asíncrona al backoffice " +
 						getIdentificacioDelsAtributsScsp(peticion.getAtributos()),
 						ex);
+				if (xmlPeticio.size() == 0) {
+					StringWriter sw = new StringWriter();
+					JAXB.marshal(backofficePeticio, sw);
+					try {
+						xmlPeticio.write(sw.toString().getBytes());
+					} catch (IOException ioex) {
+						log.error("Error al convertir objecte de petició a XML", ioex);
+					}
+				}
 				excepcioDurantPeticio = new BackofficeException(ex);
 			} finally {
 				processarComunicacioBackoffice(
@@ -510,7 +528,7 @@ public class BackofficeHelper {
 					confirmacionPeticion,
 					excepcioDurantPeticio);
 		} else {
-			logger.debug("Emmagatzemant petició asíncrona per a reenviar-la posteriorment al backoffice com a sol·licituds síncrones " +
+			log.debug("Emmagatzemant petició asíncrona per a reenviar-la posteriorment al backoffice com a sol·licituds síncrones " +
 					getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + "(" +
 					"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipus() + ", " +
 					"backofficeUrl=" + servei.getBackofficeCaibUrl() + ", " +
@@ -536,7 +554,7 @@ public class BackofficeHelper {
 		String serveiCodi = solicitudRespuesta.getAtributos().getCodigoCertificado();
 		ServeiEntity servei = serveiRepository.findByCodi(serveiCodi);
 		if (BackofficeAsyncTipusEnumDto.REENVIAR_BACKOFFICE.equals(servei.getBackofficeCaibAsyncTipus())) {
-			logger.debug("Reenviant sol·licitud de resposta al backoffice " +
+			log.debug("Reenviant sol·licitud de resposta al backoffice " +
 					getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + "(" +
 					"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipus() + ", " +
 					"backofficeUrl=" + servei.getBackofficeCaibUrl() + ")");
@@ -572,7 +590,7 @@ public class BackofficeHelper {
 						solicitudRespuesta.getAtributos().getCodigoCertificado());
 				emplenarCampsBuits(respuesta);
 			} catch (Exception ex) {
-				logger.error("Error al reenviar la sol·licitud de resposta al backoffice " +
+				log.error("Error al reenviar la sol·licitud de resposta al backoffice " +
 						getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()),
 						ex);
 				excepcioDurantPeticio = new BackofficeException(ex);
@@ -589,7 +607,7 @@ public class BackofficeHelper {
 					respuesta,
 					excepcioDurantPeticio);
 		} else {
-			logger.debug("Consultant estat de la petició asíncrona " + 
+			log.debug("Consultant estat de la petició asíncrona " + 
 					getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + "(" +
 					"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipus() + ", " +
 					"backofficeUrl=" + servei.getBackofficeCaibUrl() + ", " +
@@ -604,7 +622,7 @@ public class BackofficeHelper {
 				atributos.setTimeStamp(crearTimestampScsp(new Date()));
 				respuesta.setAtributos(atributos);
 				int numSolicituds = backofficeSolicitudRepository.countByPeticio(backofficePeticio);
-				logger.debug("Comprovant si s'han enviat totes les sol·licituds al backoffice " +
+				log.debug("Comprovant si s'han enviat totes les sol·licituds al backoffice " +
 						getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + "(" +
 						"total=" + numSolicituds + ", " +
 						"enviades=" + backofficePeticio.getProcessadesTotal() + ")");
@@ -630,7 +648,7 @@ public class BackofficeHelper {
 				}
 				return new RespuestaAmbException(respuesta);
 			} catch (Exception ex) {
-				logger.error("Error al comprovar l'estat de la petició asíncrona " +
+				log.error("Error al comprovar l'estat de la petició asíncrona " +
 						getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()),
 						ex);
 				return new RespuestaAmbException(
@@ -772,14 +790,13 @@ public class BackofficeHelper {
 					}
 				}
 			}
-		}
-		if (indexInici != -1) {
-			// Cercam el final de l'etiqueta de DatosEspecificos
-			int indexFi = datosEspecificosSenseNs.indexOf(">", indexInici);
+		}// Cercam el final de l'etiqueta de DatosEspecificos
+		int indexFi = datosEspecificosSenseNs.indexOf(">", indexInici);
+		if (indexInici != -1 && !datosEspecificosSenseNs.substring(indexFi - 1, indexFi).equals("/")) {
 			// Depenent de la propietat [...].processar.datos.especificos.peticio
 			// substituim l'etiqueta DatosEspecificos pel seu equivalent
 			// normalitzat.
-			boolean processar = getBackofficeProcessarDatosEspecificosPeticio(codigoCertificado);
+			boolean processar = isBackofficeProcessarDatosEspecificosPeticio(codigoCertificado);
 			String tokenInici = (processar) ? "<DatosEspecificos" : datosEspecificosSenseNs.substring(0, indexInici);
 			String tokenFi = "</" + token.substring(1);
 			int indexTokenFi = datosEspecificosSenseNs.indexOf(tokenFi);
@@ -991,15 +1008,15 @@ public class BackofficeHelper {
 			testBackoffice.setPeticioRespostaHandler(peticioRespostaHandler);
 			return testBackoffice;
 		}
-		logger.debug("Cercant backoffice per a la petició " + identificacio + ".");
+		log.debug("Cercant backoffice per a la petició " + identificacio + ".");
 		if (!servei.isConfigurat()) {
-			logger.error("El servei està donat d'alta però encara no s'ha configurat (" +
+			log.error("El servei està donat d'alta però encara no s'ha configurat (" +
 					"idPeticion=" + identificacio + ", " +
 					"codigoCertificado=" + servei.getCodi() + ")");
 			throw new ValidationException("El servei (codi=" + servei.getCodi() + ") està donat d'alta però encara no s'ha configurat");
 		}
 		String backofficeUrl = servei.getBackofficeCaibUrl();
-		logger.debug("URL del servei del backoffice: " + backofficeUrl);
+		log.debug("URL del servei del backoffice: " + backofficeUrl);
 		String username = null;
 		String password = null;
 		switch(servei.getBackofficeCaibAutenticacio()) {
@@ -1013,7 +1030,7 @@ public class BackofficeHelper {
 				username = token.getUser();
 				password = token.getPassword();
 			} catch (Exception ex) {
-				logger.error("No s'ha pogut crear la instància de ControladorSesion", ex);
+				log.error("No s'ha pogut crear la instància de ControladorSesion", ex);
 			}
 			break;
 		case TEXT_CLAR:
@@ -1097,7 +1114,7 @@ public class BackofficeHelper {
 		return soapAction;
 	}
 
-	private boolean getBackofficeProcessarDatosEspecificosPeticio(String serveiCodi) {
+	private boolean isBackofficeProcessarDatosEspecificosPeticio(String serveiCodi) {
 		String processar = env.getProperty(
 				"es.caib.emiserv.int.backoffice." + serveiCodi + ".processar.datosespecificos");
 		if (processar == null) {
@@ -1260,7 +1277,5 @@ public class BackofficeHelper {
 			return false;
 		}
 	}
-
-	private static final Logger logger = LoggerFactory.getLogger(BackofficeHelper.class);
 
 }

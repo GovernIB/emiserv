@@ -14,10 +14,10 @@ import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
 import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.scsp.bean.common.ConfirmacionPeticion;
-import es.scsp.bean.common.Peticion;
-import es.scsp.bean.common.Respuesta;
-import es.scsp.bean.common.SolicitudRespuesta;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
 
 /**
  * Implementació de BackofficeService com a EJB que empra una clase
