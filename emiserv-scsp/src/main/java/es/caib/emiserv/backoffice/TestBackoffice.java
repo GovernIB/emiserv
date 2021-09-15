@@ -7,9 +7,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import es.scsp.bean.common.Atributos;
 import es.scsp.bean.common.ConfirmacionPeticion;
 import es.scsp.bean.common.DatosGenericos;
@@ -22,6 +19,7 @@ import es.scsp.bean.common.TransmisionDatos;
 import es.scsp.bean.common.Transmisiones;
 import es.scsp.common.backoffice.BackOffice;
 import es.scsp.common.exceptions.ScspException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Backoffice d'exemple que construeix la resposta copiant la informació
@@ -29,6 +27,7 @@ import es.scsp.common.exceptions.ScspException;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Slf4j
 public class TestBackoffice implements BackOffice {
 
 	@SuppressWarnings("unused")
@@ -38,15 +37,15 @@ public class TestBackoffice implements BackOffice {
 
 	public Respuesta NotificarSincrono(
 			Peticion peticion) throws ScspException {
-		LOGGER.info("Processant petició síncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
+		log.info("Processant petició síncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
 		Respuesta respuesta = getRespuesta(peticion);
-		LOGGER.info("Retornant resposta síncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
+		log.info("Retornant resposta síncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
 		return respuesta;
 	}
 
 	public ConfirmacionPeticion NotificarAsincrono(
 			Peticion peticion) throws ScspException {
-		LOGGER.info("Processant petició asíncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
+		log.info("Processant petició asíncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
 		int tiempoRespuesta = 5;
 		ConfirmacionPeticion respuesta = new ConfirmacionPeticion();
 		respuesta.setAtributos(peticion.getAtributos());
@@ -61,7 +60,7 @@ public class TestBackoffice implements BackOffice {
 
 	public Respuesta SolicitudRespuesta(
 			SolicitudRespuesta solicitudRespuesta) throws ScspException {
-		LOGGER.info("Processant sol·licitud de resposta " + getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + ".");
+		log.info("Processant sol·licitud de resposta " + getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + ".");
 		Respuesta respuesta = new Respuesta();
 		respuesta.setAtributos(solicitudRespuesta.getAtributos());
 		respuesta.getAtributos().setEstado(new Estado());
@@ -155,7 +154,5 @@ public class TestBackoffice implements BackOffice {
 		String fechaString = formatoDeFecha.format(new Date());
 		return "T" + fechaString;
 	}
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(TestBackoffice.class);
 
 }

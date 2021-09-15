@@ -10,7 +10,6 @@ import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import es.caib.emiserv.logic.intf.service.ScspService;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreParametroConfiguracionEntity;
@@ -32,7 +31,6 @@ public class PropertiesHelper {
 	private ScspCoreParametroConfiguracionRepository scspCoreParametroConfiguracionRepository;
 	//private JdbcTemplate jdbcTemplate;
 
-	@Transactional
 	public void propagateScspPropertiesToDb() {
 		log.debug("Propagant propietats SCSP a la base de dades...");
 		Properties scspProperties = new Properties();

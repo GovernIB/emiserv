@@ -10,6 +10,7 @@
 	<decorator name="senseCapNiPeus" page="senseCapNiPeus.jsp">
 	</decorator>
 	<decorator name="default" page="default.jsp">
+		<pattern>/error</pattern>
 		<pattern>/*</pattern>
 	</decorator>
 </decorators>

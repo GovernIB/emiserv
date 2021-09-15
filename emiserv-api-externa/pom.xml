@@ -37,12 +37,7 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>emiserv-service-intf</artifactId>
 			<version>${project.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>*</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-			</exclusions>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<build>

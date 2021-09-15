@@ -43,17 +43,22 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>jakarta.xml.ws</groupId>
+			<artifactId>jakarta.xml.ws-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!--dependency>
 			<groupId>es.scsp</groupId>
 			<artifactId>scsp-beans</artifactId>
 			<version>${scsp.beans.version}</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency
 		<dependency>
 			<groupId>org.jibx</groupId>
 			<artifactId>jibx-run</artifactId>
 			<version>1.2.3</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency-->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

@@ -1,5 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
+	<module name="deployment.emiserv-service-intf" >
+		<resources>
+			<resource-root path="emiserv-service-intf-*.jar" />
+		</resources>
+	</module>
 	<deployment>
 		<dependencies>
 			<module name="org.keycloak.keycloak-core" export="TRUE"/>
@@ -12,11 +17,14 @@
 		</exclude-subsystems>
 	</sub-deployment>
 	<sub-deployment name="emiserv-api-externa.war">
-		<exclusions>
-			<module name="emiserv.ear" />
-		</exclusions>
 		<exclude-subsystems>
 			<subsystem name="jsf"/>
 		</exclude-subsystems>
+		<exclusions>
+			<module name="emiserv.ear"/>
+		</exclusions>
+		<dependencies>
+			<module name="deployment.emiserv-service-intf"/>
+		</dependencies>
 	</sub-deployment>
 </jboss-deployment-structure>

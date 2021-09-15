@@ -12,8 +12,8 @@ import javax.ejb.Startup;
  *
  * @author Limit Tecnologies <limit@limit.es>
  */
-@Singleton
 @Startup
+@Singleton
 public class Initialitzation {
 
 	@PostConstruct

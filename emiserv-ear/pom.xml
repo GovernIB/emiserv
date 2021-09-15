@@ -57,6 +57,10 @@
 			<artifactId>emiserv-controller</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
 				<!--
 					Excloem la dependència de keycloak perquè si no ho feim ens dona errors en les classes
 					org.keycloak.* perquè estan carregades a dos classloaders diferents.

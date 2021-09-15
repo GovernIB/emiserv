@@ -14,14 +14,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import es.caib.emiserv.logic.intf.dto.ClauPrivadaDto;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Consentimiento;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.TipoDocumentacion;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreClavePrivadaEntity;
 import ma.glasnost.orika.CustomConverter;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.MappingContext;
-import ma.glasnost.orika.converter.BidirectionalConverter;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
 import ma.glasnost.orika.metadata.Type;
 
@@ -64,7 +61,7 @@ public class ConversioTipusHelper {
 				field("organisme.id", "organisme").
 				byDefault().
 				toClassMap());
-		mapperFactory.getConverterFactory().registerConverter(new BidirectionalConverter<es.scsp.bean.common.Consentimiento, Consentimiento>() {
+		/*mapperFactory.getConverterFactory().registerConverter(new BidirectionalConverter<es.scsp.bean.common.Consentimiento, Consentimiento>() {
 			@Override
 			public Consentimiento convertTo(
 					es.scsp.bean.common.Consentimiento source,
@@ -123,7 +120,7 @@ public class ConversioTipusHelper {
 					return es.scsp.bean.common.TipoDocumentacion.Pasaporte;
 				}
 			}
-		});
+		});*/
 	}
 
 	public <T> T convertir(Object source, Class<T> targetType) {

@@ -3,12 +3,19 @@
  */
 package es.caib.emiserv.logic.intf.service.ws.backoffice;
 
+import javax.jws.WebService;
+
 /**
  * Interfície a implementar per als backoffices dels
  * emissors SCSP de la CAIB.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@WebService(
+		name = "EmiservBackoffice",
+		serviceName = "EmiservBackofficeService",
+		portName = "EmiservBackofficePort",
+		targetNamespace = "http://caib.es/emiserv/backoffice")
 public interface EmiservBackoffice {
 
 	public static final String SERVICE_NAME = "EmiservBackoffice";

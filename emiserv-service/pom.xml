@@ -66,21 +66,21 @@
 			<version>4.2.2.GA</version>
 			<scope>provided</scope>
 		</dependency>
-        <dependency>
-        	<groupId>jakarta.xml.ws</groupId>
-        	<artifactId>jakarta.xml.ws-api</artifactId>
+		<dependency>
+			<groupId>jakarta.xml.ws</groupId>
+			<artifactId>jakarta.xml.ws-api</artifactId>
 			<scope>provided</scope>
-        </dependency>
+		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>${commons-io.version}</version>
 		</dependency>
-		<dependency>
+		<!--dependency>
 			<groupId>es.scsp</groupId>
 			<artifactId>scsp-beans</artifactId>
 			<version>${scsp.beans.version}</version>
-		</dependency>
+		</dependency
 		<dependency>
 			<groupId>org.jibx</groupId>
 			<artifactId>jibx-run</artifactId>
@@ -91,7 +91,7 @@
 					<artifactId>*</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
+		</dependency-->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>emiserv-service-intf</artifactId>

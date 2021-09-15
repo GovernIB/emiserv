@@ -191,7 +191,7 @@ public class XmlHelper {
 		public String getPrefix(String namespaceURI) {
 			return null;
 		}
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings("rawtypes")
 		@Override
 		public Iterator getPrefixes(String namespaceURI) {
 			return null;

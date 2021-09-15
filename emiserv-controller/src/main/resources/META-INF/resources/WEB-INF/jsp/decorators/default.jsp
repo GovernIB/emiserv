@@ -80,7 +80,7 @@ body {
 			<div class="navbar-header">
 				<div class="navbar-brand">
 					<div id="govern-logo" class="pull-left">
-						<img src="<c:url value="/img/govern-logo.png"/>" height="65"  alt="<spring:message code="decorator.govern"/>" />
+						<img src="<c:url value="/img/govern-logo.png"/>" height="65" alt="<spring:message code="decorator.govern"/>" />
 					</div>
 					<div id="app-logo" class="pull-left">
 						<span id="app-logo-icon" class="fa-stack fa-3x">
