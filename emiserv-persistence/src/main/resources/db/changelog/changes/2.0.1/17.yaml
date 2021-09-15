@@ -22,3 +22,9 @@ databaseChangeLog:
     - dropColumn:
         columnName: inicialitzat
         tableName: ems_usuari
+- changeSet:
+    id: 1618396425533-3
+    author: limit
+    changes:
+    - sql:
+        sql: UPDATE EMS_ACL_CLASS SET class='es.caib.emiserv.persist.entity.ServeiEntity' WHERE class='es.caib.emiserv.core.entity.ServeiEntity';
