@@ -20,7 +20,7 @@ pageContext.setAttribute(
 	<emi:modalHead/>
 </head>
 <body>
-	<c:url value="/usuari/configuracio" var="formAction"/>
+	<c:set var="formAction"><emi:modalUrl value="/usuari/configuracio"/></c:set>
 	<form:form action="${formAction}" method="post" cssClass="form-horizontal" modelAttribute="usuariCommand" role="form">
 		<emi:inputText name="codi" textKey="usuari.form.camp.codi" disabled="true"/>
 		<emi:inputText name="nom" textKey="usuari.form.camp.nom" disabled="true"/>

@@ -152,7 +152,7 @@ body {
 							</a>
 							<ul class="dropdown-menu">
 								<li>
-									<a href="<c:url value="/usuari/configuracio"/>" data-toggle="modal">
+									<a href="<c:url value="/usuari/configuracio"/>" data-toggle="modal" data-reload-on-close="true">
 										<spring:message code="decorator.menu.configuracio.user"/>
 									</a>
 								</li>
