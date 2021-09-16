@@ -134,14 +134,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 					Set<String> roles = new HashSet<String>();
 					roles.addAll(j2eeUserRoles);
 					Access realmAccess = keycloakPrincipal.getKeycloakSecurityContext().getToken().getRealmAccess();
-					if (realmAccess.getRoles() != null) {
+					if (realmAccess != null && realmAccess.getRoles() != null) {
 						logger.debug("Keycloak token realm roles: " + realmAccess.getRoles());
 						roles.addAll(realmAccess.getRoles());
 					}
 					if (useResourceRoleMappings) {
 						Access resourceAccess = keycloakPrincipal.getKeycloakSecurityContext().getToken().getResourceAccess(
 								keycloakPrincipal.getKeycloakSecurityContext().getToken().getIssuedFor());
-						if (resourceAccess.getRoles() != null) {
+						if (resourceAccess != null && resourceAccess.getRoles() != null) {
 							logger.debug("Keycloak token resource roles: " + resourceAccess.getRoles());
 							roles.addAll(resourceAccess.getRoles());
 						}

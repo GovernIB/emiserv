@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import es.caib.emiserv.back.command.UsuariCommand;
 import es.caib.emiserv.back.helper.EnumHelper;
 import es.caib.emiserv.back.helper.LocaleHelper;
-import es.caib.emiserv.back.helper.MissatgeHelper;
 import es.caib.emiserv.logic.intf.dto.IdiomaEnumDto;
 import es.caib.emiserv.logic.intf.keycloak.KeycloakHelper;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
@@ -61,12 +60,10 @@ public class UsuariController extends BaseController {
 				response,
 				aplicacioService,
 				true);
-		MissatgeHelper.success(
-				request, 
-				getMessage(
-						request, 
-						"usuari.controller.modificat.ok"));
-		return "redirect:/";
+		return getModalControllerReturnValueSuccess(
+				request,
+				"redirect:/",
+				"usuari.controller.modificat.ok");
 	}
 
 	private void addIdiomaOptionsToModel(Model model) {

@@ -7,6 +7,7 @@
 			maximized: false,
 			refreshMissatges: true,
 			refreshDatatable: false,
+			reloadOnClose: true,
 			elementBotons: "#modal-botons",
 			elementForm: "#modal-form",
 			elementTancarData: "modal-cancel"
@@ -67,6 +68,7 @@
 								maximized: plugin.settings.maximized,
 								refreshMissatges: plugin.settings.refreshMissatges,
 								refreshDatatable: plugin.settings.refreshDatatable,
+								reloadOnClose: plugin.settings.reloadOnClose,
 								elementBotons: plugin.settings.elementBotons,
 								elementForm: plugin.settings.elementForm,
 								elementTancarData: plugin.settings.elementTancarData,
@@ -79,6 +81,7 @@
 								maximized: plugin.settings.maximized,
 								refreshMissatges: plugin.settings.refreshMissatges,
 								refreshDatatable: plugin.settings.refreshDatatable,
+								reloadOnClose: plugin.settings.reloadOnClose,
 								elementBotons: plugin.settings.elementBotons,
 								elementForm: plugin.settings.elementForm,
 								elementTancarData: plugin.settings.elementTancarData,
@@ -178,6 +181,9 @@
 						}
 						if (settings.refreshDatatable) {
 							$('#' + settings.dataTableId).webutilDatatable('refresh');
+						}
+						if (settings.reloadOnClose) {
+							window.location.reload();
 						}
 					}
 				});

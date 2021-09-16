@@ -16,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Localitzador de l'EJB corresponent al servei BackofficeService.
  * 
+ * Aquesta classe no està a dins el paquet es.caib perquè així s'inclou
+ * automàticament a dins el context Spring de les llibreries SCSP.
+ * 
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Slf4j
