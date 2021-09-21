@@ -27,8 +27,10 @@ import es.caib.emiserv.persist.entity.ServeiEntity;
 @Component
 public class ServeiXsdHelper {
 
-	@Value("es.caib.emiserv.fitxers")
+	@Value("${es.caib.emiserv.fitxers:#{null}}")
 	private String fitxersBasePath;
+	@Value("${es.caib.emiserv.xsd.base.path:#{null}}")
+	private String xsdBasePath;
 
 	public void modificarXsd(
 			ServeiEntity servei,
@@ -90,13 +92,26 @@ public class ServeiXsdHelper {
 	public String getPathPerServei(
 			ServeiEntity servei) {
 		StringBuilder path = new StringBuilder();
-		path.append(fitxersBasePath);
-		if (!fitxersBasePath.endsWith(File.separator)) {
+		path.append(getXsdBasePath());
+		if (!getXsdBasePath().endsWith(File.separator)) {
 			path.append(File.separator);
 		}
-		path.append("xsd/");
 		path.append(servei.getCodi());
 		return path.toString();
+	}
+
+	public String getXsdBasePath() {
+		if (xsdBasePath != null) {
+			return xsdBasePath;
+		} else if (fitxersBasePath != null) {
+			if (!fitxersBasePath.endsWith(File.separator)) {
+				return fitxersBasePath + File.separator + "xsd";
+			} else {
+				return fitxersBasePath + "xsd";
+			}
+		} else {
+			return null;
+		}
 	}
 
 	private String getPathPerFitxerXsd(
