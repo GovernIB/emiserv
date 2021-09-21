@@ -502,7 +502,7 @@ databaseChangeLog:
               primaryKey: true
               primaryKeyName: ems_acl_sid_pk
             name: id
-            type: BIGINT
+            type: ${acl_pk_type}
         - column:
             constraints:
               nullable: false
@@ -526,7 +526,7 @@ databaseChangeLog:
               primaryKey: true
               primaryKeyName: ems_acl_class_pk
             name: id
-            type: BIGINT
+            type: ${acl_pk_type}
         - column:
             constraints:
               nullable: false
@@ -545,7 +545,7 @@ databaseChangeLog:
               primaryKey: true
               primaryKeyName: ems_acl_object_identity_pk
             name: id
-            type: BIGINT
+            type: ${acl_pk_type}
         - column:
             constraints:
               nullable: false
@@ -582,7 +582,7 @@ databaseChangeLog:
               primaryKey: true
               primaryKeyName: ems_acl_entry_pk
             name: id
-            type: BIGINT
+            type: ${acl_pk_type}
         - column:
             constraints:
               nullable: false

@@ -15,7 +15,7 @@
 	</parent>
 	<properties>
 		<spring-boot.version>2.4.2</spring-boot.version>
-		<liquibase.version>4.3.3</liquibase.version>
+		<liquibase.version>4.4.3</liquibase.version>
 		<orika.starter.version>1.8.0</orika.starter.version>
 		<reflections.version>0.9.11</reflections.version>
 		<rsql.version>2.1.0</rsql.version>

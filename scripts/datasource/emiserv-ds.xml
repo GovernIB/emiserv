@@ -1,10 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<datasources>
-	<no-tx-datasource>
-		<jndi-name>es.caib.emiserv.db</jndi-name>
-		<connection-url>jdbc:oracle:thin:@ADREÇA_BD:1521:SID_BD</connection-url>
-		<driver-class>oracle.jdbc.driver.OracleDriver</driver-class>
-		<user-name>USUARI</user-name>
-		<password>CONTRASENYA</password>
-	</no-tx-datasource>
-</datasources>
+<datasource jndi-name="java:jboss/datasources/emiservDS" pool-name="emiservDS" enabled="true" use-java-context="true">
+    <connection-url>${env.DATABASE_URL}</connection-url>
+    <driver>${env.DATABASE_DRIVER}</driver>
+    <security>
+        <user-name>${env.DATABASE_USER}</user-name>
+        <password>${env.DATABASE_PASSWD}</password>
+    </security>
+</datasource>
