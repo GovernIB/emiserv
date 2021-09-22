@@ -74,12 +74,13 @@ public class ScspRoutingController extends BaseController {
 	public void doGet(
 			HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		logger.debug(
-				"Processant petició GET a l'enrutador (" +
-				"requestURI=" + request.getRequestURI() + ")");
 		String proxyUrl = getProxyUrl(
 				request,
 				null);
+		logger.debug(
+				"Processant petició GET a l'enrutador (" +
+				"requestURI=" + request.getRequestURI() + ", " +
+				"proxyUrl=" + proxyUrl + ")");
 		if (proxyUrl != null) {
 			GetMethod getMethod = new GetMethod(proxyUrl);
 			setProxyRequestHeaders(
@@ -110,30 +111,26 @@ public class ScspRoutingController extends BaseController {
 			logger.debug(
 					"Processant petició POST a l'enrutador (" +
 					"requestURI=" + request.getRequestURI() + ")");
-
 			int proxyResponseCode = -1;
 			String proxyUrl = null;
 			PostMethod postMethod = null;
-	
 			// Processa la petició d'entrada
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			IOUtils.copy(
 					request.getInputStream(),
 					baos);
 			byte[] xml = baos.toByteArray();
-			RequestEntity requestEntity = new ByteArrayRequestEntity(
-					xml);
+			RequestEntity requestEntity = new ByteArrayRequestEntity(xml);
 			RedireccioProcessarResultatDto resultat = redireccioService.processarPeticio(xml);
 			logger.debug(
 					"Dades del processament de la petició SCSP (" +
-					"peticioId=" + resultat.getAtributPeticioId() + ", " +
-					"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
 					"tipus=" + resultat.getTipus() + ", " +
+					"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+					"peticioId=" + resultat.getAtributPeticioId() + ", " +
 					"urlDesti=" + resultat.getUrlDesti() + ", " +
 					"urlDestins=" + resultat.getUrlDestins() + ", " +
 					"error=" + resultat.isError() + ")");
-
-			if (! resultat.isError()) {
+			if (!resultat.isError()) {
 				// Fa la petició segons el tipus d'enrutador simple o múltiple
 				if (ServeiTipusEnumDto.ENRUTADOR.equals(resultat.getTipus()) ) {
 					// ENRUTADOR SIMPLE
@@ -541,7 +538,8 @@ public class ScspRoutingController extends BaseController {
 			proxyUrl.append(request.getServerName());
 			proxyUrl.append(":");
 			proxyUrl.append(request.getServerPort());
-			proxyUrl.append(request.getContextPath());
+			//proxyUrl.append(request.getContextPath());
+			proxyUrl.append("/emiservapi/externa");
 			proxyUrl.append("/services/");
 		} else {
 			proxyUrl.append(urlDesti);

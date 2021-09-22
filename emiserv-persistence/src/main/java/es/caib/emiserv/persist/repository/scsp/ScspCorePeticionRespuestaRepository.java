@@ -49,6 +49,6 @@ public interface ScspCorePeticionRespuestaRepository extends JpaRepository<ScspC
 
 	ScspCorePeticionRespuestaEntity findByPeticionId(String peticionId);
 
-	long countByCertificado(String certificado);
+	long countByCertificado(Long certificado);
 
 }

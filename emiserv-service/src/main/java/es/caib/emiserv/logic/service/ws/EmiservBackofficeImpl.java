@@ -60,9 +60,12 @@ public class EmiservBackofficeImpl implements EmiservBackoffice {
 			if (peticion.getSolicitudes().getSolicitudTransmision() != null) {
 				int indexTransmissio = 0;
 				for (SolicitudTransmision solicitudTransmision: peticion.getSolicitudes().getSolicitudTransmision()) {
+					Object datosEspecificos = solicitudTransmision.getDatosEspecificos();
+					solicitudTransmision.setDatosEspecificos(null);
 					TransmisionDatos transmisionDatos = conversioTipusHelper.convertir(
 							solicitudTransmision,
 							TransmisionDatos.class);
+					solicitudTransmision.setDatosEspecificos(datosEspecificos);
 					transmisionDatos.getDatosGenericos().getTransmision().setIdTransmision(
 							generarTimestampTransmissio() + indexTransmissio++);
 					try {

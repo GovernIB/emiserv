@@ -453,6 +453,7 @@ public class BackofficeHelper {
 						ex);
 			}
 			excepcioDurantPeticio = ex;
+		} finally {
 			if (xmlPeticio.size() == 0) {
 				StringWriter sw = new StringWriter();
 				JAXB.marshal(backofficePeticio, sw);
@@ -462,7 +463,6 @@ public class BackofficeHelper {
 					log.error("Error al convertir objecte de petició a XML", ioex);
 				}
 			}
-		} finally {
 			processarComunicacioBackoffice(
 					backofficePeticio,
 					backofficeSolicitud,
@@ -666,7 +666,8 @@ public class BackofficeHelper {
 			ByteArrayOutputStream xmlResposta,
 			Throwable excepcioDurantPeticio) {
 		String xmlPet = (testXmlPeticio != null) ? testXmlPeticio : xmlPeticio.toString();
-		String xmlRes = (testXmlResposta != null) ? testXmlResposta : xmlResposta.toString();
+		log.debug("Emmagatzemant missatge XML de la petició SCSP " + getIdentificacioDelsAtributsScsp(respuestaAtributos) + " (" +
+				"xml=" + xmlPet + ")");
 		peticioBackofficeNovaComunicacio(
 				backofficePeticio,
 				backofficeSolicitud,
@@ -677,16 +678,20 @@ public class BackofficeHelper {
 		if (respuestaAtributos != null) {
 			respuesta.setAtributos(respuestaAtributos);
 		} else {
-			Atributos atributos = new Atributos();
+			Atributos attrs = new Atributos();
 			Estado estado = new Estado();
 			estado.setCodigoEstado("0904");
-			atributos.setEstado(estado);
-			respuesta.setAtributos(atributos);
+			attrs.setEstado(estado);
+			respuesta.setAtributos(attrs);
 		}
 		String comunicacioError = null;
 		if (excepcioDurantPeticio != null) {
 			comunicacioError = ExceptionUtils.getFullStackTrace(excepcioDurantPeticio);
 		}
+		String xmlRes = (testXmlResposta != null) ? testXmlResposta : xmlResposta.toString();
+		log.debug("Emmagatzemant missatge XML de la resposta SCSP " + getIdentificacioDelsAtributsScsp(respuestaAtributos) + " (" +
+				"xml=" + xmlRes + ", " +
+				"comunicacioError=" + comunicacioError + ")");
 		peticioBackofficeNovaComunicacio(
 				backofficePeticio,
 				backofficeSolicitud,
@@ -1008,7 +1013,6 @@ public class BackofficeHelper {
 			testBackoffice.setPeticioRespostaHandler(peticioRespostaHandler);
 			return testBackoffice;
 		}
-		log.debug("Cercant backoffice per a la petició " + identificacio + ".");
 		if (!servei.isConfigurat()) {
 			log.error("El servei està donat d'alta però encara no s'ha configurat (" +
 					"idPeticion=" + identificacio + ", " +
@@ -1041,6 +1045,13 @@ public class BackofficeHelper {
 		default:
 			break;
 		}
+		String soapAction = getBackofficePropertySoapAction(servei.getCodi());
+		log.debug("Generant client de backoffice EMISERV per a la petició " + identificacio + " (" +
+				"backofficeUrl=" + backofficeUrl + ", " +
+				"soapAction=" + soapAction + ", " +
+				"autenticacio=" + servei.getBackofficeCaibAutenticacio() + ", " +
+				"username=" + username + ", " +
+				"password=" + password + ")");
 		EmiservBackoffice port = new WsClientHelper<EmiservBackoffice>().generarClientWs(
 				getClass().getResource("/es/caib/emiserv/core/backoffice/EmiservBackoffice.wsdl"),
 				backofficeUrl,
@@ -1049,7 +1060,7 @@ public class BackofficeHelper {
 						"EmiservBackofficeService"),
 				username,
 				password,
-				getBackofficePropertySoapAction(servei.getCodi()),
+				soapAction,
 				EmiservBackoffice.class,
 				datosEspecificosHandler,
 				peticioRespostaHandler);

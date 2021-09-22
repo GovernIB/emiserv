@@ -189,8 +189,12 @@ public class ServeiServiceImpl implements ServeiService {
 			Long id) {
 		log.debug("Esborrant servei existent (id=" + id +  ")");
 		ServeiEntity servei = comprovarServei(id);
-		if (scspCorePeticionRespuestaRepository.countByCertificado(servei.getCodi()) > 0) {
-			throw new ValidationException("Aquest servei te peticions de backoffice associades i no es pot esborrar");
+		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.findByCodigoCertificado(
+				servei.getCodi());
+		if (scspCoreServicio != null) {
+			if (scspCorePeticionRespuestaRepository.countByCertificado(scspCoreServicio.getId()) > 0) {
+				throw new ValidationException("Aquest servei te peticions de backoffice associades i no es pot esborrar");
+			}
 		}
 		if (redireccioPeticioRepository.countByServeiCodi(servei.getCodi()) > 0) {
 			throw new ValidationException("Aquest servei te peticions de tipus enrutador associades i no es pot esborrar");

@@ -752,7 +752,6 @@
 					[$(this), editableGetRowData($currentRow)]);
 		}
 		var editableSeleccionarRow = function($row, rowIndex) {
-			console.log('>>> editableSeleccionarRow');
 			$row.attr('data-editing', 'true');
 			$row.children().each(function() {
 				var $thCapcalera = $('thead th:nth-child(' + ($(this).index() + 1) + ')', $taula);
