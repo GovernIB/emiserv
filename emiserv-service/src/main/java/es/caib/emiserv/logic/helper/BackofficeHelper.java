@@ -456,7 +456,7 @@ public class BackofficeHelper {
 		} finally {
 			if (xmlPeticio.size() == 0) {
 				StringWriter sw = new StringWriter();
-				JAXB.marshal(backofficePeticio, sw);
+				JAXB.marshal(peticion, sw);
 				try {
 					xmlPeticio.write(sw.toString().getBytes());
 				} catch (IOException ioex) {
@@ -1051,7 +1051,7 @@ public class BackofficeHelper {
 				"soapAction=" + soapAction + ", " +
 				"autenticacio=" + servei.getBackofficeCaibAutenticacio() + ", " +
 				"username=" + username + ", " +
-				"password=" + password + ")");
+				"password=" + (password != null ? password.replaceAll(".", "*") : password) + ")");
 		EmiservBackoffice port = new WsClientHelper<EmiservBackoffice>().generarClientWs(
 				getClass().getResource("/es/caib/emiserv/core/backoffice/EmiservBackoffice.wsdl"),
 				backofficeUrl,

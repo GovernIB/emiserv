@@ -193,6 +193,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 							idPeticion,
 							timestamp,
 							codigoCertificado);
+					resposta.setScspVersio((isV2) ? 2 : 3);
 				} else if (numElementos != 1) {
 					resposta = new RedireccioProcessarResultatDto(
 							"0502",
@@ -200,6 +201,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 							idPeticion,
 							timestamp,
 							codigoCertificado);
+					resposta.setScspVersio((isV2) ? 2 : 3);
 				} else {
 					ServeiEntity servei = serveiRepository.findByCodi(codigoCertificado);
 					if (servei == null) {
@@ -210,12 +212,14 @@ public class RedireccioServiceImpl implements RedireccioService {
 								idPeticion,
 								timestamp,
 								codigoCertificado);
+						resposta.setScspVersio((isV2) ? 2 : 3);
 					} else if (redireccioPeticioRepository.findByPeticioIdAndServeiCodi(idPeticion, codigoCertificado).size() > 0) {
 						resposta = new RedireccioProcessarResultatDto(
 								"0502",
 								"[EMISERV] L'identificador de la petició ja ha estat enregistrada per aquest servei (" +
 										"codigoCertificado=" + codigoCertificado + ", " +
 										"idPeticion=" + idPeticion + ")");
+						resposta.setScspVersio((isV2) ? 2 : 3);
 					} else if (!ServeiTipusEnumDto.ENRUTADOR.equals(servei.getTipus())
 								&& !ServeiTipusEnumDto.ENRUTADOR_MULTIPLE.equals(servei.getTipus())) {
 						resposta = new RedireccioProcessarResultatDto(
@@ -225,6 +229,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 								idPeticion,
 								timestamp,
 								codigoCertificado);
+						resposta.setScspVersio((isV2) ? 2 : 3);
 					} else if (xml != null) {
 						if (ServeiTipusEnumDto.ENRUTADOR.equals(servei.getTipus())){
 							// ENRUTADOR SIMPLE
@@ -255,6 +260,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 												idPeticion,
 												timestamp,
 												codigoCertificado);
+										resposta.setScspVersio((isV2) ? 2 : 3);
 									}
 								} else {
 									resposta = new RedireccioProcessarResultatDto(
@@ -280,6 +286,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 											idPeticion,
 											timestamp,
 											codigoCertificado);
+									resposta.setScspVersio((isV2) ? 2 : 3);
 								}
 							}
 						} else {
@@ -305,6 +312,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 										idPeticion,
 										timestamp,
 										codigoCertificado);
+								resposta.setScspVersio((isV2) ? 2 : 3);
 							}
 						}
 					} else {
@@ -314,6 +322,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 								idPeticion,
 								timestamp,
 								codigoCertificado);
+						resposta.setScspVersio((isV2) ? 2 : 3);
 					}
 				}
 				RedireccioPeticioEntity redireccioPeticio = RedireccioPeticioEntity.getBuilder(

@@ -1,7 +1,7 @@
         <subsystem xmlns="urn:jboss:domain:logging:6.0">
         	<use-deployment-logging-config value="false"/>
             <console-handler name="CONSOLE">
-                <level name="INFO"/>
+                <level name="TRACE"/>
                 <formatter>
                     <named-formatter name="COLOR-PATTERN"/>
                 </formatter>
@@ -26,10 +26,13 @@
             <logger category="org.springframework">
                 <level name="INFO"/>
             </logger>
-            <logger category="es.caib.emiserv.logic.helper">
+            <logger category="es.caib.emiserv">
                 <level name="DEBUG"/>
             </logger>
-            <!--logger category="es.caib.emiserv.war.config">
+            <!--logger category="org.hibernate">
+                <level name="TRACE"/>
+            </logger>
+            <logger category="es.caib.emiserv.war.config">
                 <level name="DEBUG"/>
             </logger>
             <logger category="es.caib.emiserv.backoffice">

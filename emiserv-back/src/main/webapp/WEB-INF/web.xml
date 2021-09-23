@@ -16,6 +16,13 @@
 		<role-name>EMS_RESP</role-name>
 	</security-role>
 	<security-constraint>
+		<display-name>Unauthenticated areas</display-name>
+		<web-resource-collection>
+			<web-resource-name>scspRouting</web-resource-name>
+			<url-pattern>/scspRouting/*</url-pattern>
+		</web-resource-collection>
+	</security-constraint>
+	<security-constraint>
 		<display-name>All areas</display-name>
 		<web-resource-collection>
 			<web-resource-name>All areas</web-resource-name>

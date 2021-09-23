@@ -183,7 +183,7 @@ databaseChangeLog:
             type: TIMESTAMP
         - column:
             name: emissor_codi
-            type: INTEGER
+            type: VARCHAR(10)
         - column:
             name: error
             type: CLOB

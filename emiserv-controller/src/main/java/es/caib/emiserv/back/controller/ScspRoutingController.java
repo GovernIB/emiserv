@@ -176,7 +176,7 @@ public class ScspRoutingController extends BaseController {
 					Map<String, byte[]> xmlsPerEscollir = new HashMap<String, byte[]>();
 					Map<String, EnrutamentMultipleThreadResult> respostesPeticions = new HashMap<String, ScspRoutingController.EnrutamentMultipleThreadResult>();
 					if (respostesThreadsPeticio != null) {
-						for (Future<EnrutamentMultipleThreadResult> r : respostesThreadsPeticio) {
+						for (Future<EnrutamentMultipleThreadResult> r: respostesThreadsPeticio) {
 							try {
 								// Guarda la petició per informar la resposta
 								respostesPeticions.put(r.get().codiEntitat, r.get());
@@ -212,16 +212,8 @@ public class ScspRoutingController extends BaseController {
 		} 
 	}
 
-	/** Processa la resposta i si tot va bé escriu el contingut en el httpResponse.
-	 * 
-	 * @param request
-	 * @param response
-	 * @param proxyResponseCode
-	 * @param proxyUrl
-	 * @param postMethod
-	 * @param resultat
-	 * @throws ServletException
-	 * @throws IOException 
+	/*
+	 * Processa la resposta i si tot va bé escriu el contingut en el httpResponse.
 	 */
 	private void processProxyResponse(
 			HttpServletRequest request, 
@@ -230,32 +222,33 @@ public class ScspRoutingController extends BaseController {
 			String proxyUrl, 
 			HttpMethod postMethod, 
 			RedireccioProcessarResultatDto resultat) throws ServletException, IOException {
-
 		if (resultat != null && resultat.isError()) {
 			logger.debug(
-					"Generant SOAPFault per la petició (" +
+					"Processant resposta errònia d'una petició a l'enrutador (" +
 					"peticioId=" + resultat.getAtributPeticioId() + ", " +
 					"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
 					"errorCodi=" + resultat.getErrorCodi() + ", " +
 					"errorDescripcio=" + resultat.getErrorDescripcio() + ")");
 			String soapFault = redireccioService.generarSoapFault(resultat);
-			logger.debug(
-					"Processant la resposta SOAPFault de la petició (" +
-					"peticioId=" + resultat.getAtributPeticioId() + ", " +
-					"serveiCodi=" + resultat.getAtributCodigoCertificado() + ")");
 			try {
 				redireccioService.processarResposta(
 						resultat.getAtributPeticioId(),
 						resultat.getAtributCodigoCertificado(),
 						soapFault.getBytes());
 				response.getOutputStream().write(soapFault.getBytes());
-			} catch (Exception e) {
-				logger.error("Error processant el resultat d'error: " + e.getLocalizedMessage());
-				e.printStackTrace();
+			} catch (Exception ex) {
+				logger.error("Error processant resposta errònia d'una petició a l'enrutador: " + 
+						ex.getClass().getName() + ": " +
+						ex.getLocalizedMessage());
 			}
-		} else	if (proxyResponseCode != -1) {
+		} else if (proxyResponseCode != -1) {
 			if (proxyResponseCode >= HttpServletResponse.SC_MULTIPLE_CHOICES /* 300 */
 					&& proxyResponseCode < HttpServletResponse.SC_NOT_MODIFIED /* 304 */) {
+				logger.debug(
+						"Processant resposta d'una petició a l'enrutador amb redireccions (" +
+						"peticioId=" + (resultat != null ? resultat.getAtributPeticioId() : "") + ", " +
+						"serveiCodi=" + (resultat != null ? resultat.getAtributCodigoCertificado() : "") + ", " +
+						"proxyResponseCode=" + proxyResponseCode + ")");
 				String statusCode = Integer.toString(proxyResponseCode);
 				String location = postMethod.getResponseHeader(STRING_LOCATION_HEADER).getValue();
 				if (location == null) {
@@ -307,15 +300,15 @@ public class ScspRoutingController extends BaseController {
 							: postMethod.getResponseBody();
 				if (resultat != null) {
 					logger.debug(
-							"Processant la resposta de la petició (" +
+							"Retornant resposta final d'una petició POST a l'enrutador (" +
 							"peticioId=" + resultat.getAtributPeticioId() + ", " +
-							"serveiCodi=" + resultat.getAtributCodigoCertificado() + ")");
+							"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+							"resposta=" + new String(respostaBytes) + ")");
 					try {
 						redireccioService.processarResposta(
 								resultat.getAtributPeticioId(),
 								resultat.getAtributCodigoCertificado(),
 								respostaBytes);
-						
 						// Retorna la resposta al requirent
 						response.setStatus(proxyResponseCode);
 						for (Header header: headerArrayResponse) {
@@ -326,14 +319,16 @@ public class ScspRoutingController extends BaseController {
 									header.getValue());
 						}
 						response.getOutputStream().write(postMethod.getResponseBody());
-						
-					} catch (Exception e) {
+					} catch (Exception ex) {
 						// Prepara un SOAPFault com a resposta
+						String errorDesc = ex.getClass().getName() + ": " + ex.getLocalizedMessage();
 						resultat.setError(true);
 						resultat.setErrorCodi("0502");
-						resultat.setErrorDescripcio("[EMISERV] Error processant la resposta del servidor remot: " + e.getLocalizedMessage());
-						logger.debug(
-								"Error processant la resposta del servidor remot (resultat=" + resultat + "): " + e.getLocalizedMessage());
+						resultat.setErrorDescripcio("[EMISERV] Error retornant la resposta d'una petició POST a l'enrutador: " + errorDesc);
+						logger.error(
+								"Error retornant la resposta d'una petició POST a l'enrutador (" +
+								"peticioId=" + resultat.getAtributPeticioId() + ", " +
+								"serveiCodi=" + resultat.getAtributCodigoCertificado() + "): " + errorDesc);
 						String soapFault = redireccioService.generarSoapFault(resultat);
 						try {
 							redireccioService.processarResposta(
@@ -341,137 +336,24 @@ public class ScspRoutingController extends BaseController {
 									resultat.getAtributCodigoCertificado(),
 									soapFault.getBytes());
 							response.getOutputStream().write(soapFault.getBytes());
-						} catch (Exception ex) {
-							logger.error("Error processant el resultat d'error: " + e.getLocalizedMessage());
-							e.printStackTrace();
+						} catch (Exception ex2) {
+							logger.error("Error processant el resultat d'error: " + ex.getLocalizedMessage());
+							ex.printStackTrace();
 						}
 					}
 				} else if (request.getMethod().equalsIgnoreCase("GET")) {
+					logger.debug(
+							"Retornant resposta final d'una petició GET a l'enrutador (" +
+							"resposta=" + new String(respostaBytes) + ")");
 					response.setStatus(proxyResponseCode);
 					response.getOutputStream().write(respostaBytes);
 				}
 			} catch (Exception ex) {
 				logger.error(
-						"Error processant la resposta del servidor remot " +
+						"Error retornant la resposta d'una petició a l'enrutador" +
 						getParametresPerExcepcio(proxyUrl, resultat),
 						ex);
 			}
-		}
-	}
-
-	/** Classe per retornar el resultat d'una petició d'enrutament des del thread d'enrutament
-	 * múltiple.
-	 */
-	public class EnrutamentMultipleThreadResult {		
-		private String codiEntitat;
-		private int proxyResponseCode = -1;
-		private PostMethod method;
-		private RedireccioProcessarResultatDto resultat;
-		/** XML del body de la resposta. Com que pot venir comprimit es descomprimeix una sola vegada
-		 * pel seu processament.
-		 */
-		private byte[] xml;
-		
-		public String getCodiEntitat() {
-			return codiEntitat;
-		}
-		public void setCodiEntitat(String codiEntitat) {
-			this.codiEntitat = codiEntitat;
-		}
-		public int getProxyResponseCode() {
-			return proxyResponseCode;
-		}
-		public void setProxyResponseCode(int proxyResponseCode) {
-			this.proxyResponseCode = proxyResponseCode;
-		}
-		public PostMethod getMethod() {
-			return method;
-		}
-		public void setMethod(PostMethod method) {
-			this.method = method;
-		}
-		public RedireccioProcessarResultatDto getResultat() {
-			return resultat;
-		}
-		public void setResultat(RedireccioProcessarResultatDto resultat) {
-			this.resultat = resultat;
-		}
-		public byte[] getXml() {
-			return xml;
-		}
-		public void setXml(byte[] xml) {
-			this.xml = xml;
-		}
-	}
-
-	/** Classe per llençar una petició en paral·lel cap a un emissor de l'enrutament múltiple. */
-	public class EnrutamentMultipleThread implements Callable<EnrutamentMultipleThreadResult> {
-		
-		String codiEntitat;
-		String urlDesti;
-		RequestEntity requestEntity;
-		HttpServletRequest request;
-		RedireccioProcessarResultatDto resultat;
-		
-		public EnrutamentMultipleThread(
-				HttpServletRequest request,
-				RequestEntity requestEntity,
-				String codiEntitat,
-				String urlDesti,
-				RedireccioProcessarResultatDto resultat) {
-			this.request = request;
-			this.requestEntity = requestEntity;
-			this.codiEntitat = codiEntitat;
-			this.urlDesti = urlDesti;
-			this.resultat = resultat;
-		}
-
-		@Override
-		public EnrutamentMultipleThreadResult call() throws Exception {
-			
-			EnrutamentMultipleThreadResult ret = new EnrutamentMultipleThreadResult();
-			ret.setCodiEntitat(this.codiEntitat);
-			ret.setResultat(this.resultat);
-			String proxyUrl = getProxyUrl(this.request,
-										  this.urlDesti);
-			PostMethod method = new PostMethod(proxyUrl);
-			copiarCapsaleresHttp(	request,
-									method,
-									proxyUrl);
-			method.setRequestEntity(this.requestEntity);
-			ret.setMethod(method);			
-						
-			try {
-				//executeProxyRequest
-				logger.debug("Executant redirecció múltiple de la petició (codiCertificat=" + resultat.getAtributCodigoCertificado() + 
-						 ",codiEntitat=" + codiEntitat + 
-						 ", proxyUrl=" + proxyUrl + ")");			
-				ret.setProxyResponseCode( 
-						executeProxyRequest(method, resultat));
-								
-				Header[] headerArrayResponse = method.getResponseHeaders();
-				String contentEncoding = "";
-				for (Header header: headerArrayResponse) 
-					if (header.getName().equals("Content-Encoding")) {
-						contentEncoding = header.getValue();
-						break;
-					}
-				ret.setXml(contentEncoding.toLowerCase().contains("gzip") ?
-								IOUtils.toByteArray( 
-										new GZIPInputStream( 
-												new ByteArrayInputStream(
-														method.getResponseBody())))
-								: method.getResponseBody());
-			} catch (Exception ex) {
-				logger.error(
-						"Error fent la petició al emisor SCSP destí " +
-						getParametresPerExcepcio(proxyUrl, resultat),
-						ex);
-				resultat.setError(true);
-				resultat.setErrorCodi("0502");
-				resultat.setErrorDescripcio("[EMISERV] Error fent la petició al emisor SCSP destí: " + ex.getMessage());
-			}
-			return ret;		
 		}
 	}
 
@@ -533,15 +415,20 @@ public class ScspRoutingController extends BaseController {
 			String urlDesti) throws IOException {
 		StringBuilder proxyUrl = new StringBuilder();
 		if (urlDesti == null) {
+			// Si urlDesti és null vol dir que la petició que s'està processant
+			// és del tipus HTTP GET i, per tant, s'està consultant el WSDL del
+			// servei web. Per tant, redirigim la petició cap al servei de l'emissor
+			// SCSP.
 			proxyUrl.append(request.getScheme());
 			proxyUrl.append("://");
 			proxyUrl.append(request.getServerName());
 			proxyUrl.append(":");
 			proxyUrl.append(request.getServerPort());
-			//proxyUrl.append(request.getContextPath());
 			proxyUrl.append("/emiservapi/externa");
 			proxyUrl.append("/services/");
 		} else {
+			// Si la urlDesti no és null vol dir que la petició que s'està processant
+			// és del tipus HTTP POST i, per tant, és una petició SOAP al servei web.
 			proxyUrl.append(urlDesti);
 		}
 		if (proxyUrl.lastIndexOf("/") == proxyUrl.length() - 1) {
@@ -601,6 +488,120 @@ public class ScspRoutingController extends BaseController {
 					header,
 					value);
 			logger.debug("Copiant capçalera HTTP (name=" + header + ", value=" + request.getHeader(header) + ")");
+		}
+	}
+
+	/*
+	 * Classe per retornar el resultat d'una petició d'enrutament des del thread d'enrutament
+	 * múltiple.
+	 */
+	public class EnrutamentMultipleThreadResult {		
+		private String codiEntitat;
+		private int proxyResponseCode = -1;
+		private PostMethod method;
+		private RedireccioProcessarResultatDto resultat;
+		/** XML del body de la resposta. Com que pot venir comprimit es descomprimeix una sola vegada
+		 * pel seu processament.
+		 */
+		private byte[] xml;
+		
+		public String getCodiEntitat() {
+			return codiEntitat;
+		}
+		public void setCodiEntitat(String codiEntitat) {
+			this.codiEntitat = codiEntitat;
+		}
+		public int getProxyResponseCode() {
+			return proxyResponseCode;
+		}
+		public void setProxyResponseCode(int proxyResponseCode) {
+			this.proxyResponseCode = proxyResponseCode;
+		}
+		public PostMethod getMethod() {
+			return method;
+		}
+		public void setMethod(PostMethod method) {
+			this.method = method;
+		}
+		public RedireccioProcessarResultatDto getResultat() {
+			return resultat;
+		}
+		public void setResultat(RedireccioProcessarResultatDto resultat) {
+			this.resultat = resultat;
+		}
+		public byte[] getXml() {
+			return xml;
+		}
+		public void setXml(byte[] xml) {
+			this.xml = xml;
+		}
+	}
+
+	/**
+	 * Classe per llençar una petició en paral·lel cap a un emissor de l'enrutament múltiple.
+	 */
+	public class EnrutamentMultipleThread implements Callable<EnrutamentMultipleThreadResult> {
+		String codiEntitat;
+		String urlDesti;
+		RequestEntity requestEntity;
+		HttpServletRequest request;
+		RedireccioProcessarResultatDto resultat;
+		public EnrutamentMultipleThread(
+				HttpServletRequest request,
+				RequestEntity requestEntity,
+				String codiEntitat,
+				String urlDesti,
+				RedireccioProcessarResultatDto resultat) {
+			this.request = request;
+			this.requestEntity = requestEntity;
+			this.codiEntitat = codiEntitat;
+			this.urlDesti = urlDesti;
+			this.resultat = resultat;
+		}
+		@Override
+		public EnrutamentMultipleThreadResult call() throws Exception {
+			EnrutamentMultipleThreadResult ret = new EnrutamentMultipleThreadResult();
+			ret.setCodiEntitat(this.codiEntitat);
+			ret.setResultat(this.resultat);
+			String proxyUrl = getProxyUrl(this.request,
+										  this.urlDesti);
+			PostMethod method = new PostMethod(proxyUrl);
+			copiarCapsaleresHttp(	request,
+									method,
+									proxyUrl);
+			method.setRequestEntity(this.requestEntity);
+			ret.setMethod(method);			
+			try {
+				//executeProxyRequest
+				logger.debug("Executant redirecció múltiple de la petició (codiCertificat=" + resultat.getAtributCodigoCertificado() + 
+						 ",codiEntitat=" + codiEntitat + 
+						 ", proxyUrl=" + proxyUrl + ")");			
+				ret.setProxyResponseCode( 
+						executeProxyRequest(method, resultat));
+								
+				Header[] headerArrayResponse = method.getResponseHeaders();
+				String contentEncoding = "";
+				for (Header header: headerArrayResponse) 
+					if (header.getName().equals("Content-Encoding")) {
+						contentEncoding = header.getValue();
+						break;
+					}
+				ret.setXml(contentEncoding.toLowerCase().contains("gzip") ?
+								IOUtils.toByteArray( 
+										new GZIPInputStream( 
+												new ByteArrayInputStream(
+														method.getResponseBody())))
+								: method.getResponseBody());
+			} catch (Exception ex) {
+				logger.error(
+						"Error fent la petició al emisor SCSP destí " +
+						getParametresPerExcepcio(proxyUrl, resultat),
+						ex);
+				resultat.setError(true);
+				resultat.setErrorCodi("0502");
+				resultat.setErrorDescripcio("[EMISERV] Error fent la petició al emisor SCSP destí: " + ex.getMessage());
+			}
+			return ret;		
 		}
 	}
 

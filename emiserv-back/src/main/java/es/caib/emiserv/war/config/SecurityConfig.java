@@ -68,6 +68,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		http.authorizeRequests().
 		//antMatchers("/test").hasRole("tothom").
 		//antMatchers("/api/**/*").permitAll().
+		antMatchers("/scspRouting/**/*").permitAll().
 		//anyRequest().permitAll();
 		anyRequest().authenticated();
 		http.cors();

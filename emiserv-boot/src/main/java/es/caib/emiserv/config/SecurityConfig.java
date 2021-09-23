@@ -40,7 +40,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 		permitAll(false);
 		http.authorizeRequests().
 		//antMatchers("/test").hasRole("tothom").
-		//antMatchers("/api/**/*").permitAll().
+		antMatchers("/scspRouting/**/*").permitAll().
 		anyRequest().authenticated();
 		http.cors();
 		http.csrf().disable();
