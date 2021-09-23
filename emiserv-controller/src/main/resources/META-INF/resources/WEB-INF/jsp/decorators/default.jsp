@@ -47,6 +47,7 @@ pageContext.setAttribute(
 	<script src="<c:url value="/webjars/bootstrap/3.3.6/dist/js/bootstrap.min.js"/>"></script>
 	<decorator:head />
 <script type="text/javascript">
+var requestLocale = '${idioma}';
 $(document).ready(function() {
     $('a#logout').click(function(event) {
         return confirm("<spring:message code="decorator.logout.confirm"/>");

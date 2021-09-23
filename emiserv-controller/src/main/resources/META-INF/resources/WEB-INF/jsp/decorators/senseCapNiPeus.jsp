@@ -2,6 +2,11 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib tagdir="/WEB-INF/tags/emiserv" prefix="emi" %>
 <%@ taglib uri="http://www.opensymphony.com/sitemesh/decorator" prefix="decorator"%>
+<%
+pageContext.setAttribute(
+		"idioma",
+		org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).getLanguage());
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,6 +27,7 @@
 	<![endif]-->
 	<script src="<c:url value="/webjars/bootstrap/3.3.6/dist/js/bootstrap.min.js"/>"></script>
 	<decorator:head />
+<script type="text/javascript">var requestLocale = '${idioma}';</script>
 </head>
 <body>
 	<div class="container container-main" style="padding-top:12px">

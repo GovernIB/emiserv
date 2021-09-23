@@ -532,8 +532,15 @@ public class ServeiServiceImpl implements ServeiService {
 		if (ruta != null) {
 			List<ServeiRutaDestiEntity> rutesDestins = serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(
 					ruta.getServei());
-			int index = rutesDestins.indexOf(ruta);
-			if(posicio != index) {	
+			int index = -1;
+			for (int i = 0; i < rutesDestins.size(); i++) {
+				ServeiRutaDestiEntity rutaDesti = rutesDestins.get(i);
+				if (ruta.getId().equals(rutaDesti.getId())) {
+					index = i;
+					break;
+				}
+			}
+			if (posicio != index) {	
 				ruta = rutesDestins.get(index);
 				rutesDestins.remove(ruta);
 				rutesDestins.add(posicio, ruta);
