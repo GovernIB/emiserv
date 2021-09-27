@@ -97,6 +97,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class BackofficeHelper {
 
+	public static final String BACKOFFICE_WSDL_RESOURCE = "/es/caib/emiserv/backoffice/EmiservBackoffice.wsdl";
+
 	@Autowired
 	private ServeiRepository serveiRepository;
 	@Autowired
@@ -1020,7 +1022,6 @@ public class BackofficeHelper {
 			throw new ValidationException("El servei (codi=" + servei.getCodi() + ") està donat d'alta però encara no s'ha configurat");
 		}
 		String backofficeUrl = servei.getBackofficeCaibUrl();
-		log.debug("URL del servei del backoffice: " + backofficeUrl);
 		String username = null;
 		String password = null;
 		switch(servei.getBackofficeCaibAutenticacio()) {
@@ -1053,7 +1054,7 @@ public class BackofficeHelper {
 				"username=" + username + ", " +
 				"password=" + (password != null ? password.replaceAll(".", "*") : password) + ")");
 		EmiservBackoffice port = new WsClientHelper<EmiservBackoffice>().generarClientWs(
-				getClass().getResource("/es/caib/emiserv/core/backoffice/EmiservBackoffice.wsdl"),
+				getClass().getResource(BACKOFFICE_WSDL_RESOURCE),
 				backofficeUrl,
 				new QName(
 						"http://caib.es/emiserv/backoffice",

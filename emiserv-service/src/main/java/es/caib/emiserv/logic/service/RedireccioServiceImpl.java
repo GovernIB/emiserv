@@ -504,25 +504,28 @@ public class RedireccioServiceImpl implements RedireccioService {
 						codisEntitatsOrdenades.add(rutaDesti.getEntitatCodi());
 					// Crea el mapa d'elements
 					Map<String, Document> documents = new HashMap<String, Document>();
-					for(String codi : xmls.keySet()) {
+					for (String codi: xmls.keySet()) {
 						if (xmls.get(codi) != null) {
-							try 
-							{
+							try {
 								Document doc = getDocumentXml(xmls.get(codi));
 								documents.put(codi, doc);
-							} catch (Exception e) {
-								log.error("Error obtenint Document de la resposta a la entitat '"+codi+"', xml = " + xmls.get(codi));
-								e.printStackTrace();
+							} catch (Exception ex) {
+								log.error("Error obtenint Document de la resposta a la entitat (" +
+										"codi=" + codi + ", " +
+										"xml = " + xmls.get(codi) + ")",
+										ex);
 							}
 						}
 					}
 					entitatCodi = responseResolver.resolve(
 							codisEntitatsOrdenades, 
 							documents);
-				} catch (Exception e) {
-					log.error("Error escollint la resposta de la redirecció múltiple (serveiCodi=" + serveiCodi +
-							", peticioId=" + peticioId + "xmls= " + xmls + "): " + e.getLocalizedMessage());
-					e.printStackTrace();
+				} catch (Exception ex) {
+					log.error("Error escollint la resposta de la redirecció múltiple (" +
+							"serveiCodi=" + serveiCodi + ", " +
+							"peticioId=" + peticioId + ", " +
+							"xmls= " + xmls + ")",
+							ex);
 				}
 			}
 		}

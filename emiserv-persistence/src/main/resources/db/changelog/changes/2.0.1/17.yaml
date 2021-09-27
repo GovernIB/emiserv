@@ -28,3 +28,35 @@ databaseChangeLog:
     changes:
     - sql:
         sql: UPDATE EMS_ACL_CLASS SET class='es.caib.emiserv.persist.entity.ServeiEntity' WHERE class='es.caib.emiserv.core.entity.ServeiEntity';
+- changeSet:
+    id: 1618396425533-4
+    author: limit
+    changes:
+    - update:
+        tableName: ems_servei
+        columns:
+        - column:
+            name: resolver_class
+            value: es.caib.emiserv.logic.resolver.SampleEntitatResolver
+        where: resolver_class = 'es.caib.emiserv.core.resolver.SampleEntitatResolver'
+    - update:
+        tableName: ems_servei
+        columns:
+        - column:
+            name: resolver_class
+            value: es.caib.emiserv.logic.resolver.EmpadronamentEntitatResolver
+        where: resolver_class = 'es.caib.emiserv.core.resolver.EmpadronamentEntitatResolver'
+    - update:
+        tableName: ems_servei
+        columns:
+        - column:
+            name: response_resolver_class
+            value: es.caib.emiserv.logic.resolver.SampleResponseResolver
+        where: resolver_class = 'es.caib.emiserv.core.resolver.SampleResponseResolver'
+    - update:
+        tableName: ems_servei
+        columns:
+        - column:
+            name: response_resolver_class
+            value: es.caib.emiserv.logic.resolver.FamiliaNombrosaResponseResolver
+        where: resolver_class = 'es.caib.emiserv.core.resolver.FamiliaNombrosaResponseResolver'

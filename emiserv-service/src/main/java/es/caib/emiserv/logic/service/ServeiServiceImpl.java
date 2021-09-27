@@ -45,6 +45,8 @@ import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.logic.intf.service.ServeiService;
+import es.caib.emiserv.logic.resolver.EntitatResolver;
+import es.caib.emiserv.logic.resolver.ResponseResolver;
 import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.ServeiRutaDestiEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreEmBackofficeEntity;
@@ -68,6 +70,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class ServeiServiceImpl implements ServeiService {
 
+	//private static final String RESOLVER_PACKAGE_NAME = "es/caib/emiserv/logic/resolver";
 	private static final int DEFAULT_BACKOFFICE_TER = 1;
 
 	@Autowired
@@ -314,13 +317,14 @@ public class ServeiServiceImpl implements ServeiService {
 			@Override
 			protected boolean match(ClassMetadata metadata) {
 				for (String interfaceName: metadata.getInterfaceNames()) {
-					if ("es.caib.emiserv.logic.resolver.EntitatResolver".equals(interfaceName))
+					if (EntitatResolver.class.getName().equals(interfaceName))
 					return true;
 				}
 				return false;
 			}
 		});
-		Set<BeanDefinition> components = provider.findCandidateComponents("es/caib/emiserv/logic/resolver");
+		Set<BeanDefinition> components = provider.findCandidateComponents(
+				EntitatResolver.class.getPackage().getName().replace('.', '/'));
 		List<String> resposta = new ArrayList<String>();
 		for (BeanDefinition component: components) {
 			resposta.add(component.getBeanClassName());
@@ -336,13 +340,14 @@ public class ServeiServiceImpl implements ServeiService {
 			@Override
 			protected boolean match(ClassMetadata metadata) {
 				for (String interfaceName: metadata.getInterfaceNames()) {
-					if ("es.caib.emiserv.logic.resolver.ResponseResolver".equals(interfaceName))
+					if (ResponseResolver.class.getName().equals(interfaceName))
 					return true;
 				}
 				return false;
 			}
 		});
-		Set<BeanDefinition> components = provider.findCandidateComponents("es/caib/emiserv/logic/resolver");
+		Set<BeanDefinition> components = provider.findCandidateComponents(
+				ResponseResolver.class.getPackage().getName().replace('.', '/'));
 		List<String> resposta = new ArrayList<String>();
 		for (BeanDefinition component: components) {
 			resposta.add(component.getBeanClassName());

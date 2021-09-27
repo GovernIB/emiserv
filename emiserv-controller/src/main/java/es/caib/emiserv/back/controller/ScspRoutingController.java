@@ -164,7 +164,10 @@ public class ScspRoutingController extends BaseController {
 									resultat.copy()));
 					}
 					// Llença totes les peticions en paral·lel
-					logger.debug("Iniciant " + resultat.getUrlDestins().size() + " peticions múltiples en paral·lel pel servei " + resultat.getAtributCodigoCertificado() );
+					logger.debug("Iniciant " + resultat.getUrlDestins().size() + " peticions múltiples en paral·lel (" +
+							"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+							"peticioId=" + resultat.getAtributPeticioId() + ", " +
+							"urlDestins=" + resultat.getUrlDestins() + ")");
 					List<Future<EnrutamentMultipleThreadResult>> respostesThreadsPeticio = null;
 					try {
 						respostesThreadsPeticio = service.invokeAll(peticionsMultiples);
@@ -172,7 +175,10 @@ public class ScspRoutingController extends BaseController {
 						err.printStackTrace();
 					}
 					service.shutdown();
-					logger.debug("Peticions múltiples en paral·lel pel servei " + resultat.getAtributCodigoCertificado() + " finalitzades.");
+					logger.debug("Peticions múltiples en paral·lel finalitzades (" +
+							"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+							"peticioId=" + resultat.getAtributPeticioId() + ", " +
+							"urlDestins=" + resultat.getUrlDestins() + ")");
 					Map<String, byte[]> xmlsPerEscollir = new HashMap<String, byte[]>();
 					Map<String, EnrutamentMultipleThreadResult> respostesPeticions = new HashMap<String, ScspRoutingController.EnrutamentMultipleThreadResult>();
 					if (respostesThreadsPeticio != null) {
@@ -182,9 +188,11 @@ public class ScspRoutingController extends BaseController {
 								respostesPeticions.put(r.get().codiEntitat, r.get());
 								// Prepara les respostes per a escollir-ne una
 								xmlsPerEscollir.put(r.get().codiEntitat, r.get().getXml());
-							} catch (Exception e) {
-								logger.error("Error inesperat processant les respostes de les peticions d'enrutament múltiples");
-								e.printStackTrace();
+							} catch (Exception ex) {
+								logger.error("Error processant les respostes de les peticions múltiples (" +
+										"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+										"peticioId=" + resultat.getAtributPeticioId() + ", " +
+										"urlDestins=" + resultat.getUrlDestins() + ")", ex);
 							}
 						}
 					}
@@ -563,29 +571,32 @@ public class ScspRoutingController extends BaseController {
 			EnrutamentMultipleThreadResult ret = new EnrutamentMultipleThreadResult();
 			ret.setCodiEntitat(this.codiEntitat);
 			ret.setResultat(this.resultat);
-			String proxyUrl = getProxyUrl(this.request,
-										  this.urlDesti);
+			String proxyUrl = getProxyUrl(
+					this.request,
+					this.urlDesti);
 			PostMethod method = new PostMethod(proxyUrl);
-			copiarCapsaleresHttp(	request,
-									method,
-									proxyUrl);
+			copiarCapsaleresHttp(
+					request,
+					method,
+					proxyUrl);
 			method.setRequestEntity(this.requestEntity);
 			ret.setMethod(method);			
 			try {
 				//executeProxyRequest
-				logger.debug("Executant redirecció múltiple de la petició (codiCertificat=" + resultat.getAtributCodigoCertificado() + 
-						 ",codiEntitat=" + codiEntitat + 
-						 ", proxyUrl=" + proxyUrl + ")");			
+				logger.debug("Executant redirecció múltiple de la petició (" +
+						"codiCertificat=" + resultat.getAtributCodigoCertificado() + ", " +
+						"codiEntitat=" + codiEntitat + ", " +
+						"proxyUrl=" + proxyUrl + ")");
 				ret.setProxyResponseCode( 
 						executeProxyRequest(method, resultat));
-								
 				Header[] headerArrayResponse = method.getResponseHeaders();
 				String contentEncoding = "";
-				for (Header header: headerArrayResponse) 
+				for (Header header: headerArrayResponse) {
 					if (header.getName().equals("Content-Encoding")) {
 						contentEncoding = header.getValue();
 						break;
 					}
+				}
 				ret.setXml(contentEncoding.toLowerCase().contains("gzip") ?
 								IOUtils.toByteArray( 
 										new GZIPInputStream( 
