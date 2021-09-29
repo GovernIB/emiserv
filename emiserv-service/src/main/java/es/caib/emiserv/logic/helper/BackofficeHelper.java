@@ -5,6 +5,7 @@ package es.caib.emiserv.logic.helper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -31,6 +32,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -124,7 +126,7 @@ public class BackofficeHelper {
 	private String testXmlPeticio;
 	private String testXmlResposta;
 
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public RespuestaAmbException peticioSincrona(
 			Peticion peticion) {
 		BackofficePeticioEntity backofficePeticio = peticioBackofficeCreate(
@@ -136,7 +138,7 @@ public class BackofficeHelper {
 						true);
 	}
 
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public ConfirmacionPeticionAmbException peticioAsincrona(
 			Peticion peticion) {
 		BackofficePeticioEntity backofficePeticio = peticioBackofficeCreate(
@@ -146,7 +148,7 @@ public class BackofficeHelper {
 				backofficePeticio);
 	}
 
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public RespuestaAmbException solicitudResposta(
 			SolicitudRespuesta solicitudRespuesta) {
 		String idPeticion = solicitudRespuesta.getAtributos().getIdPeticion();
@@ -157,7 +159,7 @@ public class BackofficeHelper {
 				backofficePeticio);
 	}
 
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void processarPeticioPendent(
 			Long peticioId) {
 		BackofficePeticioEntity peticio = backofficePeticioRepository.getOne(peticioId);
@@ -411,6 +413,9 @@ public class BackofficeHelper {
 		Exception excepcioDurantPeticio = null;
 		ByteArrayOutputStream xmlPeticio = new ByteArrayOutputStream();
 		ByteArrayOutputStream xmlResposta = new ByteArrayOutputStream();
+		PeticioRespostaHandler peticioRespostaHandler = new PeticioRespostaHandler(
+				xmlPeticio,
+				xmlResposta);
 		DatosEspecificosHandler datosEspecificosHandler = new DatosEspecificosHandler();
 		try {
 			if (generarLogs) {
@@ -420,9 +425,6 @@ public class BackofficeHelper {
 						"backofficeUrl=" + servei.getBackofficeCaibUrl() + ")");
 			}
 			modificarDatosEspecificosTransmisionPeticio(peticion);
-			PeticioRespostaHandler peticioRespostaHandler = new PeticioRespostaHandler(
-					xmlPeticio,
-					xmlResposta);
 			EmiservBackoffice emiservBackoffice = getEmiservBackoffice(
 					getIdentificacioDelsAtributsScsp(peticion.getAtributos()),
 					servei,
@@ -457,17 +459,12 @@ public class BackofficeHelper {
 			excepcioDurantPeticio = ex;
 		} finally {
 			if (xmlPeticio.size() == 0) {
-				StringWriter sw = new StringWriter();
-				JAXB.marshal(peticion, sw);
-				try {
-					xmlPeticio.write(sw.toString().getBytes());
-				} catch (IOException ioex) {
-					log.error("Error al convertir objecte de petició a XML", ioex);
-				}
+				peticioXmlToString(peticion, xmlPeticio);
 			}
 			processarComunicacioBackoffice(
 					backofficePeticio,
 					backofficeSolicitud,
+					peticion.getAtributos(),
 					(respuesta != null) ? respuesta.getAtributos() : null,
 					xmlPeticio,
 					xmlResposta,
@@ -507,20 +504,15 @@ public class BackofficeHelper {
 				log.error("Error al reenviar la petició asíncrona al backoffice " +
 						getIdentificacioDelsAtributsScsp(peticion.getAtributos()),
 						ex);
-				if (xmlPeticio.size() == 0) {
-					StringWriter sw = new StringWriter();
-					JAXB.marshal(backofficePeticio, sw);
-					try {
-						xmlPeticio.write(sw.toString().getBytes());
-					} catch (IOException ioex) {
-						log.error("Error al convertir objecte de petició a XML", ioex);
-					}
-				}
 				excepcioDurantPeticio = new BackofficeException(ex);
 			} finally {
+				if (xmlPeticio.size() == 0) {
+					peticioXmlToString(peticion, xmlPeticio);
+				}
 				processarComunicacioBackoffice(
 						backofficePeticio,
 						null,
+						peticion.getAtributos(),
 						(confirmacionPeticion != null) ? confirmacionPeticion.getAtributos() : null,
 						xmlPeticio,
 						xmlResposta,
@@ -600,6 +592,7 @@ public class BackofficeHelper {
 				processarComunicacioBackoffice(
 						backofficePeticio,
 						null,
+						solicitudRespuesta.getAtributos(),
 						(respuesta != null) ? respuesta.getAtributos() : null,
 						xmlPeticio,
 						xmlResposta,
@@ -663,12 +656,19 @@ public class BackofficeHelper {
 	private void processarComunicacioBackoffice(
 			BackofficePeticioEntity backofficePeticio,
 			BackofficeSolicitudEntity backofficeSolicitud,
+			Atributos peticionAtributos,
 			Atributos respuestaAtributos,
 			ByteArrayOutputStream xmlPeticio,
 			ByteArrayOutputStream xmlResposta,
 			Throwable excepcioDurantPeticio) {
+		log.debug("Processant comunicació backoffice (" +
+				"backofficePeticio=" + backofficePeticio + ", " +
+				"backofficeSolicitud=" + backofficeSolicitud + ", " +
+				"peticionAtributos=" + peticionAtributos + ", " +
+				"respuestaAtributos=" + respuestaAtributos + ", " +
+				"excepcioDurantPeticio=" + excepcioDurantPeticio + ")");
 		String xmlPet = (testXmlPeticio != null) ? testXmlPeticio : xmlPeticio.toString();
-		log.debug("Emmagatzemant missatge XML de la petició SCSP " + getIdentificacioDelsAtributsScsp(respuestaAtributos) + " (" +
+		log.debug("Emmagatzemant missatge XML de la petició enviada al backoffice " + getIdentificacioDelsAtributsScsp(peticionAtributos) + " (" +
 				"xml=" + xmlPet + ")");
 		peticioBackofficeNovaComunicacio(
 				backofficePeticio,
@@ -691,7 +691,7 @@ public class BackofficeHelper {
 			comunicacioError = ExceptionUtils.getFullStackTrace(excepcioDurantPeticio);
 		}
 		String xmlRes = (testXmlResposta != null) ? testXmlResposta : xmlResposta.toString();
-		log.debug("Emmagatzemant missatge XML de la resposta SCSP " + getIdentificacioDelsAtributsScsp(respuestaAtributos) + " (" +
+		log.debug("Emmagatzemant missatge XML de la resposta rebuda del backoffice " + getIdentificacioDelsAtributsScsp(peticionAtributos) + " (" +
 				"xml=" + xmlRes + ", " +
 				"comunicacioError=" + comunicacioError + ")");
 		peticioBackofficeNovaComunicacio(
@@ -714,10 +714,9 @@ public class BackofficeHelper {
 				throw new ValidationException(
 						"No s'ha trobat la comunicació amb el backoffice");
 			}
+			comunicacio.updateResposta(xml);
 			if (comunicacioError != null) {
 				comunicacio.updateError(comunicacioError);
-			} else {
-				comunicacio.updateResposta(xml);
 			}
 		} else {
 			BackofficeComunicacioEntity comunicacio = BackofficeComunicacioEntity.getBuilder(
@@ -1287,6 +1286,17 @@ public class BackofficeHelper {
 			return Boolean.valueOf(backofficeMock);
 		} else {
 			return false;
+		}
+	}
+
+	private void peticioXmlToString(Peticion peticion, OutputStream os) {
+		try {
+			JAXBContext jaxbContext = JAXBContext.newInstance(peticion.getClass());
+			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			jaxbMarshaller.marshal(peticion, os);
+		} catch (JAXBException jbex) {
+			log.error("Error al convertir objecte de petició a XML", jbex);
 		}
 	}
 

@@ -39,7 +39,7 @@ public class EmiservBackofficeBean extends AbstractService<EmiservBackoffice> im
 
 	@Override
 	@WebMethod
-	@WebResult
+	@WebResult(name = "respuesta")
 	public Respuesta peticionSincrona(
 			@WebParam(name = "peticion") Peticion peticion) {
 		return getDelegateService().peticionSincrona(peticion);
@@ -47,7 +47,7 @@ public class EmiservBackofficeBean extends AbstractService<EmiservBackoffice> im
 
 	@Override
 	@WebMethod
-	@WebResult
+	@WebResult(name = "respuesta")
 	public ConfirmacionPeticion peticionAsincrona(
 			@WebParam(name = "peticion") Peticion peticion) {
 		return getDelegateService().peticionAsincrona(peticion);
@@ -55,7 +55,7 @@ public class EmiservBackofficeBean extends AbstractService<EmiservBackoffice> im
 
 	@Override
 	@WebMethod
-	@WebResult
+	@WebResult(name = "respuesta")
 	public Respuesta solicitarRespuesta(
 			@WebParam(name = "solicitudRespuesta") SolicitudRespuesta solicitudRespuesta) {
 		return getDelegateService().solicitarRespuesta(solicitudRespuesta);

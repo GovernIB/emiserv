@@ -3,19 +3,22 @@
  */
 package es.caib.emiserv.logic.intf.service.ws.backoffice;
 
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
+import javax.jws.WebResult;
 import javax.jws.WebService;
 
 /**
- * Interfície a implementar per als backoffices dels
- * emissors SCSP de la CAIB.
+ * Interfície a implementar pels backoffices dels emissors SCSP de
+ * la CAIB.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
 @WebService(
-		name = "EmiservBackoffice",
-		serviceName = "EmiservBackofficeService",
-		portName = "EmiservBackofficePort",
-		targetNamespace = "http://caib.es/emiserv/backoffice")
+		name = EmiservBackoffice.SERVICE_NAME,
+		serviceName = EmiservBackoffice.SERVICE_NAME + "Service",
+		portName = EmiservBackoffice.SERVICE_NAME + "Port",
+		targetNamespace = EmiservBackoffice.NAMESPACE_URI)
 public interface EmiservBackoffice {
 
 	public static final String SERVICE_NAME = "EmiservBackoffice";
@@ -27,7 +30,10 @@ public interface EmiservBackoffice {
 	 * @param peticion La petició rebuda.
 	 * @return La resposta a la petició.
 	 */
-	public Respuesta peticionSincrona(Peticion peticion);
+	@WebMethod
+	@WebResult(name = "respuesta")
+	public Respuesta peticionSincrona(
+			@WebParam(name = "peticion") Peticion peticion);
 
 	/**
 	 * Petició de tipus asíncron.
@@ -35,7 +41,10 @@ public interface EmiservBackoffice {
 	 * @param peticion La petició rebuda.
 	 * @return La confirmació de la petició realitzada.
 	 */
-	public ConfirmacionPeticion peticionAsincrona(Peticion peticion);
+	@WebMethod
+	@WebResult(name = "respuesta")
+	public ConfirmacionPeticion peticionAsincrona(
+			@WebParam(name = "peticion") Peticion peticion);
 
 	/**
 	 * Sol·licitud de resposta per a una petició asíncrona.
@@ -43,6 +52,9 @@ public interface EmiservBackoffice {
 	 * @param solicitudRespuesta La sol·licitud rebuda.
 	 * @return La resposta a la petició.
 	 */
-	public Respuesta solicitarRespuesta(SolicitudRespuesta solicitudRespuesta);
+	@WebMethod
+	@WebResult(name = "respuesta")
+	public Respuesta solicitarRespuesta(
+			@WebParam(name = "solicitudRespuesta") SolicitudRespuesta solicitudRespuesta);
 
 }

@@ -12,14 +12,14 @@ import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * SOAP Handler per a imprimir l'XML de peticions i repostes.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Slf4j
 public class SOAPLoggingHandler implements SOAPHandler<SOAPMessageContext> {
 
 	public Set<QName> getHeaders() {
@@ -40,13 +40,14 @@ public class SOAPLoggingHandler implements SOAPHandler<SOAPMessageContext> {
 	}
 
 	private void logToSystemOut(SOAPMessageContext smc) {
-		if (LOGGER.isDebugEnabled()) {
+		boolean processLog = log.isDebugEnabled();
+		if (processLog) {
 			StringBuilder sb = new StringBuilder();
 			Boolean outboundProperty = (Boolean)smc.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY);
 			if (outboundProperty.booleanValue())
-				sb.append("Missarge sortint: ");
+				sb.append("Missatge sortint: ");
 			else
-				sb.append("Missarge entrant: ");
+				sb.append("Missatge entrant: ");
 			SOAPMessage message = smc.getMessage();
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			try {
@@ -55,10 +56,8 @@ public class SOAPLoggingHandler implements SOAPHandler<SOAPMessageContext> {
 			} catch (Exception ex) {
 				sb.append("Error al imprimir el missatge XML: " + ex.getMessage());
 			}
-			LOGGER.debug(sb.toString());
+			log.debug(sb.toString());
 		}
 	}
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SOAPLoggingHandler.class);
 
 }

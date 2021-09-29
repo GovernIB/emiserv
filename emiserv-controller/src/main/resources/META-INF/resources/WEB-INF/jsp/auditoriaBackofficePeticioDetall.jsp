@@ -178,6 +178,18 @@ $(document).ready(function() {
 		</div>
 		<c:if test="${peticio.comunicacioBackofficeDisponible}">
 			<div role="tabpanel" class="tab-pane" id="xmlBackoffice">
+				<c:if test="${peticio.comunicacioBackofficeError}">
+					<div class="bg-danger well well-sm">
+						<h5 class="text-danger">
+							<span class="fa fa-warning"></span>
+							<spring:message code="auditoria.backoffice.peticio.detall.error"/>
+							<button id="errorComunicacioBackofficeBtn" class="btn btn-default btn-xs pull-right" data-toggle="collapse" data-target="#errorComunicacioBackoffice" aria-expanded="false" aria-controls="errorComunicacioBackoffice"><span class="fa fa-chevron-down"></span></button>
+						</h5>
+						<div id="errorComunicacioBackoffice" class="collapse" style="margin-top:1em">
+							<textarea class="form-control" rows="10"></textarea>
+						</div>
+					</div>
+				</c:if>
 				<div class="well well-sm">
 					<h5>
 						<spring:message code="auditoria.backoffice.peticio.detall.xml.peticio"/>
@@ -187,30 +199,15 @@ $(document).ready(function() {
 						<textarea class="form-control" rows="10"></textarea>
 					</div>
 				</div>
-				<c:choose>
-					<c:when test="${not peticio.comunicacioBackofficeError}">
-						<div class="well well-sm">
-							<h5>
-								<spring:message code="auditoria.backoffice.peticio.detall.xml.resposta"/>
-								<button id="xmlRespostaBackofficeBtn" class="btn btn-default btn-xs pull-right" data-toggle="collapse" data-target="#xmlRespostaBackoffice" aria-expanded="false" aria-controls="xmlRespostaBackoffice"><span class="fa fa-chevron-down"></span></button>
-							</h5>
-							<div id="xmlRespostaBackoffice" class="collapse" style="margin-top:1em">
-								<textarea class="form-control" rows="10"></textarea>
-							</div>
-						</div>
-					</c:when>
-					<c:otherwise>
-						<div class="well well-sm">
-							<h5>
-								<spring:message code="auditoria.backoffice.peticio.detall.error"/>
-								<button id="errorComunicacioBackofficeBtn" class="btn btn-default btn-xs pull-right" data-toggle="collapse" data-target="#errorComunicacioBackoffice" aria-expanded="false" aria-controls="errorComunicacioBackoffice"><span class="fa fa-chevron-down"></span></button>
-							</h5>
-							<div id="errorComunicacioBackoffice" class="collapse" style="margin-top:1em">
-								<textarea class="form-control" rows="10"></textarea>
-							</div>
-						</div>
-					</c:otherwise>
-				</c:choose>
+				<div class="well well-sm">
+					<h5>
+						<spring:message code="auditoria.backoffice.peticio.detall.xml.resposta"/>
+						<button id="xmlRespostaBackofficeBtn" class="btn btn-default btn-xs pull-right" data-toggle="collapse" data-target="#xmlRespostaBackoffice" aria-expanded="false" aria-controls="xmlRespostaBackoffice"><span class="fa fa-chevron-down"></span></button>
+					</h5>
+					<div id="xmlRespostaBackoffice" class="collapse" style="margin-top:1em">
+						<textarea class="form-control" rows="10"></textarea>
+					</div>
+				</div>
 			</div>
 		</c:if>
 	</div>
