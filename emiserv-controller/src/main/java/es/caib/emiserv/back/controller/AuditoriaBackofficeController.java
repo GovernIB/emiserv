@@ -6,6 +6,7 @@ package es.caib.emiserv.back.controller;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,11 +27,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import es.caib.emiserv.back.command.AuditoriaFiltreCommand;
 import es.caib.emiserv.back.helper.DatatablesHelper;
-import es.caib.emiserv.back.helper.RequestSessionHelper;
 import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
+import es.caib.emiserv.back.helper.RequestSessionHelper;
 import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto.OrdreDireccioDto;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.BackofficeService;
 import es.caib.emiserv.logic.intf.service.ServeiService;
 
@@ -64,7 +66,9 @@ public class AuditoriaBackofficeController extends BaseController {
 				serveiService.procedimentFindAll());
 		model.addAttribute(
 				"serveis",
-				serveiService.findAllPaginat(paginacioParams).getContingut());
+				serveiService.findAllPaginat(paginacioParams).getContingut().stream().
+				filter(s -> s.getTipus() == ServeiTipusEnumDto.BACKOFFICE).
+				collect(Collectors.toList()));
 		model.addAttribute(
 				getFiltreCommand(request));
 		return "auditoriaBackofficeList";

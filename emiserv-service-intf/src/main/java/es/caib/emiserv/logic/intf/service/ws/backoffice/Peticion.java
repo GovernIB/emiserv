@@ -5,12 +5,15 @@ package es.caib.emiserv.logic.intf.service.ws.backoffice;
 
 import java.io.Serializable;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Definició de l'estructura Peticion per a la comunicació
  * amb el backoffice.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@XmlRootElement
 public class Peticion implements Serializable {
 
 	private static final long serialVersionUID = 1L;

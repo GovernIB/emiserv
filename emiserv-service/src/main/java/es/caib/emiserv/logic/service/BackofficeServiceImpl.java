@@ -174,12 +174,22 @@ public class BackofficeServiceImpl implements BackofficeService {
 		mapeigOrdenacio.put("dataPeticio", "fechaPeticion");
 		mapeigOrdenacio.put("serveiCodi", "certificado");
 		mapeigOrdenacio.put("estatCodi", "estado");
+		Long scspServicioId = null;
+		boolean esNullServei = filtre.getServei() == null || filtre.getServei().isEmpty();
+		if (!esNullServei) {
+			ServeiEntity servei = serveiRepository.getOne(Long.valueOf(filtre.getServei()));
+			ScspCoreServicioEntity servicio = scspCoreServicioRepository.findByCodigoCertificado(
+					servei.getCodi());
+			if (servicio != null) {
+				scspServicioId = servicio.getId();
+			}
+		}
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
 				scspCorePeticionRespuestaRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
-						filtre.getServei() == null || filtre.getServei().isEmpty(),
-						filtre.getServei() != null ? Long.valueOf(filtre.getServei()) : null,
+						esNullServei,
+						scspServicioId,
 						filtre.getEstat() == null,
 						PeticioEstatEnumDto.ERROR.equals(filtre.getEstat()),
 						toEstatScsp(filtre.getEstat()),

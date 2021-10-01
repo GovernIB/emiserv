@@ -500,7 +500,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 					responseResolver = responseResolverClass.getDeclaredConstructor().newInstance();
 					// Crea la llista de claus de rutes ordenades per ordre
 					List<String> codisEntitatsOrdenades = new ArrayList<String>();
-					for (ServeiRutaDestiEntity rutaDesti : serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(servei))
+					for (ServeiRutaDestiEntity rutaDesti: serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(servei))
 						codisEntitatsOrdenades.add(rutaDesti.getEntitatCodi());
 					// Crea el mapa d'elements
 					Map<String, Document> documents = new HashMap<String, Document>();

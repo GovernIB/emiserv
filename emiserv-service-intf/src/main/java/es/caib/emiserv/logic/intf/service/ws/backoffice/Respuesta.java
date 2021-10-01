@@ -3,12 +3,15 @@
  */
 package es.caib.emiserv.logic.intf.service.ws.backoffice;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Definició de l'estructura Respuesta per a la comunicació
  * amb el backoffice.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@XmlRootElement
 public class Respuesta {
 
 	private Atributos atributos;

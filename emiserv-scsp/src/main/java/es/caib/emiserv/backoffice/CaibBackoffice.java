@@ -64,7 +64,9 @@ public class CaibBackoffice implements BackOffice {
 			throw ScspException.getScspException(
 					ex,
 					"0227",
-					new String[] {ex.getCause().getMessage()});
+					new String[] {
+							ex.getCause().getClass().getSimpleName() + ": " + ex.getCause().getMessage()
+					});
 		}
 	}
 
@@ -91,7 +93,9 @@ public class CaibBackoffice implements BackOffice {
 			throw ScspException.getScspException(
 					ex,
 					"0227",
-					new String[] {ex.getCause().getMessage()});
+					new String[] {
+							ex.getCause().getClass().getSimpleName() + ": " + ex.getCause().getMessage()
+					});
 		}
 	}
 
@@ -119,7 +123,7 @@ public class CaibBackoffice implements BackOffice {
 					ex,
 					"0227",
 					new String[] {
-							ex.getCause().getClass().getName() + ": " + ex.getCause().getMessage()
+							ex.getCause().getClass().getSimpleName() + ": " + ex.getCause().getMessage()
 					});
 		}
 	}
