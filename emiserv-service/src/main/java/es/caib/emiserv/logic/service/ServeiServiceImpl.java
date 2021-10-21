@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -779,16 +780,18 @@ public class ServeiServiceImpl implements ServeiService {
 	private ScspCoreEmBackofficeEntity comprovarScspBackofficeCreat(
 			ServeiEntity servei) {
 		Long coreServicioId = findCoreServicioIdPerServeiCodi(servei.getCodi());
-		ScspCoreEmBackofficeEntity scspEmisorBackoffice = scspEmisorBackofficeRepository.getOne(
+		Optional<ScspCoreEmBackofficeEntity> scspEmisorBackoffice = scspEmisorBackofficeRepository.findById(
 				coreServicioId);
-		if (scspEmisorBackoffice == null) {
-			scspEmisorBackoffice = ScspCoreEmBackofficeEntity.getBuilder(
-					coreServicioId,
-					servei.getBackofficeClass(),
-					Integer.valueOf(DEFAULT_BACKOFFICE_TER)).build();
-			scspEmisorBackofficeRepository.save(scspEmisorBackoffice);
+		if (!scspEmisorBackoffice.isPresent()) {
+			return scspEmisorBackofficeRepository.save(
+					ScspCoreEmBackofficeEntity.getBuilder(
+							coreServicioId,
+							servei.getBackofficeClass(),
+							Integer.valueOf(DEFAULT_BACKOFFICE_TER)).
+					build());
+		} else {
+			return scspEmisorBackoffice.get();
 		}
-		return scspEmisorBackoffice;
 	}
 	private void actualitzarBackofficeSiConfigurat(
 			ServeiEntity servei) {
