@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -112,14 +113,14 @@ public class ScspServiceImpl implements ScspService {
 	public void aplicacioUpdate(
 			AplicacioDto aplicacio) {
 		log.debug("Modificant l'aplicació (aplicacio=" + aplicacio + ")");
-		ScspCoreEmAplicacionEntity entity = scspCoreEmAutorizacionAplicacionRepository.getOne(
+		Optional<ScspCoreEmAplicacionEntity> entity = scspCoreEmAutorizacionAplicacionRepository.findById(
 				aplicacio.getId());
-		if (entity == null) {
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					aplicacio.getId(),
 					ScspCoreEmAplicacionEntity.class);
 		}
-		entity.update(
+		entity.get().update(
 				aplicacio.getCertificatNif(),
 				aplicacio.getNumeroSerie(),
 				aplicacio.getCn(),
@@ -133,9 +134,8 @@ public class ScspServiceImpl implements ScspService {
 	public void aplicacioDelete(
 			Integer id) {
 		log.debug("Esborrant l'aplicació (id=" + id + ")");
-		ScspCoreEmAplicacionEntity entity = scspCoreEmAutorizacionAplicacionRepository.getOne(
-				id);
-		if (entity == null) {
+		Optional<ScspCoreEmAplicacionEntity> entity = scspCoreEmAutorizacionAplicacionRepository.findById(id);
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					id,
 					ScspCoreEmAplicacionEntity.class);
@@ -148,14 +148,13 @@ public class ScspServiceImpl implements ScspService {
 	public AplicacioDto aplicacioFindById(
 			Integer id) {
 		log.debug("Esborrant l'aplicació (id=" + id + ")");
-		ScspCoreEmAplicacionEntity entity = scspCoreEmAutorizacionAplicacionRepository.getOne(
-				id);
-		if (entity == null) {
+		Optional<ScspCoreEmAplicacionEntity> entity = scspCoreEmAutorizacionAplicacionRepository.findById(id);
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					id,
 					ScspCoreEmAplicacionEntity.class);
 		}
-		return toAplicacioDto(entity);
+		return toAplicacioDto(entity.get());
 	}
 
 	@Transactional(readOnly = true)
@@ -202,14 +201,14 @@ public class ScspServiceImpl implements ScspService {
 	public void organismeUpdate(
 			OrganismeDto organismo) {
 		log.debug("Modificant l'organisme (organismo=" + organismo + ")");
-		ScspCoreEmAutorizacionOrganismoEntity entity = scspCoreEmAutorizacionOrganismoRepository.getOne(
+		Optional<ScspCoreEmAutorizacionOrganismoEntity> entity = scspCoreEmAutorizacionOrganismoRepository.findById(
 				organismo.getId());
-		if (entity == null) {
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					organismo.getId(),
 					ScspCoreEmAutorizacionOrganismoEntity.class);
 		}
-		entity.update(
+		entity.get().update(
 				organismo.getCif(),
 				organismo.getNom(),
 				organismo.getDataAlta(),
@@ -220,9 +219,8 @@ public class ScspServiceImpl implements ScspService {
 	@Override
 	public void organismeDelete(Long id) {
 		log.debug("Esborrant l'organisme (id=" + id + ")");
-		ScspCoreEmAutorizacionOrganismoEntity entity = scspCoreEmAutorizacionOrganismoRepository.getOne(
-				id);
-		if (entity == null) {
+		Optional<ScspCoreEmAutorizacionOrganismoEntity> entity = scspCoreEmAutorizacionOrganismoRepository.findById(id);
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					id,
 					ScspCoreEmAutorizacionOrganismoEntity.class);
@@ -234,14 +232,13 @@ public class ScspServiceImpl implements ScspService {
 	@Override
 	public OrganismeDto organismeFindById(Long id) {
 		log.debug("Consultant l'organisme per id (id=" + id + ")");
-		ScspCoreEmAutorizacionOrganismoEntity entity = scspCoreEmAutorizacionOrganismoRepository.getOne(
-				id);
-		if (entity == null) {
+		Optional<ScspCoreEmAutorizacionOrganismoEntity> entity = scspCoreEmAutorizacionOrganismoRepository.findById(id);
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					id,
 					ScspCoreEmAutorizacionOrganismoEntity.class);
 		}
-		return toOrganismeDto(entity);
+		return toOrganismeDto(entity.get());
 	}
 	
 	public List<OrganismeDto> organismeFindByCif(String cif) throws NotFoundException {
@@ -290,24 +287,24 @@ public class ScspServiceImpl implements ScspService {
 		log.debug("Creant una nova autorització (autoritzacio=" + autoritzacio + ")");
 		ScspCoreServicioEntity servicio = getScspCoreServicioPerServeiId(
 				autoritzacio.getServeiId());
-		ScspCoreEmAplicacionEntity aplicacion = scspCoreEmAutorizacionAplicacionRepository.getOne(
+		Optional<ScspCoreEmAplicacionEntity> aplicacion = scspCoreEmAutorizacionAplicacionRepository.findById(
 				autoritzacio.getAplicacioId());
-		if (aplicacion == null) {
+		if (!aplicacion.isPresent()) {
 			throw new NotFoundException(
 					autoritzacio.getAplicacioId(),
 					ScspCoreEmAplicacionEntity.class);
 		}
-		ScspCoreEmAutorizacionOrganismoEntity organismo = scspCoreEmAutorizacionOrganismoRepository.getOne(
+		Optional<ScspCoreEmAutorizacionOrganismoEntity> organismo = scspCoreEmAutorizacionOrganismoRepository.findById(
 				autoritzacio.getOrganismeId());
-		if (organismo == null) {
+		if (!organismo.isPresent()) {
 			throw new NotFoundException(
 					autoritzacio.getOrganismeId(),
 					ScspCoreEmAutorizacionOrganismoEntity.class);
 		}
 		ScspCoreEmAutorizacionCertificadoEntity entity = ScspCoreEmAutorizacionCertificadoEntity.getBuilder(
 				servicio,
-				aplicacion,
-				organismo).
+				aplicacion.get(),
+				organismo.get()).
 				fechaAlta(autoritzacio.getDataAlta()).
 				fechaBaja(autoritzacio.getDataBaixa()).
 				build();
@@ -320,33 +317,33 @@ public class ScspServiceImpl implements ScspService {
 	public void autoritzacioUpdate(
 			AutoritzacioDto autoritzacio) {
 		log.debug("Modificant l'autorització (autoritzacio=" + autoritzacio + ")");
-		ScspCoreEmAutorizacionCertificadoEntity entity = scspCoreEmAutorizacionCertificadoRepository.getOne(
+		Optional<ScspCoreEmAutorizacionCertificadoEntity> entity = scspCoreEmAutorizacionCertificadoRepository.findById(
 				autoritzacio.getId());
-		if (entity == null) {
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					autoritzacio.getId(),
 					ScspCoreEmAutorizacionCertificadoEntity.class);
 		}
 		ScspCoreServicioEntity servicio = getScspCoreServicioPerServeiId(
 				autoritzacio.getServeiId());
-		ScspCoreEmAplicacionEntity aplicacion = scspCoreEmAutorizacionAplicacionRepository.getOne(
+		Optional<ScspCoreEmAplicacionEntity> aplicacion = scspCoreEmAutorizacionAplicacionRepository.findById(
 				autoritzacio.getAplicacioId());
-		if (aplicacion == null) {
+		if (!aplicacion.isPresent()) {
 			throw new NotFoundException(
 					autoritzacio.getAplicacioId(),
 					ScspCoreEmAplicacionEntity.class);
 		}
-		ScspCoreEmAutorizacionOrganismoEntity organismo = scspCoreEmAutorizacionOrganismoRepository.getOne(
+		Optional<ScspCoreEmAutorizacionOrganismoEntity> organismo = scspCoreEmAutorizacionOrganismoRepository.findById(
 				autoritzacio.getOrganismeId());
-		if (organismo == null) {
+		if (!organismo.isPresent()) {
 			throw new NotFoundException(
 					autoritzacio.getOrganismeId(),
 					ScspCoreEmAutorizacionOrganismoEntity.class);
 		}
-		entity.update(
+		entity.get().update(
 				servicio,
-				aplicacion,
-				organismo,
+				aplicacion.get(),
+				organismo.get(),
 				autoritzacio.getDataAlta(),
 				autoritzacio.getDataBaixa());
 	}
@@ -356,9 +353,9 @@ public class ScspServiceImpl implements ScspService {
 	public void autoritzacioDelete(
 			Long id) throws NotFoundException {
 		log.debug("Esborrant l'autorització (id=" + id + ")");
-		ScspCoreEmAutorizacionCertificadoEntity entity = scspCoreEmAutorizacionCertificadoRepository.getOne(
+		Optional<ScspCoreEmAutorizacionCertificadoEntity> entity = scspCoreEmAutorizacionCertificadoRepository.findById(
 				id);
-		if (entity == null) {
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					id,
 					ScspCoreEmAutorizacionCertificadoEntity.class);
@@ -371,14 +368,14 @@ public class ScspServiceImpl implements ScspService {
 	public AutoritzacioDto autoritzacioFindById(
 			Long id) throws NotFoundException {
 		log.debug("Consultant l'autorització per id (id=" + id + ")");
-		ScspCoreEmAutorizacionCertificadoEntity entity = scspCoreEmAutorizacionCertificadoRepository.getOne(
+		Optional<ScspCoreEmAutorizacionCertificadoEntity> entity = scspCoreEmAutorizacionCertificadoRepository.findById(
 				id);
-		if (entity == null) {
+		if (!entity.isPresent()) {
 			throw new NotFoundException(
 					id,
 					ScspCoreEmAutorizacionCertificadoEntity.class);
 		}
-		return toAutoritzacioDto(entity);
+		return toAutoritzacioDto(entity.get());
 	}
 
 	@Transactional(readOnly = true)
@@ -394,9 +391,14 @@ public class ScspServiceImpl implements ScspService {
 		Map<String, String> mapeigOrdenacio = new HashMap<String, String>();
 		mapeigOrdenacio.put("aplicacioNom", "aplicacion.cn");
 		mapeigOrdenacio.put("organismeNom", "organismo.nombreOrganismo");
-		ScspCoreEmAutorizacionOrganismoEntity organisme = filtre.getOrganismeId() != null ? 
-																scspCoreEmAutorizacionOrganismoRepository.getOne(filtre.getOrganismeId()) : 
-																null;
+		ScspCoreEmAutorizacionOrganismoEntity organisme = null;
+		if (filtre.getOrganismeId() != null) {
+			Optional<ScspCoreEmAutorizacionOrganismoEntity> organismeOpt = scspCoreEmAutorizacionOrganismoRepository.findById(
+					filtre.getOrganismeId());
+			if (organismeOpt.isPresent()) {
+				organisme = organismeOpt.get();
+			}
+		}
 		return paginacioHelper.toPaginaDto(
 				scspCoreEmAutorizacionCertificadoRepository.findByFiltre(
 						servicio, 
@@ -540,12 +542,12 @@ public class ScspServiceImpl implements ScspService {
 	public ClauPublicaDto clauPublicaUpdate(ClauPublicaDto item) throws NotFoundException {
 		log.debug("Actualitzant el clau publica (id = " + item.getId() +
 					 ") amb la informació: " + item);
-		ScspCoreClavePublicaEntity entity = clauPublicaRepository.getOne(item.getId());
-		if (entity == null) {
+		Optional<ScspCoreClavePublicaEntity> entity = clauPublicaRepository.findById(item.getId());
+		if (!entity.isPresent()) {
 			log.debug("No s'ha trobat el clau publica (id = " + item.getId() + ")");
 			throw new NotFoundException(item.getId(), ScspCoreClavePublicaEntity.class);
 		}
-		entity.update(
+		entity.get().update(
 				item.getAlies(),
 				item.getNom(),
 				item.getNumSerie(),
@@ -560,12 +562,12 @@ public class ScspServiceImpl implements ScspService {
 	@Transactional
 	public void clauPublicaDelete(Long id) throws NotFoundException {
 		log.debug("Esborrant el clau publica (id =" + id + ")");
-		ScspCoreClavePublicaEntity entity = clauPublicaRepository.getOne(id);
-		if (entity == null) {
+		Optional<ScspCoreClavePublicaEntity> entity = clauPublicaRepository.findById(id);
+		if (!entity.isPresent()) {
 			log.debug("No s'ha trobat el clau publica (id = " + id + ")");
 			throw new NotFoundException(id, ScspCoreClavePublicaEntity.class);
 		}
-		clauPublicaRepository.delete(entity);
+		clauPublicaRepository.delete(entity.get());
 	}
 
 	@Override
@@ -611,14 +613,12 @@ public class ScspServiceImpl implements ScspService {
 	public ClauPrivadaDto clauPrivadaUpdate(ClauPrivadaDto item) throws NotFoundException {
 		log.debug("Actualitzant la clau privada (id = " + item.getId() +
 					 ") amb la informació: " + item);
-		ScspCoreClavePrivadaEntity entity = clauPrivadaRepository.getOne(item.getId());
-		if (entity == null) {
+		Optional<ScspCoreClavePrivadaEntity> entity = clauPrivadaRepository.findById(item.getId());
+		if (!entity.isPresent()) {
 			log.debug("No s'ha trobat la clau privada (id = " + item.getId() + ")");
 			throw new NotFoundException(item.getId(), ScspCoreClavePublicaEntity.class);
 		}
-		ScspCoreOrganismoCessionarioEntity organisme = organismeCessionariRepository.getOne(
-				item.getOrganisme());
-		entity.update(
+		entity.get().update(
 				item.getAlies(),
 				item.getNom(),
 				item.getPassword(),
@@ -626,9 +626,9 @@ public class ScspServiceImpl implements ScspService {
 				item.getDataBaixa(),
 				item.getDataAlta(),
 				item.getInteroperabilitat(),
-				organisme);
+				organismeCessionariRepository.getOne(item.getOrganisme()));
 		return conversioTipusHelper.convertir(
-				entity,
+				entity.get(),
 				ClauPrivadaDto.class);
 	}
 
@@ -636,12 +636,12 @@ public class ScspServiceImpl implements ScspService {
 	@Transactional
 	public void clauPrivadaDelete(Long id) throws NotFoundException {
 		log.debug("Esborrant la clau privada (id =" + id + ")");
-		ScspCoreClavePrivadaEntity entity = clauPrivadaRepository.getOne(id);
-		if (entity == null) {
+		Optional<ScspCoreClavePrivadaEntity> entity = clauPrivadaRepository.findById(id);
+		if (!entity.isPresent()) {
 			log.debug("No s'ha trobat la clau privada (id = " + id + ")");
 			throw new NotFoundException(id, ScspCoreClavePublicaEntity.class);
 		}
-		clauPrivadaRepository.delete(entity);
+		clauPrivadaRepository.delete(entity.get());
 	}
 
 	@Transactional(readOnly = true)
@@ -774,17 +774,17 @@ public class ScspServiceImpl implements ScspService {
 
 	private ScspCoreServicioEntity getScspCoreServicioPerServeiId(
 			Long serveiId) {
-		ServeiEntity servei = serveiRepository.getOne(serveiId);
-		if (servei == null) {
+		Optional<ServeiEntity> servei = serveiRepository.findById(serveiId);
+		if (!servei.isPresent()) {
 			throw new NotFoundException(
 					serveiId,
 					ServeiEntity.class);
 		}
 		ScspCoreServicioEntity servicio = scspCoreServicioRepository.findByCodigoCertificado(
-				servei.getCodi());
+				servei.get().getCodi());
 		if (servicio == null) {
 			throw new NotFoundException(
-					servei.getCodi(),
+					servei.get().getCodi(),
 					ScspCoreServicioEntity.class);
 		}
 		return servicio;

@@ -474,14 +474,14 @@ public class ServeiServiceImpl implements ServeiService {
 				"id=" + id + ", " +
 				"rutaDesti=" + rutaDesti + ")");
 		ServeiEntity servei = comprovarServei(id);
-		ServeiRutaDestiEntity entity = serveiRutaDestiRepository.getOne(
+		Optional<ServeiRutaDestiEntity> entity = serveiRutaDestiRepository.findById(
 				rutaDesti.getId());
-		if (entity == null || !entity.getServei().equals(servei)) {
+		if (!entity.isPresent() || !entity.get().getServei().equals(servei)) {
 			throw new NotFoundException(
 					rutaDesti.getId(),
 					ServeiRutaDestiEntity.class);
 		} else {
-			entity.update(
+			entity.get().update(
 					rutaDesti.getEntitatCodi(),
 					rutaDesti.getUrl());
 			return conversioTipusHelper.convertir(
@@ -499,14 +499,13 @@ public class ServeiServiceImpl implements ServeiService {
 				"id=" + id + ", " +
 				"rutaDestiId=" + rutaDestiId + ")");
 		ServeiEntity servei = comprovarServei(id);
-		ServeiRutaDestiEntity entity = serveiRutaDestiRepository.getOne(
-				rutaDestiId);
-		if (entity == null || !entity.getServei().equals(servei)) {
+		Optional<ServeiRutaDestiEntity> entity = serveiRutaDestiRepository.findById(rutaDestiId);
+		if (!entity.isPresent() || !entity.get().getServei().equals(servei)) {
 			throw new NotFoundException(
 					rutaDestiId,
 					ServeiRutaDestiEntity.class);
 		} else {
-			serveiRutaDestiRepository.delete(entity);
+			serveiRutaDestiRepository.delete(entity.get());
 		}
 	}
 
@@ -534,22 +533,22 @@ public class ServeiServiceImpl implements ServeiService {
 				"rutaId=" + rutaId + ", " +
 				"posicio=" + posicio + ")");
 		boolean ret = false;
-		ServeiRutaDestiEntity ruta = serveiRutaDestiRepository.getOne(rutaId);
-		if (ruta != null) {
+		Optional<ServeiRutaDestiEntity> ruta = serveiRutaDestiRepository.findById(rutaId);
+		if (ruta.isPresent()) {
 			List<ServeiRutaDestiEntity> rutesDestins = serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(
-					ruta.getServei());
+					ruta.get().getServei());
 			int index = -1;
 			for (int i = 0; i < rutesDestins.size(); i++) {
 				ServeiRutaDestiEntity rutaDesti = rutesDestins.get(i);
-				if (ruta.getId().equals(rutaDesti.getId())) {
+				if (ruta.get().getId().equals(rutaDesti.getId())) {
 					index = i;
 					break;
 				}
 			}
 			if (posicio != index) {	
-				ruta = rutesDestins.get(index);
-				rutesDestins.remove(ruta);
-				rutesDestins.add(posicio, ruta);
+				ServeiRutaDestiEntity r = rutesDestins.get(index);
+				rutesDestins.remove(r);
+				rutesDestins.add(posicio, r);
 				long i = 0;
 				for (ServeiRutaDestiEntity c: rutesDestins) {
 					c.setOrdre(i);
@@ -753,8 +752,8 @@ public class ServeiServiceImpl implements ServeiService {
 
 	private ServeiEntity comprovarServei(
 			Long id) throws NotFoundException {
-		ServeiEntity servei = serveiRepository.getOne(id);
-		if (servei == null) {
+		Optional<ServeiEntity> servei = serveiRepository.findById(id);
+		if (!servei.isPresent()) {
 			throw new NotFoundException(
 					id,
 					ServeiEntity.class);
@@ -774,7 +773,7 @@ public class ServeiServiceImpl implements ServeiService {
 						"ADMINISTRATION");
 			}
 		}
-		return servei;
+		return servei.get();
 	}
 
 	private ScspCoreEmBackofficeEntity comprovarScspBackofficeCreat(

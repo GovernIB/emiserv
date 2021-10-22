@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -618,10 +619,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 			Long peticioId) {
 		log.debug("Consulta de transmissions associades a una petició ("
 				+ "peticioId=" + peticioId + ")");
-		RedireccioPeticioEntity peticio = redireccioPeticioRepository.getOne(peticioId);
-		if (peticio != null) {
+		Optional<RedireccioPeticioEntity> peticio = redireccioPeticioRepository.findById(peticioId);
+		if (peticio.isPresent()) {
 			return conversioTipusHelper.convertirList(
-					redireccioSolicitudRepository.findByPeticioOrderBySolicitudIdAsc(peticio),
+					redireccioSolicitudRepository.findByPeticioOrderBySolicitudIdAsc(peticio.get()),
 					AuditoriaSolicitudDto.class);
 		} else {
 			return null;
@@ -738,13 +739,13 @@ public class RedireccioServiceImpl implements RedireccioService {
 
 	private RedireccioPeticioEntity comprovarRedireccioPeticio(
 			Long id) throws NotFoundException {
-		RedireccioPeticioEntity redireccioPeticio = redireccioPeticioRepository.getOne(id);
-		if (redireccioPeticio == null) {
+		Optional<RedireccioPeticioEntity> redireccioPeticio = redireccioPeticioRepository.findById(id);
+		if (!redireccioPeticio.isPresent()) {
 			throw new NotFoundException(
 					id,
 					RedireccioPeticioEntity.class);
 		}
-		return redireccioPeticio;
+		return redireccioPeticio.get();
 	}
 
 	private AuditoriaPeticioDto toAuditoriaPeticioDto(
