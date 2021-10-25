@@ -563,6 +563,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 			List<ServeiEntity> serveis = serveiRepository.findServeisPerCodis(serveiCodis);
 			for (ServeiEntity servei: serveis) {
 				ServeiDto dto = new ServeiDto();
+				dto.setId(servei.getId());
 				dto.setCodi(servei.getCodi());
 				dto.setNom(servei.getNom());
 				resposta.add(dto);
@@ -582,8 +583,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 				redireccioPeticioRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
-						filtre.getServei() == null || filtre.getServei().isEmpty(),
-						filtre.getServei(),
+						filtre.getServeiCodi() == null || filtre.getServeiCodi().isEmpty(),
+						filtre.getServeiCodi(),
 						filtre.getEstat() == null,
 						PeticioEstatEnumDto.ERROR.equals(filtre.getEstat()),
 						toEstatScsp(filtre.getEstat()),

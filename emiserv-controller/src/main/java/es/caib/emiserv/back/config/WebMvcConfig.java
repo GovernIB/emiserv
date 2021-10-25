@@ -3,8 +3,11 @@
  */
 package es.caib.emiserv.back.config;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -27,6 +30,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
@@ -46,8 +50,6 @@ import es.caib.emiserv.back.interceptor.NodecoInterceptor;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-	private static final Locale DEFAULT_LOCALE = Locale.forLanguageTag("ca");
-
 	@Autowired
 	private AjaxInterceptor ajaxInterceptor;
 	@Autowired
@@ -61,9 +63,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
 	@Bean
 	public LocaleResolver localeResolver() {
-		SessionLocaleResolver slr = new SessionLocaleResolver();
-		slr.setDefaultLocale(DEFAULT_LOCALE);
-		return slr;
+		CustomLocaleResolver localeResolver = new CustomLocaleResolver(
+				Arrays.asList(
+						Locale.forLanguageTag("ca"),
+						Locale.forLanguageTag("es")));
+		localeResolver.setDefaultLocale(Locale.forLanguageTag("ca"));
+		return localeResolver;
 	}
 
 	@Bean
@@ -72,15 +77,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		lci.setParamName("lang");
 		return lci;
 	}
-
-	/*@Bean
-	public MessageSource messageSource() {
-		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-		messageSource.setBasename("messages");
-		messageSource.setDefaultLocale(DEFAULT_LOCALE);
-		messageSource.setDefaultEncoding("UTF-8");
-		return messageSource;
-	}*/
 
 	@Bean
 	public FilterRegistrationBean<SiteMeshFilter> sitemeshFilter() {
@@ -143,6 +139,27 @@ public class WebMvcConfig implements WebMvcConfigurer {
 				return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 			}
 			return pageable;
+		}
+	}
+
+	public static class CustomLocaleResolver extends SessionLocaleResolver {
+		private AcceptHeaderLocaleResolver acceptHeaderLocaleResolver;
+		public CustomLocaleResolver(List<Locale> supportedLocales) {
+			acceptHeaderLocaleResolver = new AcceptHeaderLocaleResolver();
+			acceptHeaderLocaleResolver.setSupportedLocales(supportedLocales);
+		}
+		@Override
+		protected Locale determineDefaultLocale(HttpServletRequest request) {
+			Locale acceptHeaderLocale = acceptHeaderLocaleResolver.resolveLocale(request);
+			if (acceptHeaderLocale == null) {
+				Locale defaultLocale = getDefaultLocale();
+				if (defaultLocale == null) {
+					defaultLocale = request.getLocale();
+				}
+				return defaultLocale;
+			} else {
+				return acceptHeaderLocale;
+			}
 		}
 	}
 
