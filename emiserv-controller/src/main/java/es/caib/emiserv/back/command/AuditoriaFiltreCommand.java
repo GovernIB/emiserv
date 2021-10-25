@@ -20,6 +20,7 @@ public class AuditoriaFiltreCommand {
 
 	private String procediment;
 	private Long servei;
+	private String serveiCodi;
 	private PeticioEstatEnumDto estat;
 	private Date dataInici;
 	private Date dataFi;
@@ -37,6 +38,12 @@ public class AuditoriaFiltreCommand {
 	}
 	public void setServei(Long servei) {
 		this.servei = servei;
+	}
+	public String getServeiCodi() {
+		return serveiCodi;
+	}
+	public void setServeiCodi(String serveiCodi) {
+		this.serveiCodi = serveiCodi;
 	}
 	public PeticioEstatEnumDto getEstat() {
 		return estat;

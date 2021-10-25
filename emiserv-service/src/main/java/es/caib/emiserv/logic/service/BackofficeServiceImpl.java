@@ -175,9 +175,9 @@ public class BackofficeServiceImpl implements BackofficeService {
 		mapeigOrdenacio.put("serveiCodi", "certificado");
 		mapeigOrdenacio.put("estatCodi", "estado");
 		Long scspServicioId = null;
-		boolean esNullServei = filtre.getServei() == null || filtre.getServei().isEmpty();
+		boolean esNullServei = filtre.getServei() == null;
 		if (!esNullServei) {
-			ServeiEntity servei = serveiRepository.getOne(Long.valueOf(filtre.getServei()));
+			ServeiEntity servei = serveiRepository.getOne(filtre.getServei());
 			ScspCoreServicioEntity servicio = scspCoreServicioRepository.findByCodigoCertificado(
 					servei.getCodi());
 			if (servicio != null) {

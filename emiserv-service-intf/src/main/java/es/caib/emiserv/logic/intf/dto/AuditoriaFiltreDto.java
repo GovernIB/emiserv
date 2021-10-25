@@ -15,7 +15,8 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 public class AuditoriaFiltreDto {
 
 	private String procediment;
-	private String servei;
+	private Long servei;
+	private String serveiCodi;
 	private PeticioEstatEnumDto estat;
 	private Date dataInici;
 	private Date dataFi;
@@ -28,11 +29,17 @@ public class AuditoriaFiltreDto {
 	public void setProcediment(String procediment) {
 		this.procediment = procediment;
 	}
-	public String getServei() {
+	public Long getServei() {
 		return servei;
 	}
-	public void setServei(String servei) {
+	public void setServei(Long servei) {
 		this.servei = servei;
+	}
+	public String getServeiCodi() {
+		return serveiCodi;
+	}
+	public void setServeiCodi(String serveiCodi) {
+		this.serveiCodi = serveiCodi;
 	}
 	public PeticioEstatEnumDto getEstat() {
 		return estat;
