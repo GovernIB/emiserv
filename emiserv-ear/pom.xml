@@ -124,7 +124,7 @@
 					<generateApplicationXml>true</generateApplicationXml>
 					<defaultLibBundleDir>/lib</defaultLibBundleDir>
 					<includeLibInApplicationXml>false</includeLibInApplicationXml>
-					<packagingExcludes>lib/emiserv-controller-*.jar</packagingExcludes>
+					<packagingExcludes>lib/es.caib.emiserv-emiserv-controller-*.jar</packagingExcludes>
 					<version>6</version>
 					<initializeInOrder>true</initializeInOrder>
 					<archive>

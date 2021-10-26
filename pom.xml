@@ -70,7 +70,7 @@
 				<artifactId>site-maven-plugin</artifactId>
 				<version>0.12</version>
 				<configuration>
-					<message>Maven artifacts for ${project.version}</message>
+					<message>Maven artifacts for ${project.artifactId} v${project.version}</message>
 					<outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
 					<noJekyll>true</noJekyll>
 					<branch>refs/heads/gh-pages</branch>
