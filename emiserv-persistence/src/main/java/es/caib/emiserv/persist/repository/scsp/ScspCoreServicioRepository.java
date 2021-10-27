@@ -6,7 +6,6 @@ package es.caib.emiserv.persist.repository.scsp;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 
@@ -22,7 +21,7 @@ public interface ScspCoreServicioRepository extends JpaRepository<ScspCoreServic
 	
 	public List<ScspCoreServicioEntity> findByCodigoCertificadoIn(List<String> codigosCertificado);
 
-	@Query( value = "select id, cif, nombre, fechabaja from core_emisor_certificado",
+	/*@Query( value = "select id, cif, nombre, fechabaja from core_emisor_certificado",
 			nativeQuery = true)
 	public List<Object[]> findScspEmisorCertificadoAll();
 
@@ -32,6 +31,6 @@ public interface ScspCoreServicioRepository extends JpaRepository<ScspCoreServic
 
 	@Query( value = "select id, alias, nombre, numeroserie, password from core_clave_privada",
 			nativeQuery = true)
-	public List<Object[]> findScspClavePrivadaAll();
+	public List<Object[]> findScspClavePrivadaAll();*/
 
 }

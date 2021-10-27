@@ -3,7 +3,6 @@
  */
 package es.caib.emiserv.logic.service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,8 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import es.caib.emiserv.logic.helper.ConversioTipusHelper;
 import es.caib.emiserv.logic.helper.PaginacioHelper;
-import es.caib.emiserv.logic.helper.PropertiesHelper;
 import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
+import es.caib.emiserv.logic.helper.PropertiesHelper;
 import es.caib.emiserv.logic.intf.dto.AplicacioDto;
 import es.caib.emiserv.logic.intf.dto.AutoritatCertificacioDto;
 import es.caib.emiserv.logic.intf.dto.AutoritzacioDto;
@@ -43,6 +42,7 @@ import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAplicacionEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionAutoridadCertEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionCertificadoEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionOrganismoEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreEmisorCertificadoEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreOrganismoCessionarioEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 import es.caib.emiserv.persist.repository.ServeiRepository;
@@ -52,6 +52,7 @@ import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAplicacionRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionAutoridadCertRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionCertificadoRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionOrganismoRepository;
+import es.caib.emiserv.persist.repository.scsp.ScspCoreEmisorCertificadoRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreOrganismoCessionarioRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreServicioRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,8 @@ public class ScspServiceImpl implements ScspService {
 	private ScspCoreEmAutorizacionAutoridadCertRepository scspCoreEmAutorizacionAutoridadCertRepository;
 	@Autowired
 	private ScspCoreEmAutorizacionCertificadoRepository scspCoreEmAutorizacionCertificadoRepository;
+	@Autowired
+	private ScspCoreEmisorCertificadoRepository scspCoreEmisorCertificadoRepository;
 	@Autowired
 	private ScspCoreClavePrivadaRepository clauPrivadaRepository;
 	@Autowired
@@ -263,9 +266,9 @@ public class ScspServiceImpl implements ScspService {
 		mapeigOrdenacio.put("nom", "nombreOrganismo");
 		Page<ScspCoreEmAutorizacionOrganismoEntity> page = scspCoreEmAutorizacionOrganismoRepository.findByFiltrePaginat(
 				(filtre.getNom() == null || filtre.getNom().isEmpty()),
-				filtre.getNom() != null ? filtre.getNom(): "",
+				(filtre.getNom() != null && !filtre.getNom().isEmpty()) ? filtre.getNom(): "",
 				(filtre.getCif() == null || filtre.getCif().isEmpty()),
-				filtre.getCif(),
+				(filtre.getCif() != null && !filtre.getCif().isEmpty()) ? filtre.getCif(): "",
 				paginacioHelper.toSpringDataPageable(
 						paginacioParams,
 						mapeigOrdenacio));
@@ -402,8 +405,8 @@ public class ScspServiceImpl implements ScspService {
 		return paginacioHelper.toPaginaDto(
 				scspCoreEmAutorizacionCertificadoRepository.findByFiltre(
 						servicio, 
-						filtre.getAplicacio() == null || filtre.getAplicacio().length() == 0, 
-						filtre.getAplicacio(), 
+						filtre.getAplicacio() == null || filtre.getAplicacio().isEmpty(), 
+						(filtre.getAplicacio() != null && !filtre.getAplicacio().isEmpty()) ? filtre.getAplicacio() : "", 
 						organisme == null,
 						organisme,
 						paginacioHelper.toSpringDataPageable(
@@ -422,13 +425,13 @@ public class ScspServiceImpl implements ScspService {
 	@Override
 	public List<EmisorDto> emissorFindAll() {
 		log.debug("Consulta la llista d'emissors SCSP");
-		List<Object[]> emissors = scspCoreServicioRepository.findScspEmisorCertificadoAll();
+		List<ScspCoreEmisorCertificadoEntity> emissors = scspCoreEmisorCertificadoRepository.findAll();
 		List<EmisorDto> resposta = new ArrayList<EmisorDto>();
-		for (Object[] emisor: emissors) {
+		for (ScspCoreEmisorCertificadoEntity emissor: emissors) {
 			EmisorDto e = new EmisorDto();
-			e.setId(((BigDecimal)emisor[0]).longValue());
-			e.setCif((String)emisor[1]);
-			e.setNom((String)emisor[2]);
+			e.setId(emissor.getId());
+			e.setCif(emissor.getCif());
+			e.setNom(emissor.getNombre());
 			resposta.add(e);
 		}
 		return resposta;
@@ -438,34 +441,18 @@ public class ScspServiceImpl implements ScspService {
 	@Override
 	public List<ClauPublicaDto> clauPublicaFindAll() {
 		log.debug("Consulta la llista de claus públiques SCSP");
-		List<Object[]> claus = scspCoreServicioRepository.findScspClavePublicaAll();
-		List<ClauPublicaDto> resposta = new ArrayList<ClauPublicaDto>();
-		for (Object[] clau: claus) {
-			ClauPublicaDto c = new ClauPublicaDto();
-			c.setId(((BigDecimal)clau[0]).longValue());
-			c.setAlies((String)clau[1]);
-			c.setNom((String)clau[2]);
-			c.setNumSerie((String)clau[3]);
-			resposta.add(c);
-		}
-		return resposta;
+		return conversioTipusHelper.convertirList(
+				clauPublicaRepository.findAll(),
+				ClauPublicaDto.class);
 	}
 
 	@Transactional(readOnly = true)
 	@Override
 	public List<ClauPrivadaDto> clauPrivadaFindAll() {
-		log.debug("Consulta la llista de claus públiques SCSP");
-		List<Object[]> claus = scspCoreServicioRepository.findScspClavePrivadaAll();
-		List<ClauPrivadaDto> resposta = new ArrayList<ClauPrivadaDto>();
-		for (Object[] clau: claus) {
-			ClauPrivadaDto c = new ClauPrivadaDto();
-			c.setId(((BigDecimal)clau[0]).longValue());
-			c.setAlies((String)clau[1]);
-			c.setNom((String)clau[2]);
-			c.setNumSerie((String)clau[3]);
-			resposta.add(c);
-		}
-		return resposta;
+		log.debug("Consulta la llista de claus privades SCSP");
+		return conversioTipusHelper.convertirList(
+				clauPrivadaRepository.findAll(),
+				ClauPrivadaDto.class);
 	}
 
 	@Transactional(readOnly = true)

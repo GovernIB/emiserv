@@ -125,7 +125,7 @@ $(document).ready(function() {
 					<spring:message code="auditoria.list.columna.servei"/>
 					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiDescripcio}}</script>
 				</th>
-				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%">
+				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%" data-orderable="false">
 					<spring:message code="auditoria.list.columna.estat"/>
 					<script id="cellEstatTemplate" type="text/x-jsrender">
 						{{if estat == 'PENDENT'}}

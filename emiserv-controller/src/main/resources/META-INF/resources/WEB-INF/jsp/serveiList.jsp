@@ -30,7 +30,7 @@ pageContext.setAttribute(
 				</th>
 				<th data-col-name="nom"><spring:message code="servei.list.columna.nom"/></th>
 				<th data-col-name="tipus"><spring:message code="servei.list.columna.tipus"/></th>
-				<th data-col-name="configurat" data-visible="false" ><spring:message code="servei.list.columna.configurat"/></th>
+				<th data-col-name="configurat" data-visible="false"><spring:message code="servei.list.columna.configurat"/></th>
 				<c:if test="${isRolActualAdministrador}">
 					<th data-col-name="actiu" data-template="#cellActiuTemplate">
 						<spring:message code="servei.list.columna.actiu"/>
@@ -38,19 +38,19 @@ pageContext.setAttribute(
 							{{if actiu}}<span class="fa fa-check"></span>{{/if}}
 						</script>
 					</th>
-					<th data-col-name="permisosCount" data-orderable="false" data-template="#cellPermisosTemplate" width="10%">
+					<th data-col-name="permisosCount" data-orderable="false" data-template="#cellPermisosTemplate" width="1%">
 						<script id="cellPermisosTemplate" type="text/x-jsrender">
 							<a href="servei/{{:id}}/permis" class="btn btn-default"><span class="fa fa-key"></span>&nbsp;<spring:message code="servei.list.boto.permisos"/>&nbsp;<span class="badge">{{:permisosCount}}</span></a>
 						</script>
 					</th>
-					<th data-template="#cellAutoritzacionsTemplate" width="10%">
+					<th data-template="#cellAutoritzacionsTemplate" width="1%" data-orderable="false">
 						<script id="cellAutoritzacionsTemplate" type="text/x-jsrender">
-							{{if tipus == 'BACKOFFICE'}}<a href="servei/{{:id}}/autoritzacio" class="btn btn-default"><span class="fa fa-thumbs-o-up"></span>&nbsp;<spring:message code="servei.list.boto.autoritzacions"/></a>{{/if}}
+							{{if tipus == 'BACKOFFICE'}}<a href="servei/{{:id}}/autoritzacio" class="btn btn-default{{if !configurat}} disabled{{/if}}"><span class="fa fa-thumbs-o-up"></span>&nbsp;<spring:message code="servei.list.boto.autoritzacions"/></a>{{/if}}
 						</script>
 					</th>
 				</c:if>
 				<th data-col-name="xsdGestioActiva" data-visible="false"></th>
-				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="10%">
+				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%">
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="dropdown">
 							<button class="btn btn-primary" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.boto.accions"/>&nbsp;<span class="caret"></span></button>

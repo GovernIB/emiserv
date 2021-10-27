@@ -1747,3 +1747,10 @@ databaseChangeLog:
             name: sslflag
             type: BOOLEAN
         tableName: core_req_cesionarios_servicios
+- changeSet:
+    id: init-40
+    author: limit (generated)
+    changes:
+    - sql:
+        dbms: postgresql
+        sql: "alter table ems_acl_object_identity alter column object_id_identity type varchar(36)"

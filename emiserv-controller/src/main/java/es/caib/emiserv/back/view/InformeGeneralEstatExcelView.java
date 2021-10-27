@@ -16,6 +16,7 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.RequestContext;
 import org.springframework.web.servlet.view.document.AbstractXlsView;
 
@@ -26,6 +27,7 @@ import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Component("informeGeneralEstatExcelView")
 public class InformeGeneralEstatExcelView extends AbstractXlsView implements MessageSourceAware {
 
 	private MessageSource messageSource;

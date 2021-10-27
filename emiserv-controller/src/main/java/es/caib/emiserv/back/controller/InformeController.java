@@ -5,8 +5,11 @@ package es.caib.emiserv.back.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import es.caib.emiserv.back.command.InformeCommand;
 import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
+import es.caib.emiserv.back.view.InformeGeneralEstatExcelView;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.ServeiService;
 
@@ -34,7 +38,9 @@ import es.caib.emiserv.logic.intf.service.ServeiService;
 public class InformeController extends BaseController {
 
 	@Autowired
-	ServeiService serveiService;
+	private ServeiService serveiService;
+	@Autowired
+	private InformeGeneralEstatExcelView informeView;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public String get() {
@@ -53,20 +59,24 @@ public class InformeController extends BaseController {
 	@RequestMapping(value = "/generalEstat", method = RequestMethod.POST)
 	public String generalPost(
 			HttpServletRequest request,
+			HttpServletResponse response,
 			@Valid InformeCommand command,
 			BindingResult bindingResult,
-			Model model) {
+			Model model) throws Exception {
 		if (bindingResult.hasErrors()) {
 			emplenarModelForm(request, model);
 			return "informeGeneralForm";
 		}
-		model.addAttribute(
+		//return "informeGeneralEstatExcelView";
+		Map<String, Object> viewModel = new HashMap<String, Object>();
+		viewModel.put(
 				"informeDades",
 				serveiService.informeGeneralEstat(
 						command.getDataInici(), 
 						command.getDataFi(),
 						command.getTipusPeticio()));
-		return "informeGeneralEstatExcelView";
+		informeView.render(viewModel, request, response);
+		return null;
 	}
 
 	private void emplenarModelForm(

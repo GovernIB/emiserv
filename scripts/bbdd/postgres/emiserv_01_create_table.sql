@@ -363,3 +363,5 @@ COMMENT ON COLUMN core_req_secuencia_id_peticion.secuencia IS 'Valor secuencial 
 COMMENT ON COLUMN core_req_secuencia_id_peticion.fechageneracion IS 'Fecha en la que se registró el secuencial';
 
 CREATE TABLE core_req_cesionarios_servicios (id BIGINT NOT NULL, servicio BIGINT, claveprivada BIGINT, organismo BIGINT, fechaalta TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, fechabaja TIMESTAMP(6) WITHOUT TIME ZONE, bloqueado BOOLEAN NOT NULL, sslflag BOOLEAN NOT NULL, CONSTRAINT core_req_cesionarios_serv_pk PRIMARY KEY (id));
+
+ALTER TABLE ems_acl_object_identity ALTER COLUMN object_id_identity TYPE VARCHAR(36)
