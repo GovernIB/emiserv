@@ -30,7 +30,7 @@ RUN rm ${KEYCLOAK_ADAPTER_FILE}
 WORKDIR ${JBOSS_HOME}/bin
 RUN ./jboss-cli.sh --file=adapter-install-offline.cli
 ADD --chown=${JBOSS_USER} modules/ ${JBOSS_HOME}/modules/
-ADD --chown=${JBOSS_USER} lib/ ${JBOSS_HOME}/standalone/lib/
+#ADD --chown=${JBOSS_USER} lib/ ${JBOSS_HOME}/standalone/lib/
 WORKDIR ${JBOSS_HOME}/standalone/configuration
 ADD --chown=${JBOSS_USER} ${DATASOURCES_FILE} ${DATASOURCES_FILE}
 RUN sed -i '/<datasources>/,/<\/datasources>/d' standalone.xml

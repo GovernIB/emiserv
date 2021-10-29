@@ -15,6 +15,9 @@
 		<exclude-subsystems>
 			<subsystem name="jsf"/>
 		</exclude-subsystems>
+		<resources>
+			<resource-root path="backoffice.jar"/>
+		</resources>
 	</sub-deployment>
 	<sub-deployment name="emiserv-api-externa.war">
 		<exclude-subsystems>
@@ -26,5 +29,8 @@
 		<dependencies>
 			<module name="deployment.emiserv-service-intf"/>
 		</dependencies>
+		<resources>
+			<resource-root path="backoffice.jar"/>
+		</resources>
 	</sub-deployment>
 </jboss-deployment-structure>
