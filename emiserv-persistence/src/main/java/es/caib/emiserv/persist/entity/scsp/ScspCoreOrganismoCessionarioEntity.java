@@ -5,17 +5,13 @@ package es.caib.emiserv.persist.entity.scsp;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -51,50 +47,72 @@ public class ScspCoreOrganismoCessionarioEntity implements Serializable {
 	private String nom;
 	@Column(name = "cif", length = 50)
 	private String cif;
+	@Column(name = "fechaalta", nullable = false)
+	@Temporal(TemporalType.DATE)
+	private Date dataAlta;
 	@Column(name = "fechabaja")
 	@Temporal(TemporalType.DATE)
 	private Date dataBaixa;
-	@Column(name = "fechaalta")
-	@Temporal(TemporalType.DATE)
-	private Date dataAlta;
 	@Column(name = "bloqueado", nullable = false)
-	private Boolean bloquejat;
+	private boolean bloquejat;
 	@Column(name = "logo")
 	private byte[] logo;
-	
-	@OneToMany(
-			mappedBy = "organisme",
-			fetch = FetchType.LAZY,
-			cascade = CascadeType.ALL,
-			orphanRemoval = true)
-	private List<ScspCoreClavePrivadaEntity> claus;
+	@Column(name = "codigounidadtramitadora", length = 9)
+	public String codiUnitatTramitadora;
 	
 	public void update(
 			String nom,
 			String cif,
-			Date dataBaixa,
 			Date dataAlta,
-			Boolean bloquejat,
-			byte[] logo,
-			List<ScspCoreClavePrivadaEntity> claus) {
+			Date dataBaixa,
+			boolean bloquejat,
+			String codiUnitatTramitadora) {
 		this.nom = nom;
 		this.cif = cif;
-		this.dataBaixa = dataBaixa;
 		this.dataAlta = dataAlta;
+		this.dataBaixa = dataBaixa;
 		this.bloquejat = bloquejat;
-		this.logo = logo;
-		this.claus = claus;
-	}
-	
-	public void updateEntitat(
-			String nom,
-			String cif,
-			Boolean bloquejat) {
-		this.nom = nom;
-		this.cif = cif;
-		this.bloquejat = bloquejat;
+		this.codiUnitatTramitadora = codiUnitatTramitadora;
 	}
 
+	public static Builder getBuilder(
+			String nom,
+			String cif,
+			Date dataAlta) {
+		return new Builder(
+				nom,
+				cif,
+				dataAlta);
+	}
+
+	public static class Builder {
+		ScspCoreOrganismoCessionarioEntity built;
+		Builder(
+				String nom,
+				String cif,
+				Date dataAlta) {
+			built = new ScspCoreOrganismoCessionarioEntity();
+			built.nom = nom;
+			built.cif = cif;
+			built.dataAlta = dataAlta;
+			built.bloquejat = false;
+		}
+		public Builder dataBaixa(Date dataBaixa) {
+			built.dataBaixa = dataBaixa;
+			return this;
+		}
+		public Builder bloquejat(boolean bloquejat) {
+			built.bloquejat = bloquejat;
+			return this;
+		}
+		public Builder codiUnitatTramitadora(String codiUnitatTramitadora) {
+			built.codiUnitatTramitadora = codiUnitatTramitadora;
+			return this;
+		}
+		public ScspCoreOrganismoCessionarioEntity build() {
+			return built;
+		}
+	}
 	
 	@Override
 	public int hashCode() {

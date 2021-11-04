@@ -22,9 +22,9 @@
 			<tr>
 				<th data-col-name="alies"><spring:message code="clau.privada.list.taula.columna.alias" /></th>
 				<th data-col-name="nom"><spring:message code="clau.privada.list.taula.columna.nom" /></th>
-				<th data-col-name="numSerie"><spring:message code="clau.privada.list.taula.columna.numeroserie" /></th> 
-				<th data-col-name="dataAlta"><spring:message code="clau.privada.list.taula.columna.dataalta" /></th>
-				<th data-col-name="dataBaixa"><spring:message code="claupublica.list.taula.columna.databaixa" /></th>
+				<th data-col-name="numSerie"><spring:message code="clau.privada.list.taula.columna.numeroserie" /></th>
+				<th data-col-name="dataAlta" data-converter="date"><spring:message code="clau.privada.list.taula.columna.dataalta" /></th>
+				<th data-col-name="dataBaixa" data-converter="date"><spring:message code="claupublica.list.taula.columna.databaixa" /></th>
 				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%"> 
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 	<div class="btn-group">

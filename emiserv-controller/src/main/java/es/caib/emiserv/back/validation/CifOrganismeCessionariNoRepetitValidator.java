@@ -15,11 +15,11 @@ import es.caib.emiserv.logic.intf.dto.OrganismeDto;
 import es.caib.emiserv.logic.intf.service.ScspService;
 
 /**
- * Validador per a controlar que no es repeteixi el CIF d'un organisme.
+ * Validador per a controlar que no es repeteixi el CIF d'un organisme cessionari.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
-public class CifOrganismeNoRepetitValidator implements ConstraintValidator<CifOrganismeNoRepetit, Object> {
+public class CifOrganismeCessionariNoRepetitValidator implements ConstraintValidator<CifOrganismeCessionariNoRepetit, Object> {
 
 	private String campId;
 	private String campCif;
@@ -28,7 +28,7 @@ public class CifOrganismeNoRepetitValidator implements ConstraintValidator<CifOr
 	private ScspService scspService;
 
 	@Override
-	public void initialize(final CifOrganismeNoRepetit constraintAnnotation) {
+	public void initialize(final CifOrganismeCessionariNoRepetit constraintAnnotation) {
 		this.campId = constraintAnnotation.campId();
 		this.campCif = constraintAnnotation.campCif();
 	}
@@ -39,17 +39,17 @@ public class CifOrganismeNoRepetitValidator implements ConstraintValidator<CifOr
 		try {
 			id = BeanUtils.getProperty(value, campId);
 			final String cif = BeanUtils.getProperty(value, campCif);
-			OrganismeDto organisme = scspService.organismeFindByCif(cif);
+			OrganismeDto organisme = scspService.organismeCessionariFindByCif(cif);
 			if (organisme == null) {
 				return true;
 			} else {
 				return id.equals(organisme.getId().toString());
 			}
 		} catch (Exception ex) {
-			LOGGER.error("No s'ha pogut validar el CIF de l'organisme", ex);
+			LOGGER.error("No s'ha pogut validar el CIF de l'organisme cessionari", ex);
 			return false;
 		}
 	}
-	private static final Logger LOGGER = LoggerFactory.getLogger(CifOrganismeNoRepetitValidator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CifOrganismeCessionariNoRepetitValidator.class);
 
 }

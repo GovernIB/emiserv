@@ -3,9 +3,11 @@
  */
 package es.caib.emiserv.persist.repository.scsp;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import es.caib.emiserv.persist.entity.scsp.ScspCoreOrganismoCessionarioEntity;
 
@@ -18,8 +20,23 @@ import es.caib.emiserv.persist.entity.scsp.ScspCoreOrganismoCessionarioEntity;
  */
 public interface ScspCoreOrganismoCessionarioRepository extends JpaRepository<ScspCoreOrganismoCessionarioEntity, Long> {
 
-	public List<ScspCoreOrganismoCessionarioEntity> findAll();
-	
-	public ScspCoreOrganismoCessionarioEntity findByCif(String id);
+	@Query(	"from " +
+			"    ScspCoreOrganismoCessionarioEntity scoc " +
+			"where " +
+			"    (:esNullNom = true or lower(scoc.nom) like lower('%'||:nom||'%')) " +
+			"and (:esNullCif = true or lower(scoc.cif) like lower('%'||:cif||'%'))")
+	Page<ScspCoreOrganismoCessionarioEntity> findByFiltrePaginat(
+			@Param("esNullNom") boolean esNullNom,
+			@Param("nom") String nom,
+			@Param("esNullCif") boolean esNullCif,
+			@Param("cif") String cif,
+			Pageable pageable);
+
+	@Query(	"from " +
+			"    ScspCoreOrganismoCessionarioEntity scoc " +
+			"where " +
+			"    (lower(scoc.cif) = lower(:cif))")
+	ScspCoreOrganismoCessionarioEntity findByCif(
+			@Param("cif") String cif);
 
 }
