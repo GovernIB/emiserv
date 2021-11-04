@@ -31,6 +31,9 @@ public class OrganismeCommand {
 	@NotNull
 	public Date dataAlta;
 	public Date dataBaixa;
+	private boolean bloquejat = false;
+	@Size(max = 9)
+	private String codiUnitatTramitadora;
 
 	public Long getId() {
 		return id;
@@ -61,6 +64,18 @@ public class OrganismeCommand {
 	}
 	public void setDataBaixa(Date dataBaixa) {
 		this.dataBaixa = dataBaixa;
+	}
+	public boolean isBloquejat() {
+		return bloquejat;
+	}
+	public void setBloquejat(boolean bloquejat) {
+		this.bloquejat = bloquejat;
+	}
+	public String getCodiUnitatTramitadora() {
+		return codiUnitatTramitadora;
+	}
+	public void setCodiUnitatTramitadora(String codiUnitatTramitadora) {
+		this.codiUnitatTramitadora = codiUnitatTramitadora;
 	}
 
 	public static OrganismeCommand toCommand(OrganismeDto dto) {

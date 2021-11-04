@@ -19,11 +19,12 @@
 	<table id="clausprivades" data-toggle="datatable" data-url="clauprivada/datatable" data-search-enabled="false" data-botons-template="#botonsTemplate" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
-				<th data-col-name="alies"><spring:message code="clau.privada.list.taula.columna.alias" /></th>
-				<th data-col-name="nom"><spring:message code="clau.privada.list.taula.columna.nom" /></th>
-				<th data-col-name="numSerie"><spring:message code="clau.privada.list.taula.columna.numeroserie" /></th> 
-				<th data-col-name="dataAlta"><spring:message code="clau.privada.list.taula.columna.dataalta" /></th>
-				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%"> 
+				<th data-col-name="alies" width="15%"><spring:message code="clau.privada.list.taula.columna.alias" /></th>
+				<th data-col-name="nom" width="40%"><spring:message code="clau.privada.list.taula.columna.nom" /></th>
+				<th data-col-name="numSerie" width="15%"><spring:message code="clau.privada.list.taula.columna.numeroserie" /></th>
+				<th data-col-name="dataAlta" data-converter="date" width="10%"><spring:message code="clau.privada.list.taula.columna.dataalta" /></th>
+				<th data-col-name="dataBaixa" data-converter="date" width="10%"><spring:message code="claupublica.list.taula.columna.databaixa" /></th>
+				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%">
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="btn-group">
 							<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.accions"/>&nbsp;<span class="caret"></span></a>

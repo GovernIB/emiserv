@@ -3,8 +3,6 @@
  */
 package es.caib.emiserv.persist.repository.scsp;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,7 +35,7 @@ public interface ScspCoreEmAutorizacionOrganismoRepository extends JpaRepository
 			"    ScspCoreEmAutorizacionOrganismoEntity scao " +
 			"where " +
 			"    (lower(scao.idorganismo) = lower(:cif))")
-	List<ScspCoreEmAutorizacionOrganismoEntity> findByCif(
+	ScspCoreEmAutorizacionOrganismoEntity findByCif(
 			@Param("cif") String cif);
 
 }

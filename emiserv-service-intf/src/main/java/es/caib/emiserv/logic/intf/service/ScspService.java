@@ -140,14 +140,12 @@ public interface ScspService {
 	/**
 	 * Consulta un organisme donat el seu cif.
 	 * 
-	 * @param id
-	 *            Atribut id de l'organisme a trobar.
-	 * @return L'organisme amb l'id especificat.
-	 * @throws NotFoundException
-	 *             Si no s'ha trobat cap organisme amb l'id especificat.
+	 * @param cif
+	 *            CIF de l'organisme a trobar.
+	 * @return L'organisme amb el cif especificat o null si no s'ha trobat.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
-	public List<OrganismeDto> organismeFindByCif(String cif) throws NotFoundException;
+	public OrganismeDto organismeFindByCif(String cif);
 	
 	/**
 	 * Consulta dels organismes amb filtre i paginació.
@@ -160,6 +158,77 @@ public interface ScspService {
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
 	public PaginaDto<OrganismeDto> organismeFindByFiltrePaginat(
+			OrganismeFiltreDto filtre,
+			PaginacioParamsDto paginacioParams);
+
+	/**
+	 * Crea un nou organisme cessionari.
+	 * 
+	 * @param organismo
+	 *            Informació de l'organisme a crear.
+	 * @return L'organisme creat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public OrganismeDto organismeCessionariCreate(
+			OrganismeDto organismo) throws NotFoundException;
+
+	/**
+	 * Modifica un organisme cessionari.
+	 * 
+	 * @param organismo
+	 *            Informació de l'organisme a crear.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap organisme amb l'id especificat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public void organismeCessionariUpdate(
+			OrganismeDto organismo) throws NotFoundException;
+
+	/**
+	 * Esborra un organisme cessionari.
+	 * 
+	 * @param id
+	 *            Atribut id de l'organisme a esborrar.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap organisme amb l'id especificat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public void organismeCessionariDelete(
+			Long id) throws NotFoundException;
+
+	/**
+	 * Consulta un organisme cessionari donat el seu id.
+	 * 
+	 * @param id
+	 *            Atribut id de l'organisme a trobar.
+	 * @return L'organisme amb l'id especificat.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap organisme amb l'id especificat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public OrganismeDto organismeCessionariFindById(Long id) throws NotFoundException;
+
+	/**
+	 * Consulta un organisme cessionari donat el seu cif.
+	 * 
+	 * @param cif
+	 *            CIF de l'organisme a trobar.
+	 * @return L'organisme amb el cif especificat o null si no s'ha trobat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public OrganismeDto organismeCessionariFindByCif(String cif);
+
+	/**
+	 * Consulta dels organismes cessionaris amb filtre i paginació.
+	 * 
+	 * @param filtre
+	 *            El filtre per a la consulta.
+	 * @param paginacioParams
+	 *            Paràmetres per a la paginació.
+	 * @return La pàgina d'organismes.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public PaginaDto<OrganismeDto> organismeCessionariFindByFiltrePaginat(
 			OrganismeFiltreDto filtre,
 			PaginacioParamsDto paginacioParams);
 
