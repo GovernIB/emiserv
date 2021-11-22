@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.support.RequestContextUtils;
+import org.springframework.web.util.WebUtils;
 
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,40 +18,45 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class LocaleHelper {
-	public static final String SESSION_ATTRIBUTE_LOCALE = "AplicacioInterceptor.sessionLocale";
+
+	public static final String SESSION_ATTRIBUTE_CONFIGURAT = LocaleHelper.class.getName() + ".CONFIGURAT";
 
 	public static void processarLocale(
 			HttpServletRequest request,
 			HttpServletResponse response,
 			AplicacioService aplicacioService,
 			boolean forsarRefresc) {
-		String sessionLocale = (String)RequestSessionHelper.obtenirObjecteSessio(
-				request,
-				SESSION_ATTRIBUTE_LOCALE);
-		if (forsarRefresc || (request.getUserPrincipal() != null && sessionLocale == null)) {
+		LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+		if (forsarRefresc || (request.getUserPrincipal() != null && !isConfigurat(request))) {
 			log.debug("Refrescant locale de la sessió d'usuari (" +
 					"request.userPrincipal=" + request.getUserPrincipal() + ", " +
-					"sessionLocale=" + sessionLocale + ", " +
 					"forsarRefresc=" + forsarRefresc + ")");
-			LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
-			String idiomaUsuariActual = aplicacioService.getIdiomaUsuariActual();
-			if (idiomaUsuariActual == null) {
-				idiomaUsuariActual = localeResolver.resolveLocale(request).getLanguage().substring(0, 2);
-				log.debug(
-						"No hi ha idioma configurat per l'usuari " + request.getUserPrincipal() + ", " +
-						"configurant idioma obtingut del localeResolver: " + idiomaUsuariActual);
-			} else {
-				log.debug("Idioma configurat a les preferències de l'usuari " + request.getUserPrincipal() + ": " + idiomaUsuariActual);
+			String idiomaActual = aplicacioService.getIdiomaUsuariActual();
+			if (idiomaActual != null) {
+				log.debug("L'usuari " + request.getUserPrincipal() + " te configurat com a preferència d'idioma: " + idiomaActual);
 				localeResolver.setLocale(
 						request,
 						response,
-						StringUtils.parseLocaleString(idiomaUsuariActual));
+						StringUtils.parseLocaleString(idiomaActual));
+			} else {
+				log.debug("L'usuari " + request.getUserPrincipal() + " no te cap preferència d'idioma configurada");
+				localeResolver.setLocale(
+						request,
+						response,
+						null);
 			}
-			RequestSessionHelper.actualitzarObjecteSessio(
+			WebUtils.setSessionAttribute(
 					request,
-					SESSION_ATTRIBUTE_LOCALE,
-					idiomaUsuariActual);
+					SESSION_ATTRIBUTE_CONFIGURAT,
+					new Boolean(true));
 		}
+	}
+
+	private static boolean isConfigurat(HttpServletRequest request) {
+		Boolean configurat = (Boolean)RequestSessionHelper.obtenirObjecteSessio(
+				request,
+				SESSION_ATTRIBUTE_CONFIGURAT);
+		return configurat != null && configurat.booleanValue();
 	}
 
 }
