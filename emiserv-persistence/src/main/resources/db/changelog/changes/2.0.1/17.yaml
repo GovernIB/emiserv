@@ -60,3 +60,12 @@ databaseChangeLog:
             name: response_resolver_class
             value: es.caib.emiserv.logic.resolver.FamiliaNombrosaResponseResolver
         where: resolver_class = 'es.caib.emiserv.core.resolver.FamiliaNombrosaResponseResolver'
+- changeSet:
+    id: 1618396425533-5
+    author: limit
+    changes:
+    - renameColumn:
+        oldColumnName: fechageneracio
+        newColumnName: fechageneracion
+        columnDataType: TIMESTAMP
+        tableName: core_em_secuencia_idtrans

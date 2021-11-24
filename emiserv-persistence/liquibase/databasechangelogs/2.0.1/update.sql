@@ -31,4 +31,5 @@ UPDATE ems_servei SET response_resolver_class = 'es.caib.emiserv.logic.resolver.
 
 UPDATE ems_servei SET response_resolver_class = 'es.caib.emiserv.logic.resolver.FamiliaNombrosaResponseResolver' WHERE resolver_class = 'es.caib.emiserv.core.resolver.FamiliaNombrosaResponseResolver';
 
-
+-- Changeset db/changelog/changes/2.0.1/17.yaml::1618396425533-5::limit
+ALTER TABLE core_em_secuencia_idtrans RENAME COLUMN fechageneracio TO fechageneracion;

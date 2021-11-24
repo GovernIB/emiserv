@@ -342,7 +342,7 @@ COMMENT ON COLUMN core_em_backoffice.classname IS 'Nombre completo  de la clase 
 
 COMMENT ON COLUMN core_em_backoffice.ter IS 'Número de horas que harán esperar a un requirente para la generación de una respuesta definitiva ante una petición asíncrona';
 
-CREATE TABLE core_em_secuencia_idtrans (prefijo VARCHAR2(9) NOT NULL, secuencia VARCHAR2(26) NOT NULL, fechageneracio TIMESTAMP NOT NULL, CONSTRAINT core_em_secuencia_idtrans_pk PRIMARY KEY (prefijo));
+CREATE TABLE core_em_secuencia_idtrans (prefijo VARCHAR2(9) NOT NULL, secuencia VARCHAR2(26) NOT NULL, fechageneracion TIMESTAMP NOT NULL, CONSTRAINT core_em_secuencia_idtrans_pk PRIMARY KEY (prefijo));
 
 COMMENT ON TABLE core_em_secuencia_idtrans IS 'Tabla utilizada para la generación de los valores de los nodos IdTransmisión en los emisores';
 
