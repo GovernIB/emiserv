@@ -92,11 +92,14 @@ $(document).ready(function() {
 			<div class="col-md-2">
 				<emi:inputDate name="dataFi" inline="true" placeholderKey="auditoria.list.filtre.data.fi"/>
 			</div>
-			<div class="col-md-2">
-				<emi:inputText name="funcionariNom" placeholderKey="auditoria.list.filtre.funcionari.nom" inline="true"/>
-			</div>
-			<div class="col-md-2">
-				<emi:inputText name="funcionariDocument" placeholderKey="auditoria.list.filtre.funcionari.document" inline="true"/>
+<%--			<div class="col-md-2">--%>
+<%--				<emi:inputText name="funcionariNom" placeholderKey="auditoria.list.filtre.funcionari.nom" inline="true"/>--%>
+<%--			</div>--%>
+<%--			<div class="col-md-2">--%>
+<%--				<emi:inputText name="funcionariDocument" placeholderKey="auditoria.list.filtre.funcionari.document" inline="true"/>--%>
+<%--			</div>--%>
+			<div class="col-md-4">
+				<emi:inputText name="numeroPeticio" placeholderKey="auditoria.list.filtre.numero.peticio" inline="true"/>
 			</div>
 			<div class="col-md-4 pull-right">
 				<div class="pull-right">

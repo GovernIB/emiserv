@@ -199,6 +199,8 @@ public class BackofficeServiceImpl implements BackofficeService {
 						filtre.getDataFi(),
 						nomesServeisPermesos,
 						codisServeisPermesos,
+						filtre.getNumeroPeticio() == null || filtre.getNumeroPeticio().isEmpty(),
+						filtre.getNumeroPeticio() != null ? filtre.getNumeroPeticio() : "",
 						paginacioHelper.toSpringDataPageable(
 								paginacioParams,
 								mapeigOrdenacio)),
