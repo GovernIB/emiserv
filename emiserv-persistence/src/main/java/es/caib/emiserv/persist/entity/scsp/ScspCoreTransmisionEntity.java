@@ -6,15 +6,7 @@ package es.caib.emiserv.persist.entity.scsp;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 
 /**
  *  Classe de model de dades per a la taula CORE_TRANSMISION.
@@ -69,7 +61,8 @@ public class ScspCoreTransmisionEntity {
 	private String estado;
 	@Column(name = "error", length = 256)
 	private String error;
-	@Column(name = "xmltransmision", length = 256)
+	@Lob
+	@Column(name = "xmltransmision")
 	private String xmltransmision;
 	@ManyToOne(
 			optional = true,

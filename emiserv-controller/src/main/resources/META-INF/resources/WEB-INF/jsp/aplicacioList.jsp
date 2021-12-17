@@ -26,7 +26,7 @@
 						<div class="dropdown">
 							<button class="btn btn-primary" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.boto.accions"/>&nbsp;<span class="caret"></span></button>
 							<ul class="dropdown-menu">
-								<li><a href="aplicacio/{{:id}}" data-toggle="modal"><span class="fa fa-pencil"></span>&nbsp;&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
+								<li><a href="aplicacio/{{:id}}" data-toggle="modal" data-reload-on-close="false"><span class="fa fa-pencil"></span>&nbsp;&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
 								<li><a href="aplicacio/{{:id}}/delete" data-confirm="<spring:message code="aplicacio.list.confirmacio.esborrar"/>"><span class="fa fa-trash-o"></span>&nbsp;&nbsp;<spring:message code="comu.boto.esborrar"/></a></li>
 							</ul>
 						</div>
@@ -36,7 +36,7 @@
 		</thead>
 	</table>
 	<script id="botonsTemplate" type="text/x-jsrender">
-		<a id="accio-new" class="btn btn-default pull-right" href="aplicacio/new" data-toggle="modal" data-datatable-id="aplicacions">
+		<a id="accio-new" class="btn btn-default pull-right" href="aplicacio/new" data-toggle="modal" data-reload-on-close="false" data-datatable-id="aplicacions">
 			<span class="fa fa-plus"></span>&nbsp;<spring:message code="aplicacio.list.boto.nova.aplicacio"/>
 		</a>
 	</script>

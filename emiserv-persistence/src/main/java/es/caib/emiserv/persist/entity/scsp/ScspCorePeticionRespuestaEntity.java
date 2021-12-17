@@ -3,6 +3,8 @@
  */
 package es.caib.emiserv.persist.entity.scsp;
 
+import org.hibernate.annotations.Type;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -48,6 +50,7 @@ public class ScspCorePeticionRespuestaEntity {
 	@Column(name = "fechaultimosondeo")
 	private Date fechaUltimoSondeo;
 	@Column(name = "transmisionsincrona")
+	@Type(type = "org.hibernate.type.NumericBooleanType")
 	private boolean sincrona;
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "ter")

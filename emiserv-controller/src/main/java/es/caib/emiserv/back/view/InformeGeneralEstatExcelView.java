@@ -158,7 +158,11 @@ public class InformeGeneralEstatExcelView extends AbstractXlsView implements Mes
 			dadaCell = filaDada.createCell(columnaInicial + 10);
 			dadaCell.setCellValue(informeDada.getPeticionsErronies());
 		}
-		autoSize(sheet, 11);
+		try {
+			autoSize(sheet, 11);
+		} catch (Exception ex) {
+			logger.error("No ha estat possible fer l'autoSize de les columnes", ex);
+		}
 	}
 
 	public void setMessageSource(MessageSource messageSource) {

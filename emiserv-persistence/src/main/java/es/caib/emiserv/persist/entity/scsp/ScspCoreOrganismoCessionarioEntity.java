@@ -17,6 +17,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
+import org.hibernate.annotations.Type;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import lombok.AllArgsConstructor;
@@ -54,8 +55,10 @@ public class ScspCoreOrganismoCessionarioEntity implements Serializable {
 	@Temporal(TemporalType.DATE)
 	private Date dataBaixa;
 	@Column(name = "bloqueado", nullable = false)
+	@Type(type = "org.hibernate.type.NumericBooleanType")
 	private boolean bloquejat;
 	@Column(name = "logo")
+	@Type(type="org.hibernate.type.MaterializedBlobType")
 	private byte[] logo;
 	@Column(name = "codigounidadtramitadora", length = 9)
 	public String codiUnitatTramitadora;

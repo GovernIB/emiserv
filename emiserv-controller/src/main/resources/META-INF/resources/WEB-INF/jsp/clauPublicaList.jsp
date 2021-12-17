@@ -27,13 +27,13 @@
 				<th data-col-name="dataBaixa" data-converter="date"><spring:message code="claupublica.list.taula.columna.databaixa" /></th>
 				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%"> 
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
-	<div class="btn-group">
-		<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.accions"/>&nbsp;<span class="caret"></span></a>
-		<ul class="dropdown-menu">
-			<li><a href="claupublica/{{:id}}" data-toggle="modal"><span class="fa fa-pencil"></span>&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
-			<li><a href="claupublica/{{:id}}/delete" data-confirm="<spring:message code="claupublica.list.confirmacio.esborrar"/>"><span class="fa fa-trash-o"></span>&nbsp;<spring:message code="comu.boto.esborrar"/></a></li>
-		</ul>
-	</div>
+						<div class="btn-group">
+							<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.accions"/>&nbsp;<span class="caret"></span></a>
+							<ul class="dropdown-menu">
+								<li><a href="claupublica/{{:id}}" data-toggle="modal" data-reload-on-close="false"><span class="fa fa-pencil"></span>&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
+								<li><a href="claupublica/{{:id}}/delete" data-confirm="<spring:message code="claupublica.list.confirmacio.esborrar"/>"><span class="fa fa-trash-o"></span>&nbsp;<spring:message code="comu.boto.esborrar"/></a></li>
+							</ul>
+						</div>
 					</script>
 				</th>
 			</tr>
@@ -41,7 +41,7 @@
 	</table>
 	</div>
 	<script id="botonsTemplate" type="text/x-jsrender">
-		<a id="accio-new" class="btn btn-default pull-right" href="claupublica/new" data-toggle="modal" data-datatable-id="clauspubliques">
+		<a id="accio-new" class="btn btn-default pull-right" href="claupublica/new" data-toggle="modal" data-reload-on-close="false" data-datatable-id="clauspubliques">
 			<span class="fa fa-plus"></span>&nbsp;<spring:message code="claupublica.list.boto.nou.registre"/>
 		</a>
 	</script>

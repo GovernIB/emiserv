@@ -370,9 +370,9 @@ public class ScspServiceImpl implements ScspService {
 				"paginacioParams=" + paginacioParams + ")");
 		Page<ScspCoreOrganismoCessionarioEntity> page = scspCoreOrganismoCessionarioRepository.findByFiltrePaginat(
 				(filtre == null || filtre.getNom() == null || filtre.getNom().isEmpty()),
-				filtre != null ? filtre.getNom() : null,
+				filtre != null && filtre.getNom() != null ? filtre.getNom() : "",
 				(filtre == null || filtre.getCif() == null || filtre.getCif().isEmpty()),
-				filtre != null ? filtre.getCif() : null,
+				filtre != null && filtre.getCif() != null ? filtre.getCif() : "",
 				paginacioHelper.toSpringDataPageable(paginacioParams));
 		return paginacioHelper.toPaginaDto(
 				page,

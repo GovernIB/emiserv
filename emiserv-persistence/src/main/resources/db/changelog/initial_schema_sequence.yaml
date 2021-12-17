@@ -89,7 +89,7 @@ databaseChangeLog:
     changes:
     - createSequence:
         sequenceName: id_autorizacion_ca_seq
-        startValue: 1
+        startValue: 18
 - changeSet:
     id: init-sequence-14
     author: limit (generated)
