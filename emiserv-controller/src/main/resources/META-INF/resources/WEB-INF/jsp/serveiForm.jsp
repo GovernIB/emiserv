@@ -59,7 +59,7 @@ $(document).ready(function() {
 		<emi:inputSelect name="tipus" textKey="servei.form.camp.tipus" required="true" optionItems="${serveiTipusEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text"/>
 		<emi:inputTextarea name="descripcio" textKey="servei.form.camp.descripcio"/>
 		<div id="camps-backoffice">
-			<emi:inputSelect name="backofficeClass" textKey="servei.form.camp.class.back" required="true" optionItems="${classesBackoffice}"/>
+			<emi:inputSelect name="backofficeClass" textKey="servei.form.camp.class.back" required="true" optionItems="${classesBackoffice}" emptyOption="true"/>
 			<emi:inputText name="backofficeCaibUrl" textKey="servei.form.camp.url" required="true"/>
 			<emi:inputSelect name="backofficeCaibAutenticacio" textKey="servei.form.camp.autenticacio" required="true" optionItems="${backofficeAutenticacioTipusEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text"/>
 			<emi:inputSelect name="backofficeCaibAsyncTipus" textKey="servei.form.camp.back.async.tipus" required="true" optionItems="${backofficeAsyncTipusEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text"/>

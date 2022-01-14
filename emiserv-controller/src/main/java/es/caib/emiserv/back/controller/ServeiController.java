@@ -3,19 +3,22 @@
  */
 package es.caib.emiserv.back.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.Validator;
-
+import es.caib.emiserv.back.command.ServeiCommand;
+import es.caib.emiserv.back.command.ServeiCommand.TipusBackoffice;
+import es.caib.emiserv.back.command.ServeiCommand.TipusEnrutador;
+import es.caib.emiserv.back.command.ServeiCommand.TipusEnrutadorMultiple;
+import es.caib.emiserv.back.helper.DatatablesHelper;
+import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
+import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
+import es.caib.emiserv.back.validation.AditionalGroupValidator;
+import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.logic.intf.service.BackofficeService;
+import es.caib.emiserv.logic.intf.service.ServeiService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.ClassMetadata;
-import org.springframework.core.type.filter.AbstractClassTestingTypeFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -24,19 +27,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import es.caib.emiserv.back.command.ServeiCommand;
-import es.caib.emiserv.back.command.ServeiCommand.TipusBackoffice;
-import es.caib.emiserv.back.command.ServeiCommand.TipusEnrutador;
-import es.caib.emiserv.back.command.ServeiCommand.TipusEnrutadorMultiple;
-import es.caib.emiserv.back.helper.DatatablesHelper;
-import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
-import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
-import es.caib.emiserv.back.validation.AditionalGroupValidator;
-import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
-import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
-import es.caib.emiserv.logic.intf.dto.ServeiDto;
-import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
-import es.caib.emiserv.logic.intf.service.ServeiService;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.Validator;
 
 /**
  * Controlador per al manteniment de serveis.
@@ -44,11 +37,14 @@ import es.caib.emiserv.logic.intf.service.ServeiService;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Controller
+@Slf4j
 @RequestMapping("/servei")
 public class ServeiController extends BaseController {
 
 	@Autowired
 	private ServeiService serveiService;
+	@Autowired
+	private BackofficeService backofficeService;
 
 	@Autowired(required = true)
 	private Validator validator;
@@ -195,30 +191,10 @@ public class ServeiController extends BaseController {
 				serveiService.resolverClassesFindAll());
 		model.addAttribute(
 				"classesBackoffice",
-				findClassesBackoffice());
+				backofficeService.getBackofficeClasses());
 		model.addAttribute(
 				"classesResponseResolver",
 				serveiService.responseResolverClassesFindAll());
-	}
-
-	private List<String> findClassesBackoffice() {
-		ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
-		provider.addIncludeFilter(new AbstractClassTestingTypeFilter() {
-			@Override
-			protected boolean match(ClassMetadata metadata) {
-				for (String interfaceName: metadata.getInterfaceNames()) {
-					if ("es.scsp.common.backoffice.BackOffice".equals(interfaceName))
-					return true;
-				}
-				return false;
-			}
-		});
-		Set<BeanDefinition> components = provider.findCandidateComponents("es/caib/emiserv/backoffice");
-		List<String> resposta = new ArrayList<String>();
-		for (BeanDefinition component: components) {
-			resposta.add(component.getBeanClassName());
-		}
-		return resposta;
 	}
 
 }

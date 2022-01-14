@@ -47,6 +47,11 @@
 			<artifactId>jakarta.xml.ws-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.27.0-GA</version>
+		</dependency>
 		<!--dependency>
 			<groupId>es.scsp</groupId>
 			<artifactId>scsp-beans</artifactId>

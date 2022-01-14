@@ -3,20 +3,15 @@
  */
 package es.caib.emiserv.logic.intf.service;
 
-import java.util.List;
-
-import org.springframework.security.access.prepost.PreAuthorize;
-
-import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
-import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
-import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
+import es.caib.emiserv.logic.intf.dto.*;
 import es.caib.emiserv.logic.intf.exception.BackofficeException;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.util.List;
 
 /**
  * Declaració dels mètodes del servei de backoffice.
@@ -244,4 +239,11 @@ public interface BackofficeService {
 	 */
 	public void peticioBackofficeAsyncProcessarPendents();
 
+	/**
+	 * Obté la llista de classes que implementen la interfície de backoffice
+	 *
+	 * @return Llista de classes que implementen la interfície de backoffice
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+    public List<String> getBackofficeClasses();
 }
