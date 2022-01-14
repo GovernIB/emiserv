@@ -1,13 +1,9 @@
-package es.caib.emiserv.logic.intf.util;
+package es.scsp.backoffice;
 
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.LoaderClassPath;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.net.URL;
@@ -21,18 +17,13 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 @Slf4j
-@Component
 public class BackofficeClassloader extends ClassLoader {
 
-    @Getter @Setter
-    @Value("${es.caib.emiserv.backoffice.jar.path:}")
-    public String backofficeJarPath;
+    private String backofficeJarPath;
 
     public BackofficeClassloader() {
         super(getContextClassloader());
-        if (backofficeJarPath == null || backofficeJarPath.isEmpty()) {
-            backofficeJarPath = BackofficeClassloader.class.getClassLoader().getResource("").getPath().substring(0, BackofficeClassloader.class.getClassLoader().getResource("").getPath().indexOf("/modules/")) + "/backoffice/backoffice.jar";
-        }
+        backofficeJarPath = BackofficeClassloader.class.getClassLoader().getResource("").getPath().substring(0, BackofficeClassloader.class.getClassLoader().getResource("").getPath().indexOf("/modules/")) + "/backoffice/backoffice.jar";
 
         File backofficeFile = new File(backofficeJarPath);
         if (!backofficeFile.exists()) {
@@ -54,6 +45,32 @@ public class BackofficeClassloader extends ClassLoader {
     }
 
     @Override
+    public Enumeration<URL> getResources(String resourceName) throws IOException {
+
+        Set<URL> urls = new HashSet<>();
+        if (!resourceName.equals("META-INF/spring.components")) {
+            urls = getBackofficeJarResourceUrls();
+        }
+
+        Enumeration<URL> resources = getContextClassloader().getResources(resourceName);
+        urls.addAll(Collections.list(resources));
+        return Collections.enumeration(urls);
+
+    }
+
+    private Set<URL> getBackofficeJarResourceUrls() throws IOException {
+
+        Set<URL> urls = new HashSet<>();
+
+        File backofficeFile = new File(backofficeJarPath);
+        if (backofficeFile.exists()) {
+            urls.add(new URL("jar:file:" + backofficeJarPath + "!/"));
+        }
+
+        return urls;
+    }
+
+    @Override
     public Class findClass(String name) throws ClassNotFoundException {
         Class<?> clazz = null;
         Throwable throwable = null;
@@ -68,7 +85,6 @@ public class BackofficeClassloader extends ClassLoader {
         if (b != null && b.length > 0) {
             try {
                 ClassPool cp = ClassPool.getDefault();
-//                ClassLoader cl = getLocalClassLoader();
                 ClassLoader cl = getContextClassloader();
                 cp.appendClassPath(new LoaderClassPath(cl));
                 CtClass ctClass = cp.makeClass(new ByteArrayInputStream(b));
@@ -78,29 +94,14 @@ public class BackofficeClassloader extends ClassLoader {
             }
         }
 
-//        if (b != null && b.length > 0) {
-//            clazz = defineClass(name, b, 0, b.length);
-//        }
-
         if (clazz == null) {
             clazz = loadClassFromContext(name);
         }
 
-        return clazz;
-    }
-
-    @Override
-    public Enumeration<URL> getResources(String resourceName) throws IOException {
-
-        Set<URL> urls = new HashSet<>();
-        if (!resourceName.equals("META-INF/spring.components")) {
-            urls = getBackofficeJarResourceUrls();
+        if (clazz == null) {
+            log.error("Classe {} no trobada per el BackofficeClassLoader", name, throwable);
         }
-
-        Enumeration<URL> resources = getContextClassloader().getResources(resourceName);
-        urls.addAll(Collections.list(resources));
-        return Collections.enumeration(urls);
-
+        return clazz;
     }
 
     public Set<String> getClassNamesFromBackofficeJarFile() throws IOException {
@@ -126,34 +127,6 @@ public class BackofficeClassloader extends ClassLoader {
 
         return classNames;
     }
-
-//    public void loadBackofficeClasses() throws IOException {
-//        File backofficeFile = new File(backofficeJarPath);
-//
-//        if (backofficeFile.exists()) {
-//            // Obtenim les classes del backoffice.jar
-//            try (JarFile jarFile = new JarFile(backofficeJarPath)) {
-//                Enumeration<JarEntry> e = jarFile.entries();
-//                while (e.hasMoreElements()) {
-//                    JarEntry jarEntry = e.nextElement();
-//                    if (jarEntry.getName().endsWith(".class")) {
-//                        String className = jarEntry.getName()
-//                                .replace("/", ".")
-//                                .replace(".class", "");
-//                        try {
-//                            InputStream in = jarFile.getInputStream(jarEntry);
-//                            if (in != null) {
-//                                byte[] classBytes = toByteArray(in);
-//                                defineClass(className, classBytes, 0, classBytes.length);
-//                            }
-//                        } catch (IOException ex) {
-//                            log.error("No ha estat possible carregar la classe {} del backoffice.jar", className, ex);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     private byte[] loadClassFromBackofficeJar(String name) throws IOException {
 
@@ -183,38 +156,6 @@ public class BackofficeClassloader extends ClassLoader {
         return null;
     }
 
-    private Set<URL> getBackofficeJarResourceUrls() throws IOException {
-
-        Set<URL> urls = new HashSet<>();
-
-        File backofficeFile = new File(backofficeJarPath);
-        if (backofficeFile.exists()) {
-            urls.add(new URL("jar:file:" + backofficeJarPath + "!/"));
-        }
-
-        return urls;
-    }
-
-//    private Set<URL> getBackofficeJarResourceUrls(String name) throws IOException {
-//        Set<URL> urls = new HashSet<>();
-//        if (name.equals("META-INF/spring.components")) {
-//            return urls;
-//        }
-//        Set<String> classNamesFromBackofficeJarFile = getClassNamesFromBackofficeJarFile();
-//        if (!classNamesFromBackofficeJarFile.isEmpty()) {
-//            classNamesFromBackofficeJarFile.stream()
-//                    .filter(c -> c.startsWith(name.replace("/", ".")))
-//                    .forEach(c -> {
-//                        try {
-//                            urls.add(new URL("jar:file:" + backofficeJarPath + "!/" + c.replace(".", "/") + ".class"));
-//                        } catch (MalformedURLException e) {
-//                            log.error("URL de classe backoffice incorrecte", e);
-//                        }
-//                    });
-//        }
-//        return urls;
-//    }
-
     private Class<?> loadClassFromContext(String className) {
         Class<?> clazz = null;
         ClassLoader localClassloader;
@@ -231,18 +172,6 @@ public class BackofficeClassloader extends ClassLoader {
             }
         }
 
-//        if (clazz == null) {
-//            try {
-//                localClassloader = ClassLoaderUtil.getClassloader(ReflectionUtil.class);
-//                log.debug("Attempting to load class '{}' with {}: {}", className, "local classloader", localClassloader);
-//                clazz = Class.forName(className, true, localClassloader);
-//            } catch (Throwable ex) {
-//                if (throwable == null) {
-//                    throwable = ex;
-//                }
-//            }
-//        }
-
         if (clazz == null) {
             throw new RuntimeException("No s'ha pogut obtenir la classe " + className + " al Custom classloader", throwable);
         } else {
@@ -250,28 +179,11 @@ public class BackofficeClassloader extends ClassLoader {
         }
     }
 
-
-
-//    private static ClassLoader getLocalClassLoader() {
-//        ClassLoader localClassloader;
-//        localClassloader = ClassLoaderUtil.getContextClassloader();
-//        if (localClassloader == null) {
-//            localClassloader = ClassLoaderUtil.getClassloader(ReflectionUtil.class);
-//        }
-//        return localClassloader;
-//    }
-
     private static ClassLoader getContextClassloader() {
         return System.getSecurityManager() != null ?
                 AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> Thread.currentThread().getContextClassLoader()) :
                 Thread.currentThread().getContextClassLoader();
     }
-
-//    private static ClassLoader getClassloader(final Class<?> clazz) {
-//        return System.getSecurityManager() != null ?
-//                AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> clazz.getClassLoader()) :
-//                clazz.getClassLoader();
-//    }
 
     private static byte[] toByteArray(InputStream in) {
         try {

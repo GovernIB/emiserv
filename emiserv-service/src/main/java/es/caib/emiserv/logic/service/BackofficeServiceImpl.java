@@ -17,7 +17,6 @@ import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
-import es.caib.emiserv.logic.intf.util.BackofficeClassloader;
 import es.caib.emiserv.persist.entity.BackofficePeticioEntity;
 import es.caib.emiserv.persist.entity.BackofficeSolicitudEntity;
 import es.caib.emiserv.persist.entity.ServeiEntity;

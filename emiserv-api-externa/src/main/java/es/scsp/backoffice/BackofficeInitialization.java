@@ -1,10 +1,11 @@
 package es.scsp.backoffice;
 
-import es.caib.emiserv.logic.intf.util.BackofficeClassloader;
+import es.caib.emiserv.logic.intf.service.ScspService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.type.ClassMetadata;
@@ -25,6 +26,9 @@ import java.util.Set;
  */
 @Slf4j
 @Component
+@PropertySource(ignoreResourceNotFound = true, value = {
+//        "file://${" + ScspService.APP_PROPERTIES + "}",
+        "file://${" + ScspService.APP_SYSTEM_PROPERTIES + "}"})
 public class BackofficeInitialization {
 
     @Autowired
@@ -36,7 +40,9 @@ public class BackofficeInitialization {
     public void loadBackofficeClasses() throws IOException {
         log.info("BKO - Inicialitzant classes del backoffice...");
         backofficeClassloader = new BackofficeClassloader();
-        backofficeClassloader.setBackofficeJarPath(env.getProperty("es.caib.emiserv.backoffice.jar.path"));
+        String backofficeJarPath = env.getProperty("es.caib.emiserv.backoffice.jar.path");
+        if (backofficeJarPath != null && !backofficeJarPath.isEmpty())
+            backofficeClassloader.setBackofficeJarPath(backofficeJarPath);
         List<String> backofficeClassNames = getBackofficeClasses();
         Set<String> backofficeJarClassNames = backofficeClassloader.getClassNamesFromBackofficeJarFile();
         backofficeClassNames.retainAll(backofficeJarClassNames);
