@@ -3,23 +3,11 @@
  */
 package es.caib.emiserv.logic.intf.service;
 
-import java.util.List;
-
+import es.caib.emiserv.logic.intf.dto.*;
+import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import es.caib.emiserv.logic.intf.dto.AplicacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritatCertificacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritzacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritzacioFiltreDto;
-import es.caib.emiserv.logic.intf.dto.ClauPrivadaDto;
-import es.caib.emiserv.logic.intf.dto.ClauPublicaDto;
-import es.caib.emiserv.logic.intf.dto.EmisorDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeCessionariDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeFiltreDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.exception.NotFoundException;
+import java.util.List;
 
 /**
  * Mètodes per a gestionar else manteniments d'informació SCSP.
@@ -235,7 +223,7 @@ public interface ScspService {
 	/**
 	 * Crea una nova autorització per a accedir a un servei.
 	 * 
-	 * @param aplicacio
+	 * @param autoritzacio
 	 *            Informació de l'autorització a crear.
 	 * @return L'autorització creada.
 	 */
@@ -246,7 +234,7 @@ public interface ScspService {
 	/**
 	 * Modifica una autorització per a accedir a un servei.
 	 * 
-	 * @param aplicacio
+	 * @param autoritzacio
 	 *            Informació de l'autorització a crear.
 	 * @throws NotFoundException
 	 *             Si no s'ha trobat cap autorització amb l'id especificat.
@@ -416,4 +404,26 @@ public interface ScspService {
 	 */
 	public void propagateScspPropertiesToDb();
 
+	/**
+	 * Consulta el llistat de informació de activació de mòduls scsp
+	 * @return El llistat de mòduls SCSP
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public PaginaDto<ScspModulDto> getScspModuls(PaginacioParamsDto paginacioParams);
+
+	/**
+	 * consulta un mòdul SCSP donat el seu nom
+	 *
+	 * @param nom Nom del mòdul a consultar
+	 * @return
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public ScspModulDto getScspModul(String nom) throws NotFoundException;
+
+	/**
+	 * Actualitza la informació de activació del mòdul scsp
+	 * @param modulDto Informació del mòdul scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	void updateScspModul(ScspModulDto modulDto) throws NotFoundException;
 }
