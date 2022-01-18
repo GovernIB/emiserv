@@ -23,7 +23,7 @@ public class BackofficeClassloader extends ClassLoader {
 
     public BackofficeClassloader() {
         super(getContextClassloader());
-        backofficeJarPath = BackofficeClassloader.class.getClassLoader().getResource("").getPath().substring(0, BackofficeClassloader.class.getClassLoader().getResource("").getPath().indexOf("/modules/")) + "/backoffice/backoffice.jar";
+        backofficeJarPath = getDefaultBackofficeJarPath();
 
         File backofficeFile = new File(backofficeJarPath);
         if (!backofficeFile.exists()) {
@@ -183,6 +183,18 @@ public class BackofficeClassloader extends ClassLoader {
         return System.getSecurityManager() != null ?
                 AccessController.doPrivileged((PrivilegedAction<ClassLoader>) () -> Thread.currentThread().getContextClassLoader()) :
                 Thread.currentThread().getContextClassLoader();
+    }
+
+    private String getDefaultBackofficeJarPath() {
+        String serverResourcePath = BackofficeClassloader.class.getClassLoader().getResource("").getPath();
+        if (serverResourcePath != null && !serverResourcePath.isEmpty()) {
+            if (serverResourcePath.contains("/modules/"))
+                return BackofficeClassloader.class.getClassLoader().getResource("").getPath().substring(0, BackofficeClassloader.class.getClassLoader().getResource("").getPath().indexOf("/modules/")) + "/backoffice/backoffice.jar";
+            else
+                return serverResourcePath + "/backoffice.jar";
+        } else {
+            return new File("").getAbsolutePath() + "/backoffice.jar";
+        }
     }
 
     private static byte[] toByteArray(InputStream in) {

@@ -24,7 +24,7 @@ public class BackofficeClassloader extends ClassLoader {
     public BackofficeClassloader() {
         super(getContextClassloader());
         if (backofficeJarPath == null || backofficeJarPath.isEmpty()) {
-            backofficeJarPath = BackofficeClassloader.class.getClassLoader().getResource("").getPath().substring(0, BackofficeClassloader.class.getClassLoader().getResource("").getPath().indexOf("/modules/")) + "/backoffice/backoffice.jar";
+            backofficeJarPath = getDefaultBackofficeJarPath();
         }
     }
 
@@ -40,6 +40,18 @@ public class BackofficeClassloader extends ClassLoader {
         urls.addAll(Collections.list(resources));
         return Collections.enumeration(urls);
 
+    }
+
+    private String getDefaultBackofficeJarPath() {
+        String serverResourcePath = BackofficeClassloader.class.getClassLoader().getResource("").getPath();
+        if (serverResourcePath != null && !serverResourcePath.isEmpty()) {
+            if (serverResourcePath.contains("/modules/"))
+                return BackofficeClassloader.class.getClassLoader().getResource("").getPath().substring(0, BackofficeClassloader.class.getClassLoader().getResource("").getPath().indexOf("/modules/")) + "/backoffice/backoffice.jar";
+            else
+                return serverResourcePath + "/backoffice.jar";
+        } else {
+            return new File("").getAbsolutePath() + "/backoffice.jar";
+        }
     }
 
     private Set<URL> getBackofficeJarResourceUrls() throws IOException {
