@@ -190,6 +190,7 @@ body {
 									<li><a href="<c:url value="/scsp/claupublica"/>"><spring:message code="decorator.menu.config.claus.publiques"/></a></li>
 									<li><a href="<c:url value="/scsp/clauprivada"/>"><spring:message code="decorator.menu.config.claus.privades"/></a></li>
 									<li><a href="<c:url value="/scsp/autoritatca"/>"><spring:message code="decorator.menu.config.autoritatca"/></a></li>
+									<li><a href="<c:url value="/scsp/modul"/>"><spring:message code="decorator.menu.config.modul"/></a></li>
 								</ul>
 							</div>
 						</c:if>

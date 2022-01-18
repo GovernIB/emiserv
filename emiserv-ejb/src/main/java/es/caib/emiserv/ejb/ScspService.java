@@ -3,25 +3,13 @@
  */
 package es.caib.emiserv.ejb;
 
-import java.util.List;
+import es.caib.emiserv.logic.intf.dto.*;
+import es.caib.emiserv.logic.intf.exception.NotFoundException;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
-
-import es.caib.emiserv.logic.intf.dto.AplicacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritatCertificacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritzacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritzacioFiltreDto;
-import es.caib.emiserv.logic.intf.dto.ClauPrivadaDto;
-import es.caib.emiserv.logic.intf.dto.ClauPublicaDto;
-import es.caib.emiserv.logic.intf.dto.EmisorDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeCessionariDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeFiltreDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.exception.NotFoundException;
+import java.util.List;
 
 /**
  * Implementació de ServeiService com a EJB que empra una clase
@@ -298,6 +286,21 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	@PermitAll
 	public void propagateScspPropertiesToDb() {
 		getDelegateService().propagateScspPropertiesToDb();
+	}
+
+	@Override
+	public PaginaDto<ScspModulDto> getScspModuls(PaginacioParamsDto paginacioParams) {
+		return getDelegateService().getScspModuls(paginacioParams);
+	}
+
+	@Override
+	public ScspModulDto getScspModul(String nom) throws NotFoundException {
+		return getDelegateService().getScspModul(nom);
+	}
+
+	@Override
+	public void updateScspModul(ScspModulDto modulDto) throws NotFoundException {
+		getDelegateService().updateScspModul(modulDto);
 	}
 
 }
