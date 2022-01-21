@@ -9,9 +9,12 @@ pageContext.setAttribute(
 		"idioma",
 		org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).getLanguage());
 pageContext.setAttribute(
+		"resolverIdioma",
+		org.springframework.web.servlet.support.RequestContextUtils.getLocaleResolver(request).resolveLocale(request).getLanguage());
+pageContext.setAttribute(
 		"rolActual",
 		es.caib.emiserv.back.helper.RolHelper.getRolActual(request));
-pageContext.setAttribute(
+	pageContext.setAttribute(
 		"rolsUsuariActual",
 		es.caib.emiserv.back.helper.RolHelper.getRolsUsuariActual(request));
 pageContext.setAttribute(
@@ -23,6 +26,7 @@ pageContext.setAttribute(
 pageContext.setAttribute(
 		"requestParameterCanviRol",
 		es.caib.emiserv.back.helper.RolHelper.getRequestParameterCanviRol());
+pageContext.setAttribute("springLang", pageContext.getAttribute("org.springframework.web.servlet.tags.REQUEST_CONTEXT"));
 %>
 <c:set var="hiHaEntitats" value="${fn:length(sessionEntitats) > 0}"/>
 <c:set var="hiHaMesEntitats" value="${fn:length(sessionEntitats) > 1}"/>
@@ -47,6 +51,8 @@ pageContext.setAttribute(
 	<script src="<c:url value="/webjars/bootstrap/3.3.6/dist/js/bootstrap.min.js"/>"></script>
 	<decorator:head />
 <script type="text/javascript">
+// resolverIdioma: '${resolverIdioma}';
+// responseLocale: '${pageContext.response.locale}';
 var requestLocale = '${idioma}';
 $(document).ready(function() {
     $('a#logout').click(function(event) {

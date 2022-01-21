@@ -1,14 +1,14 @@
 package es.caib.emiserv.back.helper;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import es.caib.emiserv.logic.intf.service.AplicacioService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
-import es.caib.emiserv.logic.intf.service.AplicacioService;
-import lombok.extern.slf4j.Slf4j;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Locale;
 
 /**
  * Helper per a gestionar l'idioma (locale) de l'usuari.
@@ -25,11 +25,18 @@ public class LocaleHelper {
 			HttpServletResponse response,
 			AplicacioService aplicacioService,
 			boolean forsarRefresc) {
+
+		// Logs per problemes amb idioma
+		if ("/emiservback/servei".equals(request.getRequestURI())) {
+			log.trace("[LOCALEH] Request language: '{}'", request.getLocale());
+			log.trace("[LOCALEH] Response language: '{}'", response.getLocale());
+		}
+
 		String sessionLocale = (String)RequestSessionHelper.obtenirObjecteSessio(
 				request,
 				SESSION_ATTRIBUTE_LOCALE);
 		if (forsarRefresc || (request.getUserPrincipal() != null && sessionLocale == null)) {
-			log.debug("Refrescant locale de la sessió d'usuari (" +
+			log.debug("[LOCALEH] Refrescant locale de la sessió d'usuari (" +
 					"request.userPrincipal=" + request.getUserPrincipal().getName() + ", " +
 					"sessionLocale=" + sessionLocale + ", " +
 					"forsarRefresc=" + forsarRefresc + ")");
@@ -38,14 +45,16 @@ public class LocaleHelper {
 			if (idiomaUsuariActual == null) {
 				idiomaUsuariActual = localeResolver.resolveLocale(request).getLanguage().substring(0, 2);
 				log.debug(
-						"No hi ha idioma configurat per l'usuari " + request.getUserPrincipal().getName() + ", " +
-						"configurant idioma obtingut del localeResolver: " + idiomaUsuariActual);
+						"[LOCALEH] No hi ha idioma configurat per l'usuari " + request.getUserPrincipal().getName() + ", " +
+						"idioma obtingut del localeResolver: " + idiomaUsuariActual);
 			} else {
-				log.debug("Idioma configurat a les preferències de l'usuari " + request.getUserPrincipal() + ": " + idiomaUsuariActual);
+				log.debug("[LOCALEH] Idioma configurat a les preferències de l'usuari " + request.getUserPrincipal() + ": " + idiomaUsuariActual);
+				Locale locale = StringUtils.parseLocaleString(idiomaUsuariActual.toLowerCase());
+				log.debug("[LOCALEH] Configurant localeResolver amb locale " + locale);
 				localeResolver.setLocale(
 						request,
 						response,
-						StringUtils.parseLocaleString(idiomaUsuariActual.toLowerCase()));
+						locale);
 			}
 			RequestSessionHelper.actualitzarObjecteSessio(
 					request,
