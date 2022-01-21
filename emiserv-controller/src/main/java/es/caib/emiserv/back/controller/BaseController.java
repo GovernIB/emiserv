@@ -4,6 +4,7 @@
 package es.caib.emiserv.back.controller;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServletRequest;
@@ -11,17 +12,24 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
+import org.springframework.context.i18n.LocaleContext;
+import org.springframework.web.servlet.LocaleContextResolver;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.support.RequestContext;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
+import es.caib.emiserv.back.config.WebMvcConfig.CustomLocaleResolver;
 import es.caib.emiserv.back.helper.AjaxHelper;
 import es.caib.emiserv.back.helper.MissatgeHelper;
 import es.caib.emiserv.back.helper.ModalHelper;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Controlador base que implementa funcionalitats comunes.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Slf4j
 public class BaseController implements MessageSourceAware {
 
 	MessageSource messageSource;
@@ -172,7 +180,7 @@ public class BaseController implements MessageSourceAware {
 				key,
 				args,
 				"???" + key + "???",
-				new RequestContext(request).getLocale());
+				getLocaleFromRequest(request));
 		return message;
 	}
 	protected String getMessage(
@@ -183,6 +191,26 @@ public class BaseController implements MessageSourceAware {
 
 	public void setMessageSource(MessageSource messageSource) {
 		this.messageSource = messageSource;
+	}
+
+	private Locale getLocaleFromRequest(HttpServletRequest request) {
+		Locale locale = null;
+		LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+		log.trace("[LOCALE] is CustomLocaleResolver:" + (localeResolver instanceof CustomLocaleResolver));
+		if (localeResolver instanceof LocaleContextResolver) {
+			LocaleContext localeContext = ((LocaleContextResolver) localeResolver).resolveLocaleContext(request);
+			locale = localeContext.getLocale();
+			log.trace("[LOCALE] new RequestContext 1:" + locale);
+		}
+		else if (localeResolver != null) {
+			// Try LocaleResolver (we're within a DispatcherServlet request).
+			locale = localeResolver.resolveLocale(request);
+			log.trace("[LOCALE] new RequestContext 2:" + locale);
+		}
+		locale = new RequestContext(request).getLocale();
+		log.trace("[LOCALE] requestContext:" + locale);
+		log.trace("[LOCALE] request:" + request.getLocale());
+		return locale;
 	}
 
 }

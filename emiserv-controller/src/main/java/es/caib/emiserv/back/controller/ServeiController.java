@@ -3,6 +3,19 @@
  */
 package es.caib.emiserv.back.controller;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.Validator;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import es.caib.emiserv.back.command.ServeiCommand;
 import es.caib.emiserv.back.command.ServeiCommand.TipusBackoffice;
 import es.caib.emiserv.back.command.ServeiCommand.TipusEnrutador;
@@ -17,19 +30,6 @@ import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.BackofficeService;
 import es.caib.emiserv.logic.intf.service.ServeiService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.Validator;
 
 /**
  * Controlador per al manteniment de serveis.
@@ -37,7 +37,6 @@ import javax.validation.Validator;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Controller
-@Slf4j
 @RequestMapping("/servei")
 public class ServeiController extends BaseController {
 
