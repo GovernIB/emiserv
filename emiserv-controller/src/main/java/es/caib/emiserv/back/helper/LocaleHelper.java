@@ -28,8 +28,8 @@ public class LocaleHelper {
 
 		// Logs per problemes amb idioma
 		if ("/emiservback/servei".equals(request.getRequestURI())) {
-			log.trace("[LOCALEH] Request language: '{}'", request.getLocale());
-			log.trace("[LOCALEH] Response language: '{}'", response.getLocale());
+			log.debug("[LOCALEH] Request language: '{}'", request.getLocale());
+			log.debug("[LOCALEH] Response language: '{}'", response.getLocale());
 		}
 
 		String sessionLocale = (String)RequestSessionHelper.obtenirObjecteSessio(

@@ -192,6 +192,10 @@ public class BaseController implements MessageSourceAware {
 	}
 
 	private Locale getLocaleFromRequest(HttpServletRequest request) {
+
+		log.debug("[LOCALE] messageSourceClass: {}", messageSource.getClass());
+		log.debug("[LOCALE] messageSource: {}", messageSource.toString());
+
 		Locale locale = null;
 		LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
 		log.debug("[LOCALE] is CustomLocaleResolver:" + (localeResolver instanceof CustomLocaleResolver));
