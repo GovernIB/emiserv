@@ -26,12 +26,6 @@ public class LocaleHelper {
 			AplicacioService aplicacioService,
 			boolean forsarRefresc) {
 
-		// Logs per problemes amb idioma
-		if ("/emiservback/servei".equals(request.getRequestURI())) {
-			log.debug("[LOCALEH] Request language: '{}'", request.getLocale());
-			log.debug("[LOCALEH] Response language: '{}'", response.getLocale());
-		}
-
 		String sessionLocale = (String)RequestSessionHelper.obtenirObjecteSessio(
 				request,
 				SESSION_ATTRIBUTE_LOCALE);
