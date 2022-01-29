@@ -92,6 +92,8 @@ $(document).ready(function() {
 			<div class="col-md-4">
 				<emi:inputText name="numeroPeticio" placeholderKey="auditoria.list.filtre.numero.peticio" inline="true"/>
 			</div>
+		</div>
+		<div class="row">
 			<div class="col-md-4 pull-right">
 				<div class="pull-right">
 					<button type="submit" name="accio" value="netejar" class="btn btn-default"><spring:message code="comu.boto.netejar"/></button>
