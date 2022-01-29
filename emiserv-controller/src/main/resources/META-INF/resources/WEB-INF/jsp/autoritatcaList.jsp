@@ -19,9 +19,9 @@
 	<table id="autoritatsca" data-toggle="datatable" data-url="autoritatca/datatable" data-search-enabled="false" data-botons-template="#botonsTemplate" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
-				<th data-col-name="codca" data-orderable="false"><spring:message code="autoritatca.list.taula.columna.codi" /></th>
 				<th data-col-name="nombre"><spring:message code="autoritatca.list.taula.columna.nom" /></th>
-				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%"> 
+				<th data-col-name="codca" data-orderable="false"><spring:message code="autoritatca.list.taula.columna.codi" /></th>
+				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%">
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="btn-group">
 							<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.accions"/>&nbsp;<span class="caret"></span></a>

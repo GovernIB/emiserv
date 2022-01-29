@@ -29,8 +29,8 @@ pageContext.setAttribute(
 	<c:set var="formAction"><emi:modalUrl value="/scsp/autoritatca/save"/></c:set>
 	<form:form action="${formAction}" method="post" cssClass="form-horizontal" modelAttribute="autoritzacioCaCommand">
 		<form:hidden path="id"/>
-		<emi:inputText name="codca" required="true" inline="false" textKey="autoritatca.form.camp.codi"/>
-		<emi:inputText name="nombre" required="true" inline="false" textKey="autoritatca.form.camp.nom"/>
+		<emi:inputText name="nombre" required="true" inline="false" textKey="autoritatca.form.camp.nom" labelSize="2"/>
+		<emi:inputTextarea name="codca" required="true" textKey="autoritatca.form.camp.codi" labelSize="2"/>
 		<div id="modal-botons" class="well">
 			<button type="submit" class="btn btn-success"><span class="fa fa-save"></span> <spring:message code="comu.boto.guardar"/></button>
 			<a href="<c:url value="/scsp/autoritatca"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.cancelar"/></a>
