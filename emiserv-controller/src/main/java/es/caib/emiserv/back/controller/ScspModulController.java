@@ -5,7 +5,6 @@ package es.caib.emiserv.back.controller;
 
 import es.caib.emiserv.back.command.ScspModulCommand;
 import es.caib.emiserv.back.helper.DatatablesHelper;
-import es.caib.emiserv.back.helper.MessageHelper;
 import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.ScspModulDto;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
@@ -44,7 +43,7 @@ public class ScspModulController extends BaseController {
 			HttpServletRequest request) {
 		PaginaDto<ScspModulDto> scspModuls = scspService.getScspModuls(DatatablesHelper.getPaginacioDtoFromRequest(request));
 		scspModuls.forEach(m -> {
-			String desc = MessageHelper.getInstance().getMessage("modul.descripcio." + m.getNom());
+			String desc = getMessage(request, "modul.descripcio." + m.getNom());
 			if (desc != null)
 				m.setDescripcio(desc);
 		});
@@ -57,7 +56,7 @@ public class ScspModulController extends BaseController {
 	@RequestMapping(value="/{nom}", method = RequestMethod.GET)
 	public String get(HttpServletRequest request, @PathVariable String nom,  Model model) throws Exception {
 		ScspModulDto modul = scspService.getScspModul(nom);
-		String descripcio = MessageHelper.getInstance().getMessage("modul.descripcio." + modul.getNom());
+		String descripcio = getMessage(request, "modul.descripcio." + modul.getNom());
 		if (descripcio != null)
 			modul.setDescripcio(descripcio);
 		model.addAttribute(ScspModulCommand.toCommand(modul));
