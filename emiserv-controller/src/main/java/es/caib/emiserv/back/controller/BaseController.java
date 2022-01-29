@@ -3,19 +3,17 @@
  */
 package es.caib.emiserv.back.controller;
 
-import java.io.IOException;
-
-import javax.activation.MimetypesFileTypeMap;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import es.caib.emiserv.back.helper.AjaxHelper;
+import es.caib.emiserv.back.helper.MissatgeHelper;
+import es.caib.emiserv.back.helper.ModalHelper;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
 import org.springframework.web.servlet.support.RequestContext;
 
-import es.caib.emiserv.back.helper.AjaxHelper;
-import es.caib.emiserv.back.helper.MissatgeHelper;
-import es.caib.emiserv.back.helper.ModalHelper;
+import javax.activation.MimetypesFileTypeMap;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * Controlador base que implementa funcionalitats comunes.

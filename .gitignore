@@ -3,3 +3,6 @@
 /.project
 /.classpath
 /republish.sh
+/emiserv-boot/src/main/resources/emiserv.properties
+.idea/
+*.iml

@@ -592,6 +592,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 						filtre.getDataInici(),
 						filtre.getDataFi() == null,
 						filtre.getDataFi(),
+						filtre.getNumeroPeticio() == null || filtre.getNumeroPeticio().isEmpty(),
+						filtre.getNumeroPeticio() != null ? filtre.getNumeroPeticio() : "",
 						paginacioHelper.toSpringDataPageable(paginacioParams)),
 				AuditoriaPeticioDto.class,
 				new Converter<RedireccioPeticioEntity, AuditoriaPeticioDto>() {

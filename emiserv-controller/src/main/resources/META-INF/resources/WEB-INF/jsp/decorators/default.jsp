@@ -5,24 +5,24 @@
 <%@ taglib tagdir="/WEB-INF/tags/emiserv" prefix="emi" %>
 <%@ taglib uri="http://www.opensymphony.com/sitemesh/decorator" prefix="decorator"%>
 <%
-pageContext.setAttribute(
-		"idioma",
-		org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).getLanguage());
-pageContext.setAttribute(
-		"rolActual",
-		es.caib.emiserv.back.helper.RolHelper.getRolActual(request));
-pageContext.setAttribute(
-		"rolsUsuariActual",
-		es.caib.emiserv.back.helper.RolHelper.getRolsUsuariActual(request));
-pageContext.setAttribute(
-		"isRolActualAdministrador",
-		es.caib.emiserv.back.helper.RolHelper.isUsuariActualAdministrador(request));
-pageContext.setAttribute(
-		"isRolActualResponsable",
-		es.caib.emiserv.back.helper.RolHelper.isUsuariActualResponsable(request));
-pageContext.setAttribute(
-		"requestParameterCanviRol",
-		es.caib.emiserv.back.helper.RolHelper.getRequestParameterCanviRol());
+	pageContext.setAttribute(
+			"idioma",
+			org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).getLanguage());
+	pageContext.setAttribute(
+			"rolActual",
+			es.caib.emiserv.back.helper.RolHelper.getRolActual(request));
+	pageContext.setAttribute(
+			"rolsUsuariActual",
+			es.caib.emiserv.back.helper.RolHelper.getRolsUsuariActual(request));
+	pageContext.setAttribute(
+			"isRolActualAdministrador",
+			es.caib.emiserv.back.helper.RolHelper.isUsuariActualAdministrador(request));
+	pageContext.setAttribute(
+			"isRolActualResponsable",
+			es.caib.emiserv.back.helper.RolHelper.isUsuariActualResponsable(request));
+	pageContext.setAttribute(
+			"requestParameterCanviRol",
+			es.caib.emiserv.back.helper.RolHelper.getRequestParameterCanviRol());
 %>
 <c:set var="hiHaEntitats" value="${fn:length(sessionEntitats) > 0}"/>
 <c:set var="hiHaMesEntitats" value="${fn:length(sessionEntitats) > 1}"/>
@@ -186,10 +186,11 @@ body {
 								</button>
 								<ul class="dropdown-menu">
 									<li><a href="<c:url value="/aplicacio"/>"><spring:message code="decorator.menu.config.aplicacions"/></a></li>
-									<li><a href="<c:url value="/organisme"/>"><spring:message code="decorator.menu.config.organismes"/></a></li>
+									<li><a href="<c:url value="/organismeCessionari"/>"><spring:message code="decorator.menu.config.organismes"/></a></li>
 									<li><a href="<c:url value="/scsp/claupublica"/>"><spring:message code="decorator.menu.config.claus.publiques"/></a></li>
 									<li><a href="<c:url value="/scsp/clauprivada"/>"><spring:message code="decorator.menu.config.claus.privades"/></a></li>
 									<li><a href="<c:url value="/scsp/autoritatca"/>"><spring:message code="decorator.menu.config.autoritatca"/></a></li>
+									<li><a href="<c:url value="/scsp/modul"/>"><spring:message code="decorator.menu.config.modul"/></a></li>
 								</ul>
 							</div>
 						</c:if>

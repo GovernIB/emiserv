@@ -70,7 +70,7 @@ public class OrganismeCessionariController extends BaseController {
 					SESSION_ATTRIBUTE_FILTRE,
 					filtre);
 		}
-		return "redirect:organisme";
+		return "redirect:organismeCessionari";
 	}
 
 	@RequestMapping(value = "/datatable", method = RequestMethod.GET)
@@ -131,13 +131,13 @@ public class OrganismeCessionariController extends BaseController {
 			scspService.organismeCessionariUpdate(OrganismeCessionariCommand.toDto(command));
 			return getModalControllerReturnValueSuccess(
 					request,
-					"redirect:organisme",
+					"redirect:../organismeCessionari",
 					"organisme.controller.modificat.ok");
 		} else {
 			scspService.organismeCessionariCreate(OrganismeCessionariCommand.toDto(command));
 			return getModalControllerReturnValueSuccess(
 					request,
-					"redirect:organisme",
+					"redirect:../organismeCessionari",
 					"organisme.controller.creat.ok");
 		}
 	}
@@ -149,7 +149,7 @@ public class OrganismeCessionariController extends BaseController {
 		scspService.organismeCessionariDelete(id);
 		return getAjaxControllerReturnValueSuccess(
 				request,
-				"redirect:../../organisme",
+				"redirect:../../organismeCessionari",
 				"organisme.controller.esborrat.ok");
 	}
 

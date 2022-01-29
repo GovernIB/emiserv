@@ -3,13 +3,18 @@
  */
 package es.caib.emiserv.logic.service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import es.caib.emiserv.logic.helper.ConversioTipusHelper;
+import es.caib.emiserv.logic.helper.PaginacioHelper;
+import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
+import es.caib.emiserv.logic.helper.PropertiesHelper;
+import es.caib.emiserv.logic.intf.dto.*;
+import es.caib.emiserv.logic.intf.exception.NotFoundException;
+import es.caib.emiserv.logic.intf.service.ScspService;
+import es.caib.emiserv.persist.entity.ServeiEntity;
+import es.caib.emiserv.persist.entity.scsp.*;
+import es.caib.emiserv.persist.repository.ServeiRepository;
+import es.caib.emiserv.persist.repository.scsp.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,43 +23,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import es.caib.emiserv.logic.helper.ConversioTipusHelper;
-import es.caib.emiserv.logic.helper.PaginacioHelper;
-import es.caib.emiserv.logic.helper.PropertiesHelper;
-import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
-import es.caib.emiserv.logic.intf.dto.AplicacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritatCertificacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritzacioDto;
-import es.caib.emiserv.logic.intf.dto.AutoritzacioFiltreDto;
-import es.caib.emiserv.logic.intf.dto.ClauPrivadaDto;
-import es.caib.emiserv.logic.intf.dto.ClauPublicaDto;
-import es.caib.emiserv.logic.intf.dto.EmisorDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeCessionariDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeFiltreDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.exception.NotFoundException;
-import es.caib.emiserv.logic.intf.service.ScspService;
-import es.caib.emiserv.persist.entity.ServeiEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreClavePrivadaEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreClavePublicaEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAplicacionEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionAutoridadCertEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionCertificadoEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionOrganismoEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreOrganismoCessionarioEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
-import es.caib.emiserv.persist.repository.ServeiRepository;
-import es.caib.emiserv.persist.repository.scsp.ScspCoreClavePrivadaRepository;
-import es.caib.emiserv.persist.repository.scsp.ScspCoreClavePublicaRepository;
-import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAplicacionRepository;
-import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionAutoridadCertRepository;
-import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionCertificadoRepository;
-import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionOrganismoRepository;
-import es.caib.emiserv.persist.repository.scsp.ScspCoreOrganismoCessionarioRepository;
-import es.caib.emiserv.persist.repository.scsp.ScspCoreServicioRepository;
-import lombok.extern.slf4j.Slf4j;
+import java.util.*;
 
 /**
  * Implementació dels mètodes per a gestionar els manteniments
@@ -79,11 +48,15 @@ public class ScspServiceImpl implements ScspService {
 	@Autowired
 	private ScspCoreEmAutorizacionCertificadoRepository scspCoreEmAutorizacionCertificadoRepository;
 	@Autowired
+	private ScspCoreEmisorCertificadoRepository scspCoreEmisorCertificadoRepository;
+	@Autowired
 	private ScspCoreClavePrivadaRepository clauPrivadaRepository;
 	@Autowired
 	private ScspCoreClavePublicaRepository clauPublicaRepository;
 	@Autowired
 	private ScspCoreOrganismoCessionarioRepository scspCoreOrganismoCessionarioRepository;
+	@Autowired
+	private ScspCoreModuloRepository scspCoreModuloRepository;
 	@Autowired
 	private PropertiesHelper propertiesHelper;
 	@Autowired
@@ -265,9 +238,9 @@ public class ScspServiceImpl implements ScspService {
 		mapeigOrdenacio.put("nom", "nombreOrganismo");
 		Page<ScspCoreEmAutorizacionOrganismoEntity> page = scspCoreEmAutorizacionOrganismoRepository.findByFiltrePaginat(
 				(filtre.getNom() == null || filtre.getNom().isEmpty()),
-				filtre.getNom() != null ? filtre.getNom(): "",
+				(filtre.getNom() != null && !filtre.getNom().isEmpty()) ? filtre.getNom(): "",
 				(filtre.getCif() == null || filtre.getCif().isEmpty()),
-				filtre.getCif(),
+				(filtre.getCif() != null && !filtre.getCif().isEmpty()) ? filtre.getCif(): "",
 				paginacioHelper.toSpringDataPageable(
 						paginacioParams,
 						mapeigOrdenacio));
@@ -367,9 +340,9 @@ public class ScspServiceImpl implements ScspService {
 				"paginacioParams=" + paginacioParams + ")");
 		Page<ScspCoreOrganismoCessionarioEntity> page = scspCoreOrganismoCessionarioRepository.findByFiltrePaginat(
 				(filtre == null || filtre.getNom() == null || filtre.getNom().isEmpty()),
-				filtre != null ? filtre.getNom() : null,
+				filtre != null && filtre.getNom() != null ? filtre.getNom() : "",
 				(filtre == null || filtre.getCif() == null || filtre.getCif().isEmpty()),
-				filtre != null ? filtre.getCif() : null,
+				filtre != null && filtre.getCif() != null ? filtre.getCif() : "",
 				paginacioHelper.toSpringDataPageable(paginacioParams));
 		return paginacioHelper.toPaginaDto(
 				page,
@@ -504,8 +477,8 @@ public class ScspServiceImpl implements ScspService {
 		return paginacioHelper.toPaginaDto(
 				scspCoreEmAutorizacionCertificadoRepository.findByFiltre(
 						servicio, 
-						filtre.getAplicacio() == null || filtre.getAplicacio().length() == 0, 
-						filtre.getAplicacio(), 
+						filtre.getAplicacio() == null || filtre.getAplicacio().isEmpty(), 
+						(filtre.getAplicacio() != null && !filtre.getAplicacio().isEmpty()) ? filtre.getAplicacio() : "", 
 						organisme == null,
 						organisme,
 						paginacioHelper.toSpringDataPageable(
@@ -524,13 +497,13 @@ public class ScspServiceImpl implements ScspService {
 	@Override
 	public List<EmisorDto> emissorFindAll() {
 		log.debug("Consulta la llista d'emissors SCSP");
-		List<Object[]> emissors = scspCoreServicioRepository.findScspEmisorCertificadoAll();
+		List<ScspCoreEmisorCertificadoEntity> emissors = scspCoreEmisorCertificadoRepository.findAll();
 		List<EmisorDto> resposta = new ArrayList<EmisorDto>();
-		for (Object[] emisor: emissors) {
+		for (ScspCoreEmisorCertificadoEntity emissor: emissors) {
 			EmisorDto e = new EmisorDto();
-			e.setId(((BigDecimal)emisor[0]).longValue());
-			e.setCif((String)emisor[1]);
-			e.setNom((String)emisor[2]);
+			e.setId(emissor.getId());
+			e.setCif(emissor.getCif());
+			e.setNom(emissor.getNombre());
 			resposta.add(e);
 		}
 		return resposta;
@@ -540,34 +513,18 @@ public class ScspServiceImpl implements ScspService {
 	@Override
 	public List<ClauPublicaDto> clauPublicaFindAll() {
 		log.debug("Consulta la llista de claus públiques SCSP");
-		List<Object[]> claus = scspCoreServicioRepository.findScspClavePublicaAll();
-		List<ClauPublicaDto> resposta = new ArrayList<ClauPublicaDto>();
-		for (Object[] clau: claus) {
-			ClauPublicaDto c = new ClauPublicaDto();
-			c.setId(((BigDecimal)clau[0]).longValue());
-			c.setAlies((String)clau[1]);
-			c.setNom((String)clau[2]);
-			c.setNumSerie((String)clau[3]);
-			resposta.add(c);
-		}
-		return resposta;
+		return conversioTipusHelper.convertirList(
+				clauPublicaRepository.findAll(),
+				ClauPublicaDto.class);
 	}
 
 	@Transactional(readOnly = true)
 	@Override
 	public List<ClauPrivadaDto> clauPrivadaFindAll() {
-		log.debug("Consulta la llista de claus públiques SCSP");
-		List<Object[]> claus = scspCoreServicioRepository.findScspClavePrivadaAll();
-		List<ClauPrivadaDto> resposta = new ArrayList<ClauPrivadaDto>();
-		for (Object[] clau: claus) {
-			ClauPrivadaDto c = new ClauPrivadaDto();
-			c.setId(((BigDecimal)clau[0]).longValue());
-			c.setAlies((String)clau[1]);
-			c.setNom((String)clau[2]);
-			c.setNumSerie((String)clau[3]);
-			resposta.add(c);
-		}
-		return resposta;
+		log.debug("Consulta la llista de claus privades SCSP");
+		return conversioTipusHelper.convertirList(
+				clauPrivadaRepository.findAll(),
+				ClauPrivadaDto.class);
 	}
 
 	@Transactional(readOnly = true)
@@ -829,6 +786,39 @@ public class ScspServiceImpl implements ScspService {
 	@Transactional
 	public void propagateScspPropertiesToDb() {
 		propertiesHelper.propagateScspPropertiesToDb();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PaginaDto<ScspModulDto> getScspModuls(PaginacioParamsDto paginacioParams) {
+		log.debug("Obtenint el llistat de mòduls SCSP");
+		Pageable pageable = paginacioHelper.toSpringDataPageable(paginacioParams);
+		Page<ScspCoreModuloEntity> page = scspCoreModuloRepository.findAll(pageable);
+		return paginacioHelper.toPaginaDto(page, ScspModulDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ScspModulDto getScspModul(String nom) throws NotFoundException {
+		log.debug("Obtenint el mòdul SCSP amb nom: {}", nom);
+		ScspCoreModuloEntity modul = scspCoreModuloRepository.getOne(nom);
+		if (modul == null) {
+			log.debug("No s'ha trobat el mòdul scsp (nom = {})", nom);
+			throw new NotFoundException(nom, ScspCoreModuloEntity.class);
+		}
+		return conversioTipusHelper.convertir(modul, ScspModulDto.class);
+	}
+
+	@Override
+	@Transactional
+	public void updateScspModul(ScspModulDto modulDto) throws NotFoundException {
+		log.debug("Obtenint el mòdul SCSP amb nom: {}", modulDto.getNom());
+		ScspCoreModuloEntity modul = scspCoreModuloRepository.getOne(modulDto.getNom());
+		if (modul == null) {
+			log.debug("No s'ha trobat el mòdul scsp (nom = {})", modulDto.getNom());
+			throw new NotFoundException(modulDto.getNom(), ScspCoreModuloEntity.class);
+		}
+		modul.update(modulDto.isActiuEntrada(), modulDto.isActiuSortida());
 	}
 
 	private AplicacioDto toAplicacioDto(

@@ -16,6 +16,7 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.RequestContext;
 import org.springframework.web.servlet.view.document.AbstractXlsView;
 
@@ -26,6 +27,7 @@ import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Component("informeGeneralEstatExcelView")
 public class InformeGeneralEstatExcelView extends AbstractXlsView implements MessageSourceAware {
 
 	private MessageSource messageSource;
@@ -156,7 +158,11 @@ public class InformeGeneralEstatExcelView extends AbstractXlsView implements Mes
 			dadaCell = filaDada.createCell(columnaInicial + 10);
 			dadaCell.setCellValue(informeDada.getPeticionsErronies());
 		}
-		autoSize(sheet, 11);
+		try {
+			autoSize(sheet, 11);
+		} catch (Exception ex) {
+			logger.error("No ha estat possible fer l'autoSize de les columnes", ex);
+		}
 	}
 
 	public void setMessageSource(MessageSource messageSource) {

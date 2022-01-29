@@ -3,18 +3,15 @@
  */
 package es.caib.emiserv.back.helper;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
+import java.util.*;
 
 /**
  * Helper per a marcar peticions AJAX.
@@ -114,7 +111,8 @@ public class AjaxHelper {
 									objectError.getObjectName(),
 									MessageHelper.getInstance().getMessage(	
 											objectError.getCode(),
-											objectError.getArguments())));
+											objectError.getArguments(),
+											LocaleContextHolder.getLocale())));
 				}
 				this.errorsCamps = new ArrayList<AjaxFormError>();
 				for (FieldError fieldError: bindingResult.getFieldErrors()) {
@@ -124,7 +122,7 @@ public class AjaxHelper {
 									MessageHelper.getInstance().getMessage(
 											fieldError.getCodes(),
 											fieldError.getArguments(),
-											null)));
+											LocaleContextHolder.getLocale())));
 				}
 				this.estat = AjaxFormEstatEnum.ERROR;
 			} else {

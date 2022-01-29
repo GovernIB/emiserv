@@ -22,6 +22,7 @@ public class AuditoriaFiltreDto {
 	private Date dataFi;
 	private String funcionariNom;
 	private String funcionariDocument;
+	private String numeroPeticio;
 	
 	public String getProcediment() {
 		return procediment;
@@ -70,6 +71,12 @@ public class AuditoriaFiltreDto {
 	}
 	public void setFuncionariDocument(String funcionariDocument) {
 		this.funcionariDocument = funcionariDocument;
+	}
+	public String getNumeroPeticio() {
+		return numeroPeticio;
+	}
+	public void setNumeroPeticio(String numeroPeticio) {
+		this.numeroPeticio = numeroPeticio;
 	}
 
 	@Override

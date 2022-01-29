@@ -3,10 +3,7 @@
  */
 package es.caib.emiserv.persist.entity.scsp;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  *  Classe de model de dades per a la taula CORE_TOKEN_DATA.
@@ -23,6 +20,7 @@ public class ScspCoreTokenDataEntity {
 	// SCSP tipo mensaje: 0-peticion, 1-confirmacionPeticion, 2-solicitudRespuesta, 3-respuesta, 4-fault
 	@Column(name = "tipomensaje", length = 64, nullable = false)
 	private int tipoMensaje;
+	@Lob
 	@Column(name = "datos")
 	private String datos;
 

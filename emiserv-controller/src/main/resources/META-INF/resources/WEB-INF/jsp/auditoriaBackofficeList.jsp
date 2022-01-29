@@ -92,11 +92,14 @@ $(document).ready(function() {
 			<div class="col-md-2">
 				<emi:inputDate name="dataFi" inline="true" placeholderKey="auditoria.list.filtre.data.fi"/>
 			</div>
-			<div class="col-md-2">
-				<emi:inputText name="funcionariNom" placeholderKey="auditoria.list.filtre.funcionari.nom" inline="true"/>
-			</div>
-			<div class="col-md-2">
-				<emi:inputText name="funcionariDocument" placeholderKey="auditoria.list.filtre.funcionari.document" inline="true"/>
+<%--			<div class="col-md-2">--%>
+<%--				<emi:inputText name="funcionariNom" placeholderKey="auditoria.list.filtre.funcionari.nom" inline="true"/>--%>
+<%--			</div>--%>
+<%--			<div class="col-md-2">--%>
+<%--				<emi:inputText name="funcionariDocument" placeholderKey="auditoria.list.filtre.funcionari.document" inline="true"/>--%>
+<%--			</div>--%>
+			<div class="col-md-4">
+				<emi:inputText name="numeroPeticio" placeholderKey="auditoria.list.filtre.numero.peticio" inline="true"/>
 			</div>
 			<div class="col-md-4 pull-right">
 				<div class="pull-right">
@@ -125,7 +128,7 @@ $(document).ready(function() {
 					<spring:message code="auditoria.list.columna.servei"/>
 					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiDescripcio}}</script>
 				</th>
-				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%">
+				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%" data-orderable="false">
 					<spring:message code="auditoria.list.columna.estat"/>
 					<script id="cellEstatTemplate" type="text/x-jsrender">
 						{{if estat == 'PENDENT'}}

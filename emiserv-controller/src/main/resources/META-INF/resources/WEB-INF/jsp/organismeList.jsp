@@ -6,7 +6,7 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <html>
 <head>
-	<title><spring:message code="organisme.list.titol"/></title>
+	<title><spring:message code="organisme.cessionari.list.titol"/></title>
 	<script src="<c:url value="/webjars/datatables.net/1.10.19/js/jquery.dataTables.min.js"/>"></script>
 	<script src="<c:url value="/webjars/datatables.net-bs/1.10.19/js/dataTables.bootstrap.min.js"/>"></script>
 	<link href="<c:url value="/webjars/datatables.net-bs/1.10.19/css/dataTables.bootstrap.min.css"/>" rel="stylesheet"></link>
@@ -50,7 +50,7 @@
 						<div class="dropdown">
 							<button class="btn btn-primary" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.boto.accions"/>&nbsp;<span class="caret"></span></button>
 							<ul class="dropdown-menu">
-								<li><a href="organismeCessionari/{{:id}}" data-toggle="modal"><span class="fa fa-pencil"></span>&nbsp;&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
+								<li><a href="organismeCessionari/{{:id}}" data-toggle="modal" data-reload-on-close="false"><span class="fa fa-pencil"></span>&nbsp;&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
 								<li><a href="organismeCessionari/{{:id}}/delete" data-confirm="<spring:message code="organisme.list.confirmacio.esborrar"/>"><span class="fa fa-trash-o"></span>&nbsp;&nbsp;<spring:message code="comu.boto.esborrar"/></a></li>
 							</ul>
 						</div>
@@ -60,6 +60,6 @@
 		</thead>
 	</table>
 	<script id="botonsTemplate" type="text/x-jsrender">
-		<a id="accio-new" class="btn btn-default pull-right" href="organismeCessionari/new" data-toggle="modal" data-datatable-id="organismes"><span class="fa fa-plus"></span>&nbsp;<spring:message code="organisme.list.boto.nou.organisme"/></a>
+		<a id="accio-new" class="btn btn-default pull-right" href="organismeCessionari/new" data-toggle="modal" data-reload-on-close="false" data-datatable-id="organismes"><span class="fa fa-plus"></span>&nbsp;<spring:message code="organisme.list.boto.nou.organisme"/></a>
 	</script>
 </body>

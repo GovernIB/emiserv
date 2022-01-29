@@ -8,6 +8,7 @@
 	<deployment>
 		<dependencies>
 			<module name="org.keycloak.keycloak-core" export="TRUE"/>
+<!--			<module name="es.caib.emiserv.backoffice"/>-->
 		</dependencies>
 	</deployment>
 	<ear-subdeployments-isolated>false</ear-subdeployments-isolated>
@@ -15,6 +16,9 @@
 		<exclude-subsystems>
 			<subsystem name="jsf"/>
 		</exclude-subsystems>
+<!--		<resources>-->
+<!--			<resource-root path="backoffice.jar"/>-->
+<!--		</resources>-->
 	</sub-deployment>
 	<sub-deployment name="emiserv-api-externa.war">
 		<exclude-subsystems>
@@ -25,6 +29,10 @@
 		</exclusions>
 		<dependencies>
 			<module name="deployment.emiserv-service-intf"/>
+<!--			<module name="es.caib.emiserv.backoffice"/>-->
 		</dependencies>
+<!--		<resources>-->
+<!--			<resource-root path="backoffice.jar"/>-->
+<!--		</resources>-->
 	</sub-deployment>
 </jboss-deployment-structure>

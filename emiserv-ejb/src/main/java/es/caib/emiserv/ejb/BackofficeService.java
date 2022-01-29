@@ -3,21 +3,16 @@
  */
 package es.caib.emiserv.ejb;
 
-import java.util.List;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ejb.Stateless;
-
-import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
-import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
-import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
+import es.caib.emiserv.logic.intf.dto.*;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.ejb.Stateless;
+import java.util.List;
 
 /**
  * Implementació de BackofficeService com a EJB que empra una clase
@@ -159,6 +154,12 @@ public class BackofficeService extends AbstractService<es.caib.emiserv.logic.int
 	@PermitAll
 	public void peticioBackofficeAsyncProcessarPendents() {
 		getDelegateService().peticioBackofficeAsyncProcessarPendents();
+	}
+
+	@Override
+	@RolesAllowed("EMS_ADMIN")
+	public List<String> getBackofficeClasses() {
+		return getDelegateService().getBackofficeClasses();
 	}
 
 }

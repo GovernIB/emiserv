@@ -3,39 +3,12 @@
  */
 package es.caib.emiserv.logic.service;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.Permission;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import es.caib.emiserv.logic.helper.BackofficeHelper;
+import es.caib.emiserv.logic.helper.*;
 import es.caib.emiserv.logic.helper.BackofficeHelper.ConfirmacionPeticionAmbException;
 import es.caib.emiserv.logic.helper.BackofficeHelper.RespuestaAmbException;
-import es.caib.emiserv.logic.helper.ConversioTipusHelper;
-import es.caib.emiserv.logic.helper.PaginacioHelper;
 import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
-import es.caib.emiserv.logic.helper.PermisosHelper;
 import es.caib.emiserv.logic.helper.PermisosHelper.ObjectIdentifierExtractor;
-import es.caib.emiserv.logic.helper.SecurityHelper;
-import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
-import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
-import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
-import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
+import es.caib.emiserv.logic.intf.dto.*;
 import es.caib.emiserv.logic.intf.exception.BackofficeException;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
@@ -58,6 +31,24 @@ import es.caib.emiserv.persist.repository.scsp.ScspCoreServicioRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTokenDataRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.type.ClassMetadata;
+import org.springframework.core.type.filter.AbstractClassTestingTypeFilter;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Permission;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Implementació del servei de backoffice.
@@ -93,6 +84,9 @@ public class BackofficeServiceImpl implements BackofficeService {
 	private SecurityHelper securityHelper;
 	@Autowired
 	private BackofficeHelper backofficeHelper;
+
+	@Autowired
+	private BackofficeClassloader backofficeClassloader;
 
 //	@Transactional(readOnly = true)
 //	@Override
@@ -199,6 +193,8 @@ public class BackofficeServiceImpl implements BackofficeService {
 						filtre.getDataFi(),
 						nomesServeisPermesos,
 						codisServeisPermesos,
+						filtre.getNumeroPeticio() == null || filtre.getNumeroPeticio().isEmpty(),
+						filtre.getNumeroPeticio() != null ? filtre.getNumeroPeticio() : "",
 						paginacioHelper.toSpringDataPageable(
 								paginacioParams,
 								mapeigOrdenacio)),
@@ -550,6 +546,33 @@ public class BackofficeServiceImpl implements BackofficeService {
 				backofficeHelper.processarPeticioPendent(peticio.getId());
 			}
 		}
+	}
+
+	@Override
+	public List<String> getBackofficeClasses() {
+
+		List<String> resposta = new ArrayList<>();
+		try {
+			ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
+			provider.addIncludeFilter(new AbstractClassTestingTypeFilter() {
+				@Override
+				protected boolean match(ClassMetadata metadata) {
+					for (String interfaceName : metadata.getInterfaceNames()) {
+						if ("es.scsp.common.backoffice.BackOffice".equals(interfaceName))
+							return true;
+					}
+					return false;
+				}
+			});
+			provider.setResourceLoader(new PathMatchingResourcePatternResolver(backofficeClassloader));
+			Set<BeanDefinition> components = provider.findCandidateComponents("es/caib/emiserv/backoffice");
+			for (BeanDefinition component : components) {
+				resposta.add(component.getBeanClassName());
+			}
+		} catch (Exception e) {
+			log.error("No ha estat possible carregar les classes de backoffice", e);
+		}
+		return resposta;
 	}
 
 	private String toEstatScsp(PeticioEstatEnumDto estat) {

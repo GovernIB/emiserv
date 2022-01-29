@@ -30,7 +30,8 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			"and (:esNullProcediment = true or exists (from RedireccioSolicitudEntity rs where rs.peticio.peticioId = rp.peticioId and rs.procedimentCodi = :procediment)) " +
 			"and (:esNullEstat = true or (:esError = true and substring(rp.estat, 1, 2) != '00') or (:esError = false and rp.estat = :estat)) " +
 			"and (:esNullDataInici = true or rp.dataPeticio >= :dataInici) " +
-			"and (:esNullDataFi = true or rp.dataPeticio <= :dataFi)")
+			"and (:esNullDataFi = true or rp.dataPeticio <= :dataFi)" +
+			"and (:esNullPeticioId = true or lower(rp.peticioId) like lower('%'||:peticioId||'%'))")
 	Page<RedireccioPeticioEntity> findByFiltrePaginat(
 			@Param("esNullProcediment") boolean esNullProcediment,
 			@Param("procediment") String procediment,
@@ -43,6 +44,8 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			@Param("dataInici") Date dataInici,
 			@Param("esNullDataFi") boolean esNullDataFi,
 			@Param("dataFi") Date dataFi,
+			@Param("esNullPeticioId") boolean esNullPeticioId,
+			@Param("peticioId") String peticioId,
 			Pageable pageable);
 
 	List<RedireccioPeticioEntity> findByPeticioIdAndServeiCodi(

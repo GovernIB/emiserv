@@ -30,7 +30,8 @@ public interface ScspCorePeticionRespuestaRepository extends JpaRepository<ScspC
 			"and (:esNullEstat = true or (:esError = true and substring(scp.estado, 1, 2) != '00') or (:esError = false and scp.estado = :estat)) " +
 			"and (:esNullDataInici = true or scp.fechaPeticion >= :dataInici) " +
 			"and (:esNullDataFi = true or scp.fechaPeticion <= :dataFi) " +
-			"and (:nomesServeisPermesos = false or scp.certificado in (:serveisPermesos))")
+			"and (:nomesServeisPermesos = false or scp.certificado in (:serveisPermesos)) " +
+			"and (:esNullPeticioId = true or lower(scp.peticionId) like lower('%'||:peticioId||'%'))")
 	Page<ScspCorePeticionRespuestaEntity> findByFiltrePaginat(
 			@Param("esNullProcediment") boolean esNullProcediment,
 			@Param("procediment") String procediment,
@@ -45,6 +46,8 @@ public interface ScspCorePeticionRespuestaRepository extends JpaRepository<ScspC
 			@Param("dataFi") Date dataFi,
 			@Param("nomesServeisPermesos") boolean nomesServeisPermesos,
 			@Param("serveisPermesos") List<String> serveisPermesos,
+			@Param("esNullPeticioId") boolean esNullPeticioId,
+			@Param("peticioId") String peticioId,
 			Pageable pageable);
 
 	ScspCorePeticionRespuestaEntity findByPeticionId(String peticionId);
