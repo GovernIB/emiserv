@@ -110,7 +110,8 @@ $(document).ready(function() {
 				<th data-col-name="error" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiDescripcio" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="dataPeticio" data-converter="datetime" width="15%"><spring:message code="auditoria.list.columna.data"/></th>
-				<th data-col-name="peticioId" width="25%"><spring:message code="auditoria.list.columna.num.peticio"/></th>
+				<th data-col-name="peticioId" width="15%"><spring:message code="auditoria.list.columna.num.peticio"/></th>
+				<th data-col-name="procedimentNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
 					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiDescripcio}}</script>

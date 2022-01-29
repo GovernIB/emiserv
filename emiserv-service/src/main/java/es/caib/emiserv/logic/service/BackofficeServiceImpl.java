@@ -23,6 +23,7 @@ import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCorePeticionRespuestaEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreTokenDataEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreTransmisionEntity;
 import es.caib.emiserv.persist.repository.BackofficePeticioRepository;
 import es.caib.emiserv.persist.repository.BackofficeSolicitudRepository;
 import es.caib.emiserv.persist.repository.ServeiRepository;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implementació del servei de backoffice.
@@ -632,6 +634,9 @@ public class BackofficeServiceImpl implements BackofficeService {
 						backofficePeticio.getComunicacioDarrera().getError() != null);
 			}
 		}
+		List<ScspCoreTransmisionEntity> transmissions = scspCoreTransmisionRepository.findByPeticionIdOrderBySolicitudIdAsc(peticionRespuesta.getPeticionId());
+		peticio.setProcedimentCodi(transmissions.stream().map(t -> t.getProcedimientoCodigo()).distinct().collect(Collectors.joining(", ")));
+		peticio.setProcedimentNom(transmissions.stream().map(t -> t.getProcedimientoNombre()).distinct().collect(Collectors.joining(", ")));
 		return peticio;
 	}
 

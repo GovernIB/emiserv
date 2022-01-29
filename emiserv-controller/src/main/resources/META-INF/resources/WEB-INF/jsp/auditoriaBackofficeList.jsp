@@ -120,12 +120,13 @@ $(document).ready(function() {
 				<th data-col-name="sincrona" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="processadesPercent" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="dataPeticio" data-converter="datetime" width="15%"><spring:message code="auditoria.list.columna.data"/></th>
-				<th data-col-name="peticioId" data-template="#cellPeticioIdTemplate" width="25%">
+				<th data-col-name="peticioId" data-template="#cellPeticioIdTemplate" width="15%">
 					<script id="cellPeticioIdTemplate" type="text/x-jsrender">
 						{{:peticioId}}{{if !sincrona}}<span class="label label-default pull-right" title="<spring:message code="auditoria.list.asincrona"/>">A</span>{{/if}}
 					</script>
 					<spring:message code="auditoria.list.columna.num.peticio"/>
 				</th>
+				<th data-col-name="procedimentNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
 					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiDescripcio}}</script>
