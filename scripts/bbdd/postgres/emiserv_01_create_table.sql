@@ -350,7 +350,7 @@ COMMENT ON COLUMN core_em_secuencia_idtrans.prefijo IS 'Prefijo de IdTransmision
 
 COMMENT ON COLUMN core_em_secuencia_idtrans.secuencia IS 'Valor actual de la secuencia alfanumérica asociada al prefijo';
 
-COMMENT ON COLUMN core_em_secuencia_idtrans.fechageneracio IS 'Última fecha en la que se ha generado un valor de secuencia';
+COMMENT ON COLUMN core_em_secuencia_idtrans.fechageneracion IS 'Última fecha en la que se ha generado un valor de secuencia';
 
 CREATE TABLE core_req_secuencia_id_peticion (prefijo VARCHAR(9) NOT NULL, secuencia VARCHAR(23) NOT NULL, fechageneracion TIMESTAMP WITHOUT TIME ZONE NOT NULL, CONSTRAINT core_req_secuencia_id_pet_pk PRIMARY KEY (prefijo));
 
