@@ -1,0 +1,220 @@
+databaseChangeLog:
+- property:
+    name: now
+    value: sysdate
+    dbms: oracle
+- property:
+    name: now
+    value: now()
+    dbms: postgresql
+- changeSet:
+    id: 1643536278328-1
+    author: limit
+    changes:
+    - createTable:
+        tableName: ems_config_group
+        columns:
+            - column:
+                name: code
+                type: varchar(128)
+                constraints:
+                    nullable: false
+            - column:
+                name: parent_code
+                type: varchar(128)
+            - column:
+                name: position
+                type: tinyint
+                constraints:
+                    nullable: false
+            - column:
+                name: description_ca
+                type: varchar(512)
+                constraints:
+                    nullable: false
+            - column:
+                name: description_es
+                type: varchar(512)
+                constraints:
+                  nullable: false
+    - addPrimaryKey:
+        columnNames: code
+    - sql:
+        dbms: oracle
+        sql: grant select, update, insert, delete on ems_config_group to www_emiserv;
+    - insert:
+        tableName: ems_config_group
+        columns:
+        - column:
+            name: code
+            value: GENERAL
+        - column:
+            name: position
+            value: 0
+        - column:
+            name: description_ca
+            value: Configuracions generals
+        - column:
+            name: description_es
+            value: Configuraciones generales
+    - insert:
+        tableName: ems_config_group
+        columns:
+          - column:
+              name: code
+              value: SCSP
+          - column:
+              name: position
+              value: 1
+          - column:
+              name: description_ca
+              value: Configuracions SCSP
+          - column:
+              name: description_es
+              value: Configuraciones SCSP
+    - createTable:
+        tableName: ems_config_type
+        columns:
+          - column:
+              name: code
+              type: varchar(128)
+              constraints:
+                nullable: false
+          - column:
+              name: value
+              type: varchar(2048)
+          - addPrimaryKey:
+              columnNames: code
+          - sql:
+              dbms: oracle
+              sql: grant select, update, insert, delete on ems_config_group to www_emiserv;
+    - insert:
+        tableName: ems_config_type
+        columns:
+          - column:
+              name: code
+              value: BOOL
+    - insert:
+        tableName: ems_config_type
+        columns:
+          - column:
+              name: code
+              value: TEXT
+    - insert:
+        tableName: ems_config_type
+        columns:
+          - column:
+              name: code
+              value: INT
+    - insert:
+        tableName: ems_config_type
+        columns:
+          - column:
+              name: code
+              value: FLOAT
+    - insert:
+        tableName: ems_config_type
+        columns:
+          - column:
+              name: code
+              value: PASSWORD
+    - insert:
+        tableName: ems_config_type
+        columns:
+          - column:
+              name: code
+              value: CRON
+    - insert:
+        tableName: ems_config_type
+        columns:
+          - column:
+              name: code
+              value: DIALECTE
+          - column:
+              name: value
+              value: es.caib.emiserv.persist.dialect.OracleCaibDialect,es.caib.emiserv.persist.dialect.PostgreSqlCaibDialect
+    - createTable:
+        tableName: ems_config
+        columns:
+            - column:
+                name: key
+                type: varchar(256)
+                constraints:
+                    nullable: false
+            - column:
+                  name: value
+                  type: varchar(2048)
+            - column:
+                  name: description_ca
+                  type: varchar(2048)
+            - column:
+                name: description_es
+                type: varchar(2048)
+            - column:
+                  name: group_code
+                  type: varchar(128)
+                  constraints:
+                      nullable: false
+            - column:
+                  name: position
+                  type: tinyint
+                  constraints:
+                      nullable: false
+            - column:
+                  name: jboss_property
+                  type: boolean
+                  constraints:
+                      nullable: false
+            - column:
+                  name: type_code
+                  type: varchar(128)
+            - column:
+                  name: lastmodifiedby_codi
+                  type: varchar(64)
+            - column:
+                  name: lastmodifieddate
+                  type: timestamp
+    - addPrimaryKey:
+        columnNames: key
+    - addForeignKeyConstraint:
+        baseColumnNames: group_code
+        baseTableName: ems_config
+        constraintName: ems_config_group_fk
+        referencedColumnNames: code
+        referencedTableName: ems_config_group
+    - sql:
+        dbms: oracle
+        sql: grant select, update, insert, delete on ems_config to www_emiserv;
+    - insert:
+        tableName: ems_config
+        columns:
+          - column:
+              name: key
+              value: spring.jpa.properties.hibernate.dialect
+          - column:
+              name: value
+              value: es.caib.emiserv.persist.dialect.OracleCaibDialect
+          - column:
+              name: description_ca
+              value: Dialecte de BBDD utilitzat per les taules de l'SCSP
+          - column:
+              name: description_es
+              value: Dialecto de BBDD utilitzado por las tablas del SCSP
+          - column:
+              name: group_code
+              value: GENERAL
+          - column:
+              name: position
+              value: 0
+          - column:
+              name: jboss_property
+              value: 0
+          - column:
+              name: type_code
+              value: DIALECTE
+          - column:
+              name: lastmodifiedby_codi
+              value: initial
+          - column:
+              name: lastmodifieddate
+              value: ${now}
