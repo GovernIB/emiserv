@@ -342,7 +342,7 @@ COMMENT ON COLUMN core_em_backoffice.classname IS 'Nombre completo  de la clase 
 
 COMMENT ON COLUMN core_em_backoffice.ter IS 'Número de horas que harán esperar a un requirente para la generación de una respuesta definitiva ante una petición asíncrona';
 
-CREATE TABLE core_em_secuencia_idtrans (prefijo VARCHAR(9) NOT NULL, secuencia VARCHAR(26) NOT NULL, fechageneracio TIMESTAMP WITHOUT TIME ZONE NOT NULL, CONSTRAINT core_em_secuencia_idtrans_pk PRIMARY KEY (prefijo));
+CREATE TABLE core_em_secuencia_idtrans (prefijo VARCHAR(9) NOT NULL, secuencia VARCHAR(26) NOT NULL, fechageneracion TIMESTAMP WITHOUT TIME ZONE NOT NULL, CONSTRAINT core_em_secuencia_idtrans_pk PRIMARY KEY (prefijo));
 
 COMMENT ON TABLE core_em_secuencia_idtrans IS 'Tabla utilizada para la generación de los valores de los nodos IdTransmisión en los emisores';
 
@@ -350,7 +350,7 @@ COMMENT ON COLUMN core_em_secuencia_idtrans.prefijo IS 'Prefijo de IdTransmision
 
 COMMENT ON COLUMN core_em_secuencia_idtrans.secuencia IS 'Valor actual de la secuencia alfanumérica asociada al prefijo';
 
-COMMENT ON COLUMN core_em_secuencia_idtrans.fechageneracio IS 'Última fecha en la que se ha generado un valor de secuencia';
+COMMENT ON COLUMN core_em_secuencia_idtrans.fechageneracion IS 'Última fecha en la que se ha generado un valor de secuencia';
 
 CREATE TABLE core_req_secuencia_id_peticion (prefijo VARCHAR(9) NOT NULL, secuencia VARCHAR(23) NOT NULL, fechageneracion TIMESTAMP WITHOUT TIME ZONE NOT NULL, CONSTRAINT core_req_secuencia_id_pet_pk PRIMARY KEY (prefijo));
 
