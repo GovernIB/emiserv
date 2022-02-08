@@ -36,7 +36,8 @@
 	<meta name="author" content="Govern de les Illes Balears"/>
 	<script>var requestLocale = '${idioma}';</script>
 	<link href="<c:url value="/webjars/bootstrap/3.3.6/dist/css/bootstrap.min.css"/>" rel="stylesheet"/>
-	<link href="<c:url value="/webjars/font-awesome/4.5.0/css/font-awesome.min.css"/>" rel="stylesheet"/>
+	<link href="<c:url value="/webjars/font-awesome/5.15.4/css/all.min.css"/>" rel="stylesheet"/>
+	<link href="<c:url value="/webjars/font-awesome/5.15.4/css/v4-shims.min.css"/>" rel="stylesheet"/>
 	<link href="<c:url value="/css/estils.css"/>" rel="stylesheet">
 	<link rel="shortcut icon" href="<c:url value="/img/favicon.png"/>" type="image/x-icon" />
 	<script src="<c:url value="/webjars/jquery/1.12.0/dist/jquery.min.js"/>"></script>
@@ -191,6 +192,8 @@ body {
 									<li><a href="<c:url value="/scsp/clauprivada"/>"><spring:message code="decorator.menu.config.claus.privades"/></a></li>
 									<li><a href="<c:url value="/scsp/autoritatca"/>"><spring:message code="decorator.menu.config.autoritatca"/></a></li>
 									<li><a href="<c:url value="/scsp/modul"/>"><spring:message code="decorator.menu.config.modul"/></a></li>
+									<li><a href="<c:url value="/scsp/parametres"/>"><spring:message code="decorator.menu.config.parametres"/></a></li>
+									<li><a href="<c:url value="/config"/>"><spring:message code="decorator.menu.config.properties"/></a></li>
 								</ul>
 							</div>
 						</c:if>

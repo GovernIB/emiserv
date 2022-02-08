@@ -94,9 +94,9 @@
 			<version>3.3.6</version>
 		</dependency>
 		<dependency>
-			<groupId>org.webjars.bower</groupId>
+			<groupId>org.webjars</groupId>
 			<artifactId>font-awesome</artifactId>
-			<version>4.5.0</version>
+			<version>5.15.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars.bower</groupId>

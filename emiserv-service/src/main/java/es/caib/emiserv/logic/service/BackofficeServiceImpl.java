@@ -90,51 +90,6 @@ public class BackofficeServiceImpl implements BackofficeService {
 	@Autowired
 	private BackofficeClassloader backofficeClassloader;
 
-//	@Transactional(readOnly = true)
-//	@Override
-//	public ServeiDto serveiFindByCodi(String codi) {
-//		log.debug(
-//				"Consulta de servei amb codi pel backoffice (" +
-//				"codi=" + codi + ")");
-//		ServeiEntity servei = serveiRepository.findByCodi(codi);
-//		if (servei == null) {
-//			throw new NotFoundException(
-//					codi,
-//					ServeiEntity.class);
-//		}
-//		if (!servei.isActiu()) {
-//			throw new NotActiveException(
-//					codi,
-//					ServeiEntity.class);
-//		}
-//		return conversioTipusHelper.convertir(
-//				servei,
-//				ServeiDto.class);
-//	}
-//
-//	@Transactional(readOnly = true)
-//	@Override
-//	public ServeiConfigScspDto serveiFindConfiguracioScsp(
-//			String codi) {
-//		log.debug("Obté la configuració SCSP del servei per a un backoffice (" +
-//				"codi=" + codi + ")");
-//		ServeiEntity servei = serveiRepository.findByCodi(codi);
-//		if (servei == null) {
-//			throw new NotFoundException(
-//					codi,
-//					ServeiEntity.class);
-//		}
-//		if (!servei.isActiu()) {
-//			throw new NotActiveException(
-//					codi,
-//					ServeiEntity.class);
-//		}
-//		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.findByCodigoCertificado(
-//				servei.getCodi());
-//		return conversioTipusHelper.convertir(
-//				scspCoreServicio,
-//				ServeiConfigScspDto.class);
-//	}
 
 	@Transactional(readOnly = true)
 	@Override
@@ -218,6 +173,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 				}
 			}
 		}
+
 		return resposta;
 	}
 

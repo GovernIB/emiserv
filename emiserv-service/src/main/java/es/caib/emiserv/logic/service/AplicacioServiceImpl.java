@@ -3,18 +3,18 @@
  */
 package es.caib.emiserv.logic.service;
 
-import java.util.Optional;
-
+import es.caib.emiserv.logic.helper.PropertiesHelper;
+import es.caib.emiserv.logic.intf.service.AplicacioService;
+import es.caib.emiserv.persist.entity.UsuariEntity;
+import es.caib.emiserv.persist.repository.UsuariRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import es.caib.emiserv.logic.intf.service.AplicacioService;
-import es.caib.emiserv.persist.entity.UsuariEntity;
-import es.caib.emiserv.persist.repository.UsuariRepository;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
 
 /**
  * Implementació dels mètodes per a gestionar l'aplicació.
@@ -27,6 +27,8 @@ public class AplicacioServiceImpl implements AplicacioService {
 
 	@Autowired
 	private UsuariRepository usuariRepository;
+	@Autowired
+	private PropertiesHelper propertiesHelper;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -58,5 +60,10 @@ public class AplicacioServiceImpl implements AplicacioService {
 					build());
 		}
 	}
+
+    @Override
+    public void propagateDbProperties() {
+		propertiesHelper.reloadDbProperties();
+    }
 
 }

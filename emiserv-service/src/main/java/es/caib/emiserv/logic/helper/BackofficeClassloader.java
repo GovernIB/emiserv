@@ -1,7 +1,8 @@
 package es.caib.emiserv.logic.helper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -18,14 +19,11 @@ import java.util.Set;
 @Component
 public class BackofficeClassloader extends ClassLoader {
 
-    @Value("${es.caib.emiserv.backoffice.jar.path:}")
-    public String backofficeJarPath;
+    @Autowired
+    Environment environment;
 
     public BackofficeClassloader() {
         super(getContextClassloader());
-        if (backofficeJarPath == null || backofficeJarPath.isEmpty()) {
-            backofficeJarPath = getDefaultBackofficeJarPath();
-        }
     }
 
     @Override
@@ -42,7 +40,11 @@ public class BackofficeClassloader extends ClassLoader {
 
     }
 
-    private String getDefaultBackofficeJarPath() {
+    private String getBackofficeJarPath() {
+        String backofficeJarPath = environment.getProperty("es.caib.emiserv.backoffice.jar.path");
+        if (backofficeJarPath != null && !backofficeJarPath.isBlank())
+            return backofficeJarPath;
+
         String serverResourcePath = BackofficeClassloader.class.getClassLoader().getResource("").getPath();
         if (serverResourcePath != null && !serverResourcePath.isEmpty()) {
             if (serverResourcePath.contains("/modules/"))
@@ -58,6 +60,7 @@ public class BackofficeClassloader extends ClassLoader {
 
         Set<URL> urls = new HashSet<>();
 
+        String backofficeJarPath = getBackofficeJarPath();
         File backofficeFile = new File(backofficeJarPath);
         if (backofficeFile.exists()) {
             urls.add(new URL("jar:file:" + backofficeJarPath + "!/"));
