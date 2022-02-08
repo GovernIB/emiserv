@@ -17,7 +17,8 @@ pageContext.setAttribute(
 	<meta name="author" content=""/>
 	<!-- Estils CSS -->
 	<link href="<c:url value="/webjars/bootstrap/3.3.6/dist/css/bootstrap.min.css"/>" rel="stylesheet"/>
-	<link href="<c:url value="/webjars/font-awesome/4.5.0/css/font-awesome.min.css"/>" rel="stylesheet"/>
+	<link href="<c:url value="/webjars/font-awesome/5.15.4/css/all.min.css"/>" rel="stylesheet"/>
+	<link href="<c:url value="/webjars/font-awesome/5.15.4/css/v4-shims.min.css"/>" rel="stylesheet"/>
 	<link href="<c:url value="/css/estils.css"/>" rel="stylesheet">
 	<link rel="shortcut icon" href="<c:url value="/img/favicon.png"/>" type="image/x-icon" />
 	<script src="<c:url value="/webjars/jquery/1.12.0/dist/jquery.min.js"/>"></script>

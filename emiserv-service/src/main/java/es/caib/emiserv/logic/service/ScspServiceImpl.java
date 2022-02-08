@@ -58,6 +58,8 @@ public class ScspServiceImpl implements ScspService {
 	@Autowired
 	private ScspCoreModuloRepository scspCoreModuloRepository;
 	@Autowired
+	private ScspCoreParametroConfiguracionRepository scspCoreParametroConfiguracionRepository;
+	@Autowired
 	private PropertiesHelper propertiesHelper;
 	@Autowired
 	private ConversioTipusHelper conversioTipusHelper;
@@ -782,11 +784,11 @@ public class ScspServiceImpl implements ScspService {
 		scspCoreEmAutorizacionAutoridadCertRepository.delete(entity);
 	}
 
-	@Override
-	@Transactional
-	public void propagateScspPropertiesToDb() {
-		propertiesHelper.propagateScspPropertiesToDb();
-	}
+//	@Override
+//	@Transactional
+//	public void propagateScspPropertiesToDb() {
+//		propertiesHelper.propagateScspPropertiesToDb();
+//	}
 
 	@Override
 	@Transactional(readOnly = true)
@@ -812,13 +814,71 @@ public class ScspServiceImpl implements ScspService {
 	@Override
 	@Transactional
 	public void updateScspModul(ScspModulDto modulDto) throws NotFoundException {
-		log.debug("Obtenint el mòdul SCSP amb nom: {}", modulDto.getNom());
+		log.debug("Actualitzant el mòdul SCSP amb nom: {}", modulDto.getNom());
 		ScspCoreModuloEntity modul = scspCoreModuloRepository.getOne(modulDto.getNom());
 		if (modul == null) {
 			log.debug("No s'ha trobat el mòdul scsp (nom = {})", modulDto.getNom());
 			throw new NotFoundException(modulDto.getNom(), ScspCoreModuloEntity.class);
 		}
 		modul.update(modulDto.isActiuEntrada(), modulDto.isActiuSortida());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioParams) {
+		log.debug("Obtenint el llistat de paràmetres SCSP");
+		Pageable pageable = paginacioHelper.toSpringDataPageable(paginacioParams);
+		Page<ScspCoreParametroConfiguracionEntity> page = scspCoreParametroConfiguracionRepository.findAll(pageable);
+		return paginacioHelper.toPaginaDto(page, ScspParametreDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ScspParametreDto getScspParametre(String nom) {
+		log.debug("Obtenint el paràmetre SCSP amb nom: {}", nom);
+		Optional<ScspCoreParametroConfiguracionEntity> param = scspCoreParametroConfiguracionRepository.findById(nom);
+
+		if (param.isPresent()) {
+			return conversioTipusHelper.convertir(param.get(), ScspParametreDto.class);
+		} else {
+			log.debug("No s'ha trobat el paràmetre scsp (nom = {})", nom);
+			throw new NotFoundException(nom, ScspCoreParametroConfiguracionEntity.class);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void updateScspParametre(ScspParametreDto parametreDto) {
+		log.debug("Actualitzant el paràmetre SCSP amb nom: {}", parametreDto.getNombre());
+		ScspCoreParametroConfiguracionEntity param = scspCoreParametroConfiguracionRepository.getOne(parametreDto.getNombre());
+		if (param == null) {
+			log.debug("No s'ha trobat el paràmetre scsp (nom = {})", parametreDto.getNombre());
+			throw new NotFoundException(parametreDto.getNombre(), ScspCoreParametroConfiguracionEntity.class);
+		}
+		param.update(parametreDto.getValor(), parametreDto.getDescripcion());
+	}
+
+	@Override
+	@Transactional
+	public void createScspParametre(ScspParametreDto parametreDto) {
+		log.debug("Creant el paràmetre SCSP amb nom: {}", parametreDto.getNombre());
+		ScspCoreParametroConfiguracionEntity entity = ScspCoreParametroConfiguracionEntity.builder()
+				.nombre(parametreDto.getNombre())
+				.descripcion(parametreDto.getDescripcion())
+				.valor(parametreDto.getValor())
+				.build();
+		scspCoreParametroConfiguracionRepository.save(entity);
+	}
+
+	@Override
+	public void deleteParametre(String nom) {
+		log.debug("Esborrant el paràmetre SCSP amb nom: {}" + nom);
+		ScspCoreParametroConfiguracionEntity entity = scspCoreParametroConfiguracionRepository.getOne(nom);
+		if (entity == null) {
+			log.debug("No s'ha trobat el paràmetre scsp (nom = {})" + nom);
+			throw new NotFoundException(nom, ScspCoreParametroConfiguracionEntity.class);
+		}
+		scspCoreParametroConfiguracionRepository.delete(entity);
 	}
 
 	private AplicacioDto toAplicacioDto(

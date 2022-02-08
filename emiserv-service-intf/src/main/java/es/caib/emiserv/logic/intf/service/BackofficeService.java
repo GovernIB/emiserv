@@ -246,4 +246,5 @@ public interface BackofficeService {
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
     public List<String> getBackofficeClasses();
+
 }

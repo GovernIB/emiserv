@@ -398,11 +398,11 @@ public interface ScspService {
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public List<OrganismeDto> organismeFindAll();
 
-	/**
-	 * Propaga les propietats dels fitxers de properties de EMISERV a la
-	 * taula core_parametro_configuracion.
-	 */
-	public void propagateScspPropertiesToDb();
+//	/**
+//	 * Propaga les propietats dels fitxers de properties de EMISERV a la
+//	 * taula core_parametro_configuracion.
+//	 */
+//	public void propagateScspPropertiesToDb();
 
 	/**
 	 * Consulta el llistat de informació de activació de mòduls scsp
@@ -426,4 +426,42 @@ public interface ScspService {
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
 	void updateScspModul(ScspModulDto modulDto) throws NotFoundException;
+
+	/**
+	 * Obté tots els paràmetre de configuració de scsp
+	 * @return El llistat dels paràmetres de configuració de scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+    public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioParams);
+
+	/**
+	 * Consulta un parametre SCSP donat el seu nom
+	 *
+	 * @param nom Nom del parametre a consultar
+	 * @return
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public ScspParametreDto getScspParametre(String nom);
+
+	/**
+	 * Actualitza el paràmetre scsp
+	 * @param parametreDto Informació del paràmetre scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	void updateScspParametre(ScspParametreDto parametreDto);
+
+	/**
+	 * Crea el paràmetre scsp
+	 * @param parametreDto Informació del paràmetre scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	void createScspParametre(ScspParametreDto parametreDto);
+
+	/**
+	 * Esborra el paràmetre scsp
+	 * @param nom Nom del paràmetre scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	void deleteParametre(String nom);
+
 }

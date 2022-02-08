@@ -3,15 +3,17 @@
  */
 package es.caib.emiserv.persist.config;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Setter;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Optional;
 
 /**
  * Configuració per a les entitats de base de dades auditables.
@@ -20,10 +22,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @Configuration
 @EnableJpaAuditing
-public class AuditingConfig {
+public class AuditingConfig implements EnvironmentAware {
 
-	@Value("${provacaib.default.auditor:#{null}}")
-	private String defaultAuditor;
+	@Setter
+	private Environment environment;
+
+//	@Value("${es.caib.emiserv.default.auditor:#{null}}")
+//	private String defaultAuditor;
 
 	@Bean
 	public AuditorAware<String> auditorProvider() {
@@ -34,8 +39,8 @@ public class AuditingConfig {
 				if (authentication != null && authentication.isAuthenticated()) {
 					return Optional.of(authentication.getName());
 				}
-				return Optional.ofNullable(
-						(defaultAuditor != null) ? defaultAuditor : "anonymous");
+				return Optional.ofNullable(environment.getProperty("es.caib.emiserv.default.auditor", "anonymous"));
+//						(defaultAuditor != null) ? defaultAuditor : "anonymous");
 			}
 		};
 	}

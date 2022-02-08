@@ -6,7 +6,6 @@ package es.caib.emiserv.ejb;
 import es.caib.emiserv.logic.intf.dto.*;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 import java.util.List;
@@ -282,11 +281,11 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 		getDelegateService().autoritatCertificacioDelete(id);
 	}
 
-	@Override
-	@PermitAll
-	public void propagateScspPropertiesToDb() {
-		getDelegateService().propagateScspPropertiesToDb();
-	}
+//	@Override
+//	@PermitAll
+//	public void propagateScspPropertiesToDb() {
+//		getDelegateService().propagateScspPropertiesToDb();
+//	}
 
 	@Override
 	public PaginaDto<ScspModulDto> getScspModuls(PaginacioParamsDto paginacioParams) {
@@ -301,6 +300,31 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	@Override
 	public void updateScspModul(ScspModulDto modulDto) throws NotFoundException {
 		getDelegateService().updateScspModul(modulDto);
+	}
+
+	@Override
+	public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioDtoFromRequest) {
+		return getDelegateService().getScspParametres(paginacioDtoFromRequest);
+	}
+
+	@Override
+	public ScspParametreDto getScspParametre(String nom) {
+		return getDelegateService().getScspParametre(nom);
+	}
+
+	@Override
+	public void updateScspParametre(ScspParametreDto parametreDto) {
+		getDelegateService().updateScspParametre(parametreDto);
+	}
+
+	@Override
+	public void createScspParametre(ScspParametreDto parametreDto) {
+		getDelegateService().createScspParametre(parametreDto);
+	}
+
+	@Override
+	public void deleteParametre(String nom) {
+		getDelegateService().deleteParametre(nom);
 	}
 
 }

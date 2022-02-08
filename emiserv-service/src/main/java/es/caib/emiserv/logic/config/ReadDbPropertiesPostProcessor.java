@@ -17,7 +17,7 @@ import java.util.Map;
 @Slf4j
 public class ReadDbPropertiesPostProcessor implements EnvironmentPostProcessor {
 
-    private static final String DBAPP_PROPERTIES = "es.caib.emiserv.db.properties";
+    public static final String DBAPP_PROPERTIES = "es.caib.emiserv.db.properties";
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
@@ -33,7 +33,7 @@ public class ReadDbPropertiesPostProcessor implements EnvironmentPostProcessor {
 
             log.debug("Carregant les propietats...");
             Connection connection = dataSource.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement("SELECT key, value FROM ems_config WHERE jboss_property = 0");
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT key, value FROM ems_config WHERE source_property = 'DATABASE'");
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while(resultSet.next()) {
