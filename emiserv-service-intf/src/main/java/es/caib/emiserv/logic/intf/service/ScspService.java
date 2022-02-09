@@ -370,12 +370,14 @@ public interface ScspService {
 	/**
 	 * Consulta les claus privades SCSP disponibles amb paginació.
 	 * 
+	 *
+	 * @param filtre
 	 * @param paginacioParams
 	 *            Paràmetres per a la paginació.
 	 * @return La pàgina de claus privades SCSP.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
-	PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(PaginacioParamsDto paginacioParams);
+	PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(AutoritatCertificacioFiltreDto filtre, PaginacioParamsDto paginacioParams);
 	
 	AutoritatCertificacioDto autoritatCertificacioFindById(Long id) throws NotFoundException;
 	AutoritatCertificacioDto autoritatCertificacioCreate(AutoritatCertificacioDto item);

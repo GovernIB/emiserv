@@ -725,10 +725,16 @@ public class ScspServiceImpl implements ScspService {
 	@Override
 	@Transactional(readOnly = true)
 	public PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(
+            AutoritatCertificacioFiltreDto filtre,
 			PaginacioParamsDto paginacioParams) {
 		log.debug("Consulta de tots les autoritat de certificació");
-		Pageable pageable = paginacioHelper.toSpringDataPageable(paginacioParams); 
-		Page<ScspCoreEmAutorizacionAutoridadCertEntity> page = scspCoreEmAutorizacionAutoridadCertRepository.findAll(pageable);
+		Pageable pageable = paginacioHelper.toSpringDataPageable(paginacioParams);
+		Page<ScspCoreEmAutorizacionAutoridadCertEntity> page = scspCoreEmAutorizacionAutoridadCertRepository.findByFiltrePaginat(
+				(filtre == null || filtre.getNom() == null || filtre.getNom().isEmpty()),
+				filtre != null && filtre.getNom() != null ? filtre.getNom() : "",
+				(filtre == null || filtre.getCodi() == null || filtre.getCodi().isEmpty()),
+				filtre != null && filtre.getCodi() != null ? filtre.getCodi() : "",
+				pageable);
 		return paginacioHelper.toPaginaDto(page, AutoritatCertificacioDto.class);
 	}
 

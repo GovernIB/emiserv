@@ -256,8 +256,8 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 
 	@Override
 	public PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(
-			PaginacioParamsDto paginacioParams) {
-		return getDelegateService().autoritatCertificacioFindByFiltrePaginat(paginacioParams);
+			AutoritatCertificacioFiltreDto filtre, PaginacioParamsDto paginacioParams) {
+		return getDelegateService().autoritatCertificacioFindByFiltrePaginat(filtre, paginacioParams);
 	}
 
 	@Override
