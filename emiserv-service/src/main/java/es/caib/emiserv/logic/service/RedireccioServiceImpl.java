@@ -760,7 +760,18 @@ public class RedireccioServiceImpl implements RedireccioService {
 		List<RedireccioSolicitudEntity> solicituds = redireccioSolicitudRepository.findByPeticioOrderBySolicitudIdAsc(redireccioPeticio);
 		peticio.setProcedimentCodi(solicituds.stream().map(s -> s.getProcedimentCodi()).distinct().collect(Collectors.joining(", ")));
 		peticio.setProcedimentNom(solicituds.stream().map(s -> s.getProcedimentNom()).distinct().collect(Collectors.joining(", ")));
+		peticio.setProcedimentCodiNom(solicituds.stream().map(s -> getCodiNom(s.getProcedimentCodi(),  s.getProcedimentNom())).distinct().collect(Collectors.joining(", ")));
 		return peticio;
+	}
+
+	private String getCodiNom(String codi, String nom) {
+		if ((codi == null || codi.isBlank()) && (nom == null || nom.isBlank()))
+			return null;
+		if (codi == null || codi.isBlank())
+			return nom;
+		if ((nom == null || nom.isBlank()))
+			return codi;
+		return codi + " - " + nom;
 	}
 
 }

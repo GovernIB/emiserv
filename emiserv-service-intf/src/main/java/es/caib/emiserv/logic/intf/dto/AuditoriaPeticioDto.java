@@ -4,7 +4,6 @@
 package es.caib.emiserv.logic.intf.dto;
 
 import lombok.Data;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -39,6 +38,7 @@ public class AuditoriaPeticioDto implements Serializable {
 	// Alerta --> Aquests camps poden ser múltiple en cas de peticions múltiples
 	private String procedimentCodi;
 	private String procedimentNom;
+	private String procedimentCodiNom;
 
 	public int getProcessadesPercent() {
 		if (numTransmissions == 0)
@@ -53,9 +53,14 @@ public class AuditoriaPeticioDto implements Serializable {
 		return !estatScsp.startsWith("00");
 	}
 
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
+	public String getServeiCodiNom() {
+		if ((serveiCodi == null || serveiCodi.isBlank()) && (serveiDescripcio == null || serveiDescripcio.isBlank()))
+			return null;
+		if (serveiCodi == null || serveiCodi.isBlank())
+			return serveiDescripcio;
+		if ((serveiDescripcio == null || serveiDescripcio.isBlank()))
+			return serveiCodi;
+		return serveiCodi + " - " + serveiDescripcio;
 	}
 
 	private static final long serialVersionUID = -139254994389509932L;

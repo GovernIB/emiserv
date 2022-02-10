@@ -51,7 +51,7 @@ $(document).ready(function() {
 							'<tr>' +
 							'<td>' + data[i].solicitudId + '</td>' +
 							'<td>' + data[i].solicitantNom + '</td>' +
-							'<td>' + data[i].procedimentNom + '</td>' +
+							'<td>' + ((data[i].procedimentCodiNom) ? data[i].procedimentCodiNom : '') + '</td>' +
 							'<td>' + data[i].funcionariNom + ' (NIF: ' + data[i].funcionariDocument + ')</td>' +
 							'</tr>');
 				}
@@ -67,16 +67,16 @@ $(document).ready(function() {
 	<form:form action="" method="post" cssClass="well" modelAttribute="auditoriaFiltreCommand">
 		<div class="row">
 			<div class="col-md-4">
-				<emi:inputSelect name="procediment" optionItems="${procediments}" optionValueAttribute="codi" optionTextAttribute="nom" emptyOption="true" placeholderKey="auditoria.list.filtre.procediment" inline="true"/>
+				<emi:inputSelect name="procediment" optionItems="${procediments}" optionValueAttribute="codi" optionTextAttribute="codiNom" emptyOption="true" placeholderKey="auditoria.list.filtre.procediment" inline="true"/>
 			</div>
-			<div class="col-md-4">
-				<emi:inputSelect name="serveiCodi" optionItems="${serveis}" optionValueAttribute="codi" optionTextAttribute="nom" emptyOption="true" placeholderKey="auditoria.list.filtre.servei" inline="true"/>
-			</div>
-			<div class="col-md-4">
-				<emi:inputSelect name="estat" optionItems="${auditoriaEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true"/>
+			<div class="col-md-8">
+				<emi:inputSelect name="serveiCodi" optionItems="${serveis}" optionValueAttribute="codi" optionTextAttribute="codiNom" emptyOption="true" placeholderKey="auditoria.list.filtre.servei" inline="true"/>
 			</div>
 		</div>
 		<div class="row">
+			<div class="col-md-4">
+				<emi:inputSelect name="estat" optionItems="${auditoriaEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true"/>
+			</div>
 			<div class="col-md-2">
 				<emi:inputDate name="dataInici" inline="true" placeholderKey="auditoria.list.filtre.data.inici"/>
 			</div>
@@ -102,19 +102,20 @@ $(document).ready(function() {
 			</div>
 		</div>
 	</form:form>
-	<table id="peticions" data-toggle="datatable" data-url="auditoriaEnrutador/datatable" data-search-enabled="false" data-default-order="4" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
+	<table id="peticions" data-toggle="datatable" data-url="auditoriaEnrutador/datatable" data-search-enabled="false" data-default-order="5" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
 				<th data-col-name="id" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="estat" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="error" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiDescripcio" data-visible="false" data-orderable="false">#</th>
+				<th data-col-name="serveiCodiNom" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="dataPeticio" data-converter="datetime" width="15%"><spring:message code="auditoria.list.columna.data"/></th>
 				<th data-col-name="peticioId" width="15%"><spring:message code="auditoria.list.columna.num.peticio"/></th>
-				<th data-col-name="procedimentNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
+				<th data-col-name="procedimentCodiNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
-					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiDescripcio}}</script>
+					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiCodiNom}}</script>
 				</th>
 				<th data-col-name="estat" data-template="#cellEstadoTemplate">
 					<spring:message code="auditoria.list.columna.estat"/>

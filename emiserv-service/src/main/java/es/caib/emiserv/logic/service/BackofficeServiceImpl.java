@@ -593,9 +593,19 @@ public class BackofficeServiceImpl implements BackofficeService {
 		List<ScspCoreTransmisionEntity> transmissions = scspCoreTransmisionRepository.findByPeticionIdOrderBySolicitudIdAsc(peticionRespuesta.getPeticionId());
 		peticio.setProcedimentCodi(transmissions.stream().map(t -> t.getProcedimientoCodigo()).distinct().collect(Collectors.joining(", ")));
 		peticio.setProcedimentNom(transmissions.stream().map(t -> t.getProcedimientoNombre()).distinct().collect(Collectors.joining(", ")));
+		peticio.setProcedimentCodiNom(transmissions.stream().map(t -> getCodiNom(t.getProcedimientoCodigo(),  t.getProcedimientoNombre())).distinct().collect(Collectors.joining(", ")));
 		return peticio;
 	}
 
+	private String getCodiNom(String codi, String nom) {
+		if ((codi == null || codi.isBlank()) && (nom == null || nom.isBlank()))
+			return null;
+		if (codi == null || codi.isBlank())
+			return nom;
+		if ((nom == null || nom.isBlank()))
+			return codi;
+		return codi + " - " + nom;
+	}
 /*	private void copiarDatosEspecificosPeticion(
 			Peticion peticionOrigen,
 			es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionDesti) {
