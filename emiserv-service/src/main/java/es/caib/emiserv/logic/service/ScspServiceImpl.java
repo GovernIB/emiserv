@@ -853,6 +853,17 @@ public class ScspServiceImpl implements ScspService {
 	}
 
 	@Override
+	public Optional<ScspParametreDto> getOptionalScspParametre(String nom) {
+		log.debug("Obtenint el paràmetre SCSP amb nom: {}", nom);
+		Optional<ScspCoreParametroConfiguracionEntity> param = scspCoreParametroConfiguracionRepository.findById(nom);
+
+		if (param.isPresent()) {
+			return Optional.of(conversioTipusHelper.convertir(param.get(), ScspParametreDto.class));
+		}
+		return Optional.empty();
+	}
+
+	@Override
 	@Transactional
 	public void updateScspParametre(ScspParametreDto parametreDto) {
 		log.debug("Actualitzant el paràmetre SCSP amb nom: {}", parametreDto.getNombre());

@@ -9,6 +9,7 @@ import es.caib.emiserv.persist.entity.UsuariEntity;
 import es.caib.emiserv.persist.repository.UsuariRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,9 @@ public class AplicacioServiceImpl implements AplicacioService {
 	private UsuariRepository usuariRepository;
 	@Autowired
 	private PropertiesHelper propertiesHelper;
+
+	@Autowired
+	private Environment environment;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -65,5 +69,36 @@ public class AplicacioServiceImpl implements AplicacioService {
     public void propagateDbProperties() {
 		propertiesHelper.reloadDbProperties();
     }
+
+//	@Override
+//	public Map<String, String> readProperties() {
+//		Map<String, String> properties = new HashMap<>();
+//
+//		properties.put("es.caib.emiserv.backoffice.caib.auth.password", environment.getProperty("es.caib.emiserv.backoffice.caib.auth.password"));
+//		properties.put("es.caib.emiserv.backoffice.caib.auth.username", environment.getProperty("es.caib.emiserv.backoffice.caib.auth.username"));
+//		properties.put("es.caib.emiserv.backoffice.caib.soap.action", environment.getProperty("es.caib.emiserv.backoffice.caib.soap.action"));
+//		properties.put("es.caib.emiserv.backoffice.jar.path", environment.getProperty("es.caib.emiserv.backoffice.jar.path"));
+//		properties.put("es.caib.emiserv.backoffice.mock", environment.getProperty("es.caib.emiserv.backoffice.mock"));
+//		properties.put("es.caib.emiserv.backoffice.processar.datos.especificos.peticio", environment.getProperty("es.caib.emiserv.backoffice.processar.datos.especificos.peticio"));
+//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.auth.password", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.auth.password"));
+//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.auth.username", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.auth.username"));
+//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.soap.action", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.soap.action"));
+//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPASWS01.processar.datos.especificos.peticio", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPASWS01.processar.datos.especificos.peticio"));
+//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.auth.password", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.auth.password"));
+//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.auth.username", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.auth.username"));
+//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.soap.action", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.soap.action"));
+//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPCWS01.processar.datos.especificos.peticio", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPCWS01.processar.datos.especificos.peticio"));
+//		properties.put("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.auth.password", environment.getProperty("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.auth.password"));
+//		properties.put("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.auth.username", environment.getProperty("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.auth.username"));
+//		properties.put("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.soap.action", environment.getProperty("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.soap.action"));
+//		properties.put("es.caib.emiserv.backoffice.SVDSCDDWS01.processar.datos.especificos.peticio", environment.getProperty("es.caib.emiserv.backoffice.SVDSCDDWS01.processar.datos.especificos.peticio"));
+//		properties.put("es.caib.emiserv.default.auditor", environment.getProperty("es.caib.emiserv.default.auditor"));
+//		properties.put("es.caib.emiserv.security.mappableRoles", environment.getProperty("es.caib.emiserv.security.mappableRoles"));
+//		properties.put("es.caib.emiserv.security.useResourceRoleMappings", environment.getProperty("es.caib.emiserv.security.useResourceRoleMappings"));
+//		properties.put("es.caib.emiserv.tasca.backoffice.async.processar.pendents", environment.getProperty("es.caib.emiserv.tasca.backoffice.async.processar.pendents"));
+//		properties.put("es.caib.emiserv.xsd.base.path", environment.getProperty("es.caib.emiserv.xsd.base.path"));
+//
+//		return properties;
+//	}
 
 }

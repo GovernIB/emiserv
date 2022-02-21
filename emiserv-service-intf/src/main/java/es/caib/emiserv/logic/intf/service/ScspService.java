@@ -8,6 +8,7 @@ import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Mètodes per a gestionar else manteniments d'informació SCSP.
@@ -444,6 +445,15 @@ public interface ScspService {
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
 	public ScspParametreDto getScspParametre(String nom);
+
+	/**
+	 * Consulta un parametre SCSP donat el seu nom
+	 *
+	 * @param nom Nom del parametre a consultar
+	 * @return
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public Optional<ScspParametreDto> getOptionalScspParametre(String nom);
 
 	/**
 	 * Actualitza el paràmetre scsp

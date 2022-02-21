@@ -33,4 +33,9 @@ public class AplicacioService extends AbstractService<es.caib.emiserv.logic.intf
         getDelegateService().propagateDbProperties();
     }
 
+//    @Override
+//    public Map<String, String> readProperties() {
+//        return getDelegateService().readProperties();
+//    }
+
 }

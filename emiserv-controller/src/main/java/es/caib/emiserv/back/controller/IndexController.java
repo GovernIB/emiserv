@@ -56,4 +56,10 @@ public class IndexController {
 		aplicacioService.propagateDbProperties();
 	}
 
+//	@GetMapping(value = "/properties")
+//	@ResponseBody
+//	public Map<String, String> getPRoperties() {
+//		return aplicacioService.readProperties();
+//	}
+
 }

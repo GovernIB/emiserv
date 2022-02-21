@@ -34,4 +34,6 @@ public interface AplicacioService {
 	 * Carrega les propietats de la base de dades a l'environment
 	 */
     public void propagateDbProperties();
+
+//	public Map<String, String> readProperties();
 }

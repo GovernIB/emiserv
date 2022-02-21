@@ -9,6 +9,7 @@ import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementació de ServeiService com a EJB que empra una clase
@@ -310,6 +311,11 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	@Override
 	public ScspParametreDto getScspParametre(String nom) {
 		return getDelegateService().getScspParametre(nom);
+	}
+
+	@Override
+	public Optional<ScspParametreDto> getOptionalScspParametre(String nom) {
+		return getDelegateService().getOptionalScspParametre(nom);
 	}
 
 	@Override
