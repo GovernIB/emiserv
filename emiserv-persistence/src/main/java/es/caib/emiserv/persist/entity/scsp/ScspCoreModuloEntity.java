@@ -3,10 +3,20 @@
  */
 package es.caib.emiserv.persist.entity.scsp;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.Type;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
@@ -35,9 +45,11 @@ public class ScspCoreModuloEntity implements Serializable {
 	private String descripcio;
 	
 	@Column(name = "activoentrada")
+	@Type(type = "org.hibernate.type.NumericBooleanType")
 	private boolean actiuEntrada;
 
 	@Column(name = "activosalida")
+	@Type(type = "org.hibernate.type.NumericBooleanType")
 	private boolean actiuSortida;
 	
 	public void update(
