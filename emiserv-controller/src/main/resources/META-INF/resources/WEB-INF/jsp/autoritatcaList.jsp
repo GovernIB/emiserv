@@ -28,6 +28,13 @@
 			})
 		});
 	</script>
+	<style type="text/css">
+		@media (min-width: 1400px) {
+			.modal-lg {
+				width: 1200px !important;
+			}
+		}
+	</style>
 </head>
 <body>
 	<form:form action="" method="post" cssClass="well" modelAttribute="autoritatCertificacioFiltreDto">
@@ -35,10 +42,12 @@
 			<div class="col-md-4">
 				<emi:inputText name="nom" placeholderKey="autoritatca.list.taula.columna.nom" inline="true"/>
 			</div>
-			<div class="col-md-6">
+			<div class="col-md-8">
 				<emi:inputText name="codi" placeholderKey="autoritatca.list.taula.columna.codi" inline="true"/>
 			</div>
-			<div class="col-md-2">
+		</div>
+		<div class="row">
+			<div class="col-md-2 col-md-offset-10">
 				<div class="pull-right">
 					<button id="b_netejar" type="submit" name="accio" value="netejar" class="btn btn-default"><spring:message code="comu.boto.netejar"/></button>
 					<button id="b_filtrar" type="submit" name="accio" value="filtrar" class="btn btn-primary"><span class="fa fa-filter"></span> <spring:message code="comu.boto.filtrar"/></button>

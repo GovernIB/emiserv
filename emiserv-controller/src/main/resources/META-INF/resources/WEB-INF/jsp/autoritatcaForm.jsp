@@ -30,7 +30,7 @@ pageContext.setAttribute(
 	<form:form action="${formAction}" method="post" cssClass="form-horizontal" modelAttribute="autoritzacioCaCommand">
 		<form:hidden path="id"/>
 		<emi:inputText name="nombre" required="true" inline="false" textKey="autoritatca.form.camp.nom" labelSize="2"/>
-		<emi:inputTextarea name="codca" required="true" textKey="autoritatca.form.camp.codi" labelSize="2"/>
+		<emi:inputTextarea name="codca" required="true" textKey="autoritatca.form.camp.codi" labelSize="2" files="8"/>
 		<div id="modal-botons" class="well">
 			<button type="submit" class="btn btn-success"><span class="fa fa-save"></span> <spring:message code="comu.boto.guardar"/></button>
 			<a href="<c:url value="/scsp/autoritatca"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.cancelar"/></a>
