@@ -3,26 +3,13 @@
  */
 package es.caib.emiserv.logic.intf.service;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-
-import org.springframework.security.access.prepost.PreAuthorize;
-
-import es.caib.emiserv.logic.intf.dto.FitxerDto;
-import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.PermisDto;
-import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
-import es.caib.emiserv.logic.intf.dto.ServeiConfigScspDto;
-import es.caib.emiserv.logic.intf.dto.ServeiDto;
-import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiDto;
-import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
-import es.caib.emiserv.logic.intf.dto.ServeiXsdDto;
-import es.caib.emiserv.logic.intf.dto.XsdTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.*;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Declaració dels mètodes per a la gestió de serveis.
@@ -382,18 +369,5 @@ public interface ServeiService {
 	public void permisDelete(
 			Long id,
 			Long permisId) throws NotFoundException;
-	
-	/** Retorna una llista amb la informació per generar l'informe d'estat general.
-	 * 
-	 * @param dataInici Filtra per data inici.
-	 * @param dataFi Filtra per data fi.
-	 * @param tipusPeticio Filtra per backoffices, enrutador o tots si és null.
-	 * @return Retorna la llista amb la informació.
-	 */
-	@PreAuthorize("hasRole('EMS_ADMIN')")
-	public List<InformeGeneralEstatDto> informeGeneralEstat(
-			Date dataInici,
-			Date dataFi,
-			ServeiTipusEnumDto tipusPeticio);
 
 }

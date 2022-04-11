@@ -6,6 +6,10 @@
 		<pattern>/font*</pattern>
 		<pattern>/nodeco*</pattern>
 		<pattern>/ws*</pattern>
+		<pattern>/api/rest</pattern>
+		<pattern>/api/swagger-ui*</pattern>
+		<pattern>/swagger-ui*</pattern>
+		<pattern>/api-docs*</pattern>
 	</excludes>
 	<decorator name="senseCapNiPeus" page="senseCapNiPeus.jsp">
 	</decorator>

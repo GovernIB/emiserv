@@ -36,6 +36,11 @@
 			<artifactId>emiserv-scsp</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>emiserv-client-intf</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!-- Per a evitar el missatge "warning: unknown enum constant When.MAYBE" al generar javadoc -->
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -148,6 +153,11 @@
 			<artifactId>orika-spring-boot-starter</artifactId>
 			<version>${orika.starter.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>${openapi.version}</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>

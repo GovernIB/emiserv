@@ -27,6 +27,11 @@
 		<servlet-class>org.apache.axis2.transport.http.AxisServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
+	<servlet>
+		<servlet-name>apiexterna</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
 
 	<!--servlet>
 		<servlet-name>AxisAdminServlet</servlet-name>
@@ -49,6 +54,10 @@
 		<servlet-name>AxisAdminServlet</servlet-name>
 		<url-pattern>/axis2-admin/*</url-pattern>
 	</servlet-mapping-->
+	<servlet-mapping>
+		<servlet-name>apiexterna</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
 
 	<mime-mapping>
 		<extension>inc</extension>

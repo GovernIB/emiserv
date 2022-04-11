@@ -3,15 +3,11 @@
  */
 package es.caib.emiserv.back.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-
+import es.caib.emiserv.back.command.InformeCommand;
+import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
+import es.caib.emiserv.back.view.InformeGeneralEstatExcelView;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.logic.intf.service.ExplotacioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -22,11 +18,13 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import es.caib.emiserv.back.command.InformeCommand;
-import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
-import es.caib.emiserv.back.view.InformeGeneralEstatExcelView;
-import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
-import es.caib.emiserv.logic.intf.service.ServeiService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Controlador pels informes de peticions rebudes.
@@ -38,7 +36,7 @@ import es.caib.emiserv.logic.intf.service.ServeiService;
 public class InformeController extends BaseController {
 
 	@Autowired
-	private ServeiService serveiService;
+	private ExplotacioService explotacioService;
 	@Autowired
 	private InformeGeneralEstatExcelView informeView;
 
@@ -71,7 +69,7 @@ public class InformeController extends BaseController {
 		Map<String, Object> viewModel = new HashMap<String, Object>();
 		viewModel.put(
 				"informeDades",
-				serveiService.informeGeneralEstat(
+				explotacioService.informeGeneralEstat(
 						command.getDataInici(), 
 						command.getDataFi(),
 						command.getTipusPeticio()));

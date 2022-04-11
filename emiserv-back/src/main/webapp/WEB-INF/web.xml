@@ -20,6 +20,13 @@
 		<web-resource-collection>
 			<web-resource-name>scspRouting</web-resource-name>
 			<url-pattern>/scspRouting/*</url-pattern>
+			<url-pattern>/swagger-resources/*</url-pattern>
+			<url-pattern>/swagger-ui/*</url-pattern>
+			<url-pattern>/swagger-config/*</url-pattern>
+			<url-pattern>/api/rest</url-pattern>
+			<url-pattern>/api-docs</url-pattern>
+			<url-pattern>/api-docs/*</url-pattern>
+			<url-pattern>/webjars/*</url-pattern>
 		</web-resource-collection>
 	</security-constraint>
 	<security-constraint>

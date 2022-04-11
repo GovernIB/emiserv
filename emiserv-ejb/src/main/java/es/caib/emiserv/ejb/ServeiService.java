@@ -3,26 +3,13 @@
  */
 package es.caib.emiserv.ejb;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
+import es.caib.emiserv.logic.intf.dto.*;
+import es.caib.emiserv.logic.intf.exception.NotFoundException;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
-
-import es.caib.emiserv.logic.intf.dto.FitxerDto;
-import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.PermisDto;
-import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
-import es.caib.emiserv.logic.intf.dto.ServeiConfigScspDto;
-import es.caib.emiserv.logic.intf.dto.ServeiDto;
-import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiDto;
-import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
-import es.caib.emiserv.logic.intf.dto.ServeiXsdDto;
-import es.caib.emiserv.logic.intf.dto.XsdTipusEnumDto;
-import es.caib.emiserv.logic.intf.exception.NotFoundException;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Implementació de ServeiService com a EJB que empra una clase
@@ -208,14 +195,6 @@ public class ServeiService extends AbstractService<es.caib.emiserv.logic.intf.se
 			Long id,
 			Long permisId) {
 		getDelegateService().permisDelete(id, permisId);
-	}
-
-	@Override
-	public List<InformeGeneralEstatDto> informeGeneralEstat(
-			Date dataInici, 
-			Date dataFi,
-			ServeiTipusEnumDto tipusPeticio) {
-		return getDelegateService().informeGeneralEstat(dataInici, dataFi, tipusPeticio);
 	}
 
 }

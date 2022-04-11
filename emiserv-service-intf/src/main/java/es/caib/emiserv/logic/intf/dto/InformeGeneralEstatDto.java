@@ -26,6 +26,7 @@ public class InformeGeneralEstatDto {
 	private Long peticionsErronies;
 
 	public InformeGeneralEstatDto(
+			ServeiTipusEnumDto peticioTipus,
 			String entitatNom,
 			String entitatCif,
 			String departament,
@@ -34,6 +35,33 @@ public class InformeGeneralEstatDto {
 			String serveiCodi,
 			String serveiNom,
 			String emissorCif,
+			Long peticionsCorrectes,
+			Long peticionsErronies) {
+		this(
+				peticioTipus,
+				entitatNom,
+				entitatCif,
+				departament,
+				procedimentCodi,
+				procedimentNom,
+				serveiCodi,
+				serveiNom,
+				emissorCif,
+				null,
+				peticionsCorrectes,
+				peticionsErronies);
+	}
+
+	public InformeGeneralEstatDto(
+			String entitatNom,
+			String entitatCif,
+			String departament,
+			String procedimentCodi,
+			String procedimentNom,
+			String serveiCodi,
+			String serveiNom,
+			String emissorCif,
+			String emissorNom,
 			Long peticionsCorrectes,
 			Long peticionsErronies) {
 		this(
@@ -46,6 +74,7 @@ public class InformeGeneralEstatDto {
 				serveiCodi,
 				serveiNom,
 				emissorCif,
+				emissorNom,
 				peticionsCorrectes,
 				peticionsErronies);
 	}
@@ -60,6 +89,7 @@ public class InformeGeneralEstatDto {
 			String serveiCodi,
 			String serveiNom,
 			String emissorCif,
+			String emissorNom,
 			Long peticionsCorrectes,
 			Long peticionsErronies) {
 		this.peticioTipus = peticioTipus;
@@ -71,6 +101,7 @@ public class InformeGeneralEstatDto {
 		this.serveiCodi = serveiCodi;
 		this.serveiNom = serveiNom;
 		this.emissorCif = emissorCif;
+		this.emissorNom = emissorNom;
 		this.peticionsCorrectes = peticionsCorrectes;
 		this.peticionsErronies =  peticionsErronies;
 	}

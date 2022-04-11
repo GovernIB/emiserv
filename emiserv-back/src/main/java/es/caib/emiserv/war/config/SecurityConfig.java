@@ -3,15 +3,7 @@
  */
 package es.caib.emiserv.war.config;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.representations.AccessToken.Access;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +28,13 @@ import org.springframework.security.web.authentication.preauth.j2ee.J2eeBasedPre
 import org.springframework.security.web.authentication.preauth.j2ee.J2eePreAuthenticatedProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Configuració de seguretat.
@@ -55,6 +53,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private static final String ROLE_PREFIX = "";
 
+	private static final String[] AUTH_WHITELIST = {
+			"/scspRouting/**/*",
+			"/swagger-resources/**",
+			"/swagger-ui/**",
+			"/api/rest",
+			"/api-docs",
+			"/api-docs/**",
+			"/webjars/**"
+	};
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.authenticationProvider(preauthAuthProvider()).
@@ -68,7 +76,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		http.authorizeRequests().
 		//antMatchers("/test").hasRole("tothom").
 		//antMatchers("/api/**/*").permitAll().
-		antMatchers("/scspRouting/**/*").permitAll().
+//		antMatchers("/scspRouting/**/*").permitAll().
+		antMatchers(AUTH_WHITELIST).permitAll().
 		//anyRequest().permitAll();
 		anyRequest().authenticated();
 		http.cors();

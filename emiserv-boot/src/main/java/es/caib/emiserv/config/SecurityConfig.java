@@ -29,6 +29,15 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
 	private static final String ROLE_PREFIX = "";
 
+	private static final String[] AUTH_WHITELIST = {
+			"/scspRouting/**/*",
+			"/swagger-resources/**",
+			"/swagger-ui/**",
+			"/api/rest",
+			"/api-docs",
+			"/webjars/**"
+	};
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		super.configure(http);
@@ -40,7 +49,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 		permitAll(false);
 		http.authorizeRequests().
 		//antMatchers("/test").hasRole("tothom").
-		antMatchers("/scspRouting/**/*").permitAll().
+		antMatchers(AUTH_WHITELIST).permitAll().
 		anyRequest().authenticated();
 		http.cors();
 		http.csrf().disable();

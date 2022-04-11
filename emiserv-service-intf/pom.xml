@@ -47,6 +47,11 @@
 			<artifactId>jakarta.xml.ws-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>es.caib.emiserv</groupId>
+			<artifactId>emiserv-client-intf</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!--dependency>
 			<groupId>es.scsp</groupId>
 			<artifactId>scsp-beans</artifactId>
