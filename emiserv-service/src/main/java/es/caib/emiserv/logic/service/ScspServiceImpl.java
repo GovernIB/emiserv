@@ -259,15 +259,15 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional
 	@Override
-	public OrganismeDto organismeCessionariCreate(
-			OrganismeDto organismo) {
+	public OrganismeCessionariDto organismeCessionariCreate(
+			OrganismeCessionariDto organismo) {
 		log.debug("Creant un nou organisme cessionari (organismo=" + organismo + ")");
 		ScspCoreOrganismoCessionarioEntity entity = ScspCoreOrganismoCessionarioEntity.getBuilder(
 				organismo.getNom(),
 				organismo.getCif(),
 				organismo.getDataAlta()).
 				dataBaixa(organismo.getDataBaixa()).
-				bloquejat(organismo.isBloquejat()).
+				bloquejat(organismo.getBloquejat()).
 				codiUnitatTramitadora(organismo.getCodiUnitatTramitadora()).
 				build();
 		return toOrganismeCessionariDto(
@@ -277,7 +277,7 @@ public class ScspServiceImpl implements ScspService {
 	@Transactional
 	@Override
 	public void organismeCessionariUpdate(
-			OrganismeDto organismo) {
+			OrganismeCessionariDto organismo) {
 		log.debug("Modificant l'organisme cessionari (organismo=" + organismo + ")");
 		Optional<ScspCoreOrganismoCessionarioEntity> entity = scspCoreOrganismoCessionarioRepository.findById(
 				organismo.getId());
@@ -291,7 +291,7 @@ public class ScspServiceImpl implements ScspService {
 				organismo.getCif(),
 				organismo.getDataAlta(),
 				organismo.getDataBaixa(),
-				organismo.isBloquejat(),
+				organismo.getBloquejat(),
 				organismo.getCodiUnitatTramitadora());
 	}
 
@@ -310,7 +310,7 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public OrganismeDto organismeCessionariFindById(Long id) {
+	public OrganismeCessionariDto organismeCessionariFindById(Long id) {
 		log.debug("Consultant l'organisme cessionari per id (id=" + id + ")");
 		Optional<ScspCoreOrganismoCessionarioEntity> entity = scspCoreOrganismoCessionarioRepository.findById(id);
 		if (!entity.isPresent()) {
@@ -323,7 +323,7 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public OrganismeDto organismeCessionariFindByCif(String cif) throws NotFoundException {
+	public OrganismeCessionariDto organismeCessionariFindByCif(String cif) throws NotFoundException {
 		ScspCoreOrganismoCessionarioEntity organisme = scspCoreOrganismoCessionarioRepository.findByCif(cif);
 		if (organisme != null) {
 			return toOrganismeCessionariDto(organisme);
@@ -334,7 +334,7 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public PaginaDto<OrganismeDto> organismeCessionariFindByFiltrePaginat(
+	public PaginaDto<OrganismeCessionariDto> organismeCessionariFindByFiltrePaginat(
 			OrganismeFiltreDto filtre,
 			PaginacioParamsDto paginacioParams) {
 		log.debug("Consultant organismes cessionaris amb paginació (" +
@@ -348,10 +348,10 @@ public class ScspServiceImpl implements ScspService {
 				paginacioHelper.toSpringDataPageable(paginacioParams));
 		return paginacioHelper.toPaginaDto(
 				page,
-				OrganismeDto.class,
-				new Converter<ScspCoreOrganismoCessionarioEntity, OrganismeDto>() {
+				OrganismeCessionariDto.class,
+				new Converter<ScspCoreOrganismoCessionarioEntity, OrganismeCessionariDto>() {
 					@Override
-					public OrganismeDto convert(ScspCoreOrganismoCessionarioEntity source) {
+					public OrganismeCessionariDto convert(ScspCoreOrganismoCessionarioEntity source) {
 						return toOrganismeCessionariDto(source);
 					}
 				});
@@ -1004,9 +1004,9 @@ public class ScspServiceImpl implements ScspService {
 		return dto;
 	}
 
-	private OrganismeDto toOrganismeCessionariDto(
+	private OrganismeCessionariDto toOrganismeCessionariDto(
 			ScspCoreOrganismoCessionarioEntity entity) {
-		OrganismeDto dto = new OrganismeDto();
+		OrganismeCessionariDto dto = new OrganismeCessionariDto();
 		dto.setId(entity.getId());
 		dto.setCif(entity.getCif());
 		dto.setNom(entity.getNom());

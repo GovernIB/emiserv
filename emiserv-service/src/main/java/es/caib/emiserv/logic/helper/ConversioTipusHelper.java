@@ -5,7 +5,9 @@ package es.caib.emiserv.logic.helper;
 
 import es.caib.emiserv.logic.intf.dto.ClauPrivadaDto;
 import es.caib.emiserv.logic.intf.dto.EmisorDto;
+import es.caib.emiserv.logic.intf.dto.OrganismeDto;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreClavePrivadaEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionOrganismoEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreEmisorCertificadoEntity;
 import ma.glasnost.orika.CustomConverter;
 import ma.glasnost.orika.MapperFacade;
@@ -69,6 +71,15 @@ public class ConversioTipusHelper {
 				.field("fechaAlta", "dataAlta")
 				.byDefault()
 				.register();
+
+		mapperFactory.classMap(ScspCoreEmAutorizacionOrganismoEntity.class, OrganismeDto.class)
+				.field("idorganismo", "cif")
+				.field("fechaAlta", "dataAlta")
+				.field("fechaBaja", "dataBaixa")
+				.field("nombreOrganismo", "nom")
+				.byDefault()
+				.register();
+
 		/*mapperFactory.getConverterFactory().registerConverter(new BidirectionalConverter<es.scsp.bean.common.Consentimiento, Consentimiento>() {
 			@Override
 			public Consentimiento convertTo(

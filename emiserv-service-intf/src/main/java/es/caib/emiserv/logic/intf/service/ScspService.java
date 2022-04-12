@@ -158,8 +158,8 @@ public interface ScspService {
 	 * @return L'organisme creat.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
-	public OrganismeDto organismeCessionariCreate(
-			OrganismeDto organismo) throws NotFoundException;
+	public OrganismeCessionariDto organismeCessionariCreate(
+			OrganismeCessionariDto organismo) throws NotFoundException;
 
 	/**
 	 * Modifica un organisme cessionari.
@@ -171,7 +171,7 @@ public interface ScspService {
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
 	public void organismeCessionariUpdate(
-			OrganismeDto organismo) throws NotFoundException;
+			OrganismeCessionariDto organismo) throws NotFoundException;
 
 	/**
 	 * Esborra un organisme cessionari.
@@ -195,7 +195,7 @@ public interface ScspService {
 	 *             Si no s'ha trobat cap organisme amb l'id especificat.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
-	public OrganismeDto organismeCessionariFindById(Long id) throws NotFoundException;
+	public OrganismeCessionariDto organismeCessionariFindById(Long id) throws NotFoundException;
 
 	/**
 	 * Consulta un organisme cessionari donat el seu cif.
@@ -205,7 +205,7 @@ public interface ScspService {
 	 * @return L'organisme amb el cif especificat o null si no s'ha trobat.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
-	public OrganismeDto organismeCessionariFindByCif(String cif);
+	public OrganismeCessionariDto organismeCessionariFindByCif(String cif);
 
 	/**
 	 * Consulta dels organismes cessionaris amb filtre i paginació.
@@ -217,9 +217,17 @@ public interface ScspService {
 	 * @return La pàgina d'organismes.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
-	public PaginaDto<OrganismeDto> organismeCessionariFindByFiltrePaginat(
+	public PaginaDto<OrganismeCessionariDto> organismeCessionariFindByFiltrePaginat(
 			OrganismeFiltreDto filtre,
 			PaginacioParamsDto paginacioParams);
+
+	/**
+	 * Llistat amb totes els organismes cessionaris
+	 *
+	 * @return Un llistat dels organismes cessionaris
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public List<OrganismeCessionariDto> findAllOrganismeCessionari();
 
 	/**
 	 * Crea una nova autorització per a accedir a un servei.
@@ -357,20 +365,6 @@ public interface ScspService {
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public List<EmisorDto> emissorFindAll();
 
-	
-	
-	// Funcions de la taula de organisme cessionari
-	
-	
-	/**
-	 * Llistat amb totes els organismes cessionaris
-	 * 
-	 * @return Un llistat dels organismes cessionaris
-	 */
-	@PreAuthorize("hasRole('EMS_ADMIN')")
-	public List<OrganismeCessionariDto> findAllOrganismeCessionari();
-
-	
 	
 	// Funcions de la taula de claus públiques.
 	

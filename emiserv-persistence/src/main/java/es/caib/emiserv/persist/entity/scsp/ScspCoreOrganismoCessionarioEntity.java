@@ -3,27 +3,17 @@
  */
 package es.caib.emiserv.persist.entity.scsp;
 
-import java.io.Serializable;
-import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.hibernate.annotations.Type;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.hibernate.annotations.Type;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Classe de model de dades que conté la informació d'un
@@ -41,7 +31,8 @@ import lombok.NoArgsConstructor;
 public class ScspCoreOrganismoCessionarioEntity implements Serializable {
 	
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "org_ces_seq")
+	@SequenceGenerator(name = "org_ces_seq", sequenceName = "ID_ORGANISMO_CESIONARIO_SEQ", allocationSize = 1)
 	private Long id;
 	
 	@Column(name = "nombre", length = 50)

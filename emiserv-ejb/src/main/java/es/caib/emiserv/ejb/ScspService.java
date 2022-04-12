@@ -93,14 +93,14 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	}
 
 	@Override
-	public OrganismeDto organismeCessionariCreate(
-			OrganismeDto organismo) throws NotFoundException {
+	public OrganismeCessionariDto organismeCessionariCreate(
+			OrganismeCessionariDto organismo) throws NotFoundException {
 		return getDelegateService().organismeCessionariCreate(organismo);
 	}
 
 	@Override
 	public void organismeCessionariUpdate(
-			OrganismeDto organismo) throws NotFoundException {
+			OrganismeCessionariDto organismo) throws NotFoundException {
 		getDelegateService().organismeCessionariUpdate(organismo);
 	}
 
@@ -111,19 +111,19 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	}
 
 	@Override
-	public OrganismeDto organismeCessionariFindById(
+	public OrganismeCessionariDto organismeCessionariFindById(
 			Long id) throws NotFoundException {
 		return getDelegateService().organismeCessionariFindById(id);
 	}
 
 	@Override
-	public OrganismeDto organismeCessionariFindByCif(
+	public OrganismeCessionariDto organismeCessionariFindByCif(
 			String cif) {
 		return getDelegateService().organismeCessionariFindByCif(cif);
 	}
 
 	@Override
-	public PaginaDto<OrganismeDto> organismeCessionariFindByFiltrePaginat(
+	public PaginaDto<OrganismeCessionariDto> organismeCessionariFindByFiltrePaginat(
 			OrganismeFiltreDto filtre,
 			PaginacioParamsDto paginacioParams) {
 		return getDelegateService().organismeCessionariFindByFiltrePaginat(

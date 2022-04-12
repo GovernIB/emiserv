@@ -3,17 +3,15 @@
  */
 package es.caib.emiserv.back.command;
 
-import java.util.Date;
+import es.caib.emiserv.back.helper.ConversioTipusHelper;
+import es.caib.emiserv.back.validation.CifOrganismeCessionariNoRepetit;
+import es.caib.emiserv.logic.intf.dto.OrganismeCessionariDto;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import org.apache.commons.lang.builder.ToStringBuilder;
-
-import es.caib.emiserv.back.helper.ConversioTipusHelper;
-import es.caib.emiserv.back.validation.CifOrganismeCessionariNoRepetit;
-import es.caib.emiserv.logic.intf.dto.OrganismeDto;
+import java.util.Date;
 
 /**
  * Command pel formulari d'organismes cessionaris.
@@ -78,15 +76,15 @@ public class OrganismeCessionariCommand {
 		this.codiUnitatTramitadora = codiUnitatTramitadora;
 	}
 
-	public static OrganismeCessionariCommand toCommand(OrganismeDto dto) {
+	public static OrganismeCessionariCommand toCommand(OrganismeCessionariDto dto) {
 		return ConversioTipusHelper.convertir(
 				dto,
 				OrganismeCessionariCommand.class);
 	}
-	public static OrganismeDto toDto(OrganismeCessionariCommand command) {
+	public static OrganismeCessionariDto toDto(OrganismeCessionariCommand command) {
 		return ConversioTipusHelper.convertir(
 				command,
-				OrganismeDto.class);
+				OrganismeCessionariDto.class);
 	}
 
 	@Override
