@@ -3,24 +3,25 @@
  */
 package es.caib.emiserv.logic.helper;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import org.joda.time.DateTime;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
-
 import es.caib.emiserv.logic.intf.dto.ClauPrivadaDto;
+import es.caib.emiserv.logic.intf.dto.EmisorDto;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreClavePrivadaEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreEmisorCertificadoEntity;
 import ma.glasnost.orika.CustomConverter;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.MappingContext;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
 import ma.glasnost.orika.metadata.Type;
+import org.joda.time.DateTime;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Helper per a convertir entre diferents formats de'objectes.
@@ -61,6 +62,13 @@ public class ConversioTipusHelper {
 				field("organisme.id", "organisme").
 				byDefault().
 				toClassMap());
+
+		mapperFactory.classMap(ScspCoreEmisorCertificadoEntity.class, EmisorDto.class)
+				.field("nombre", "nom")
+				.field("fechaBaja", "dataBaixa")
+				.field("fechaAlta", "dataAlta")
+				.byDefault()
+				.register();
 		/*mapperFactory.getConverterFactory().registerConverter(new BidirectionalConverter<es.scsp.bean.common.Consentimiento, Consentimiento>() {
 			@Override
 			public Consentimiento convertTo(

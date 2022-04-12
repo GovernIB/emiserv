@@ -495,6 +495,86 @@ public class ScspServiceImpl implements ScspService {
 				});
 	}
 
+	@Override
+	@Transactional
+	public EmisorDto emisorCreate(EmisorDto emisor) throws NotFoundException {
+		log.debug("Creant un nou emisor (emisor=" + emisor + ")");
+		ScspCoreEmisorCertificadoEntity entity = ScspCoreEmisorCertificadoEntity.builder()
+				.nombre(emisor.getNom())
+				.cif(emisor.getCif())
+				.fechaAlta(emisor.getDataAlta())
+				.fechaBaja(emisor.getDataBaixa())
+				.build();
+		return conversioTipusHelper.convertir(scspCoreEmisorCertificadoRepository.save(entity), EmisorDto.class);
+	}
+
+	@Override
+	@Transactional
+	public void emisorUpdate(EmisorDto emisor) throws NotFoundException {
+		log.debug("Modificant l'emisor (emisor=" + emisor + ")");
+		Optional<ScspCoreEmisorCertificadoEntity> entity = scspCoreEmisorCertificadoRepository.findById(emisor.getId());
+		if (!entity.isPresent()) {
+			throw new NotFoundException(
+					emisor.getId(),
+					ScspCoreEmisorCertificadoEntity.class);
+		}
+		entity.get().update(
+				emisor.getNom(),
+				emisor.getCif(),
+				emisor.getDataAlta(),
+				emisor.getDataBaixa());
+	}
+
+	@Override
+	@Transactional
+	public void emisorDelete(Long id) throws NotFoundException {
+		log.debug("Esborrant l'emisor (id=" + id + ")");
+		Optional<ScspCoreEmisorCertificadoEntity> entity = scspCoreEmisorCertificadoRepository.findById(id);
+		if (!entity.isPresent()) {
+			throw new NotFoundException(
+					id,
+					ScspCoreEmisorCertificadoEntity.class);
+		}
+		scspCoreEmisorCertificadoRepository.deleteById(id);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public EmisorDto emisorFindById(Long id) throws NotFoundException {
+		log.debug("Consultant l'emisor per id (id=" + id + ")");
+		Optional<ScspCoreEmisorCertificadoEntity> entity = scspCoreEmisorCertificadoRepository.findById(id);
+		if (!entity.isPresent()) {
+			throw new NotFoundException(
+					id,
+					ScspCoreEmisorCertificadoEntity.class);
+		}
+		return conversioTipusHelper.convertir(entity.get(), EmisorDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public EmisorDto emisorFindByCif(String cif) throws NotFoundException {
+		log.debug("Consultant l'emisor per cif (cif={})", cif);
+		Optional<ScspCoreEmisorCertificadoEntity> entity = scspCoreEmisorCertificadoRepository.findByCif(cif);
+		if (!entity.isPresent()) {
+			return null;
+		}
+		return conversioTipusHelper.convertir(entity.get(), EmisorDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PaginaDto<EmisorDto> emisorFindByFiltrePaginat(EmisorFiltreDto filtre, PaginacioParamsDto paginacioParams) {
+		log.debug("Consultant emisors amb paginació (filtre={}, paginacioParams={})", filtre, paginacioParams);
+		Page<ScspCoreEmisorCertificadoEntity> page = scspCoreEmisorCertificadoRepository.findByFiltrePaginat(
+				(filtre == null || filtre.getNom() == null || filtre.getNom().isEmpty()),
+				filtre != null && filtre.getNom() != null ? filtre.getNom() : "",
+				(filtre == null || filtre.getCif() == null || filtre.getCif().isEmpty()),
+				filtre != null && filtre.getCif() != null ? filtre.getCif() : "",
+				paginacioHelper.toSpringDataPageable(paginacioParams));
+		return paginacioHelper.toPaginaDto(page, EmisorDto.class);
+	}
+
 	@Transactional(readOnly = true)
 	@Override
 	public List<EmisorDto> emissorFindAll() {

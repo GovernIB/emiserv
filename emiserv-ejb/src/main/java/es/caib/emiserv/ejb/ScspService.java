@@ -164,6 +164,36 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 				paginacioParams);
 	}
 
+    @Override
+    public EmisorDto emisorCreate(EmisorDto emisor) throws NotFoundException {
+        return getDelegateService().emisorCreate(emisor);
+    }
+
+	@Override
+	public void emisorUpdate(EmisorDto emisor) throws NotFoundException {
+		getDelegateService().emisorUpdate(emisor);
+	}
+
+	@Override
+	public void emisorDelete(Long id) throws NotFoundException {
+		getDelegateService().emisorDelete(id);
+	}
+
+	@Override
+	public EmisorDto emisorFindById(Long id) throws NotFoundException {
+		return getDelegateService().emisorFindById(id);
+	}
+
+    @Override
+    public EmisorDto emisorFindByCif(String cif) throws NotFoundException {
+        return getDelegateService().emisorFindByCif(cif);
+    }
+
+    @Override
+	public PaginaDto<EmisorDto> emisorFindByFiltrePaginat(EmisorFiltreDto filtre, PaginacioParamsDto paginacioParams) {
+		return getDelegateService().emisorFindByFiltrePaginat(filtre, paginacioParams);
+	}
+
 	@Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public List<EmisorDto> emissorFindAll() {

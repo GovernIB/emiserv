@@ -282,6 +282,74 @@ public interface ScspService {
 			PaginacioParamsDto paginacioParams);
 
 	/**
+	 * Crea un nou emisor.
+	 *
+	 * @param emisor
+	 *            Informació de l'autorització a crear.
+	 * @return L'emisor creat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public EmisorDto emisorCreate(EmisorDto emisor) throws NotFoundException;
+
+	/**
+	 * Modifica un emisor.
+	 *
+	 * @param emisor
+	 *            Informació de l'emisor a crear.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap emisor amb l'id especificat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public void emisorUpdate(EmisorDto emisor) throws NotFoundException;
+
+	/**
+	 * Esborra un emisor.
+	 *
+	 * @param id
+	 *            Atribut id de l'emisor a esborrar.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap emisor amb l'id especificat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public void emisorDelete(Long id) throws NotFoundException;
+
+	/**
+	 * Consulta un emisor donat el seu id.
+	 *
+	 * @param id
+	 *            Atribut id de l'emisor a trobar.
+	 * @return L'emisor amb l'id especificat.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap emisor amb l'id especificat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public EmisorDto emisorFindById(Long id) throws NotFoundException;
+
+	/**
+	 * Consulta un emisor donat el seu id.
+	 *
+	 * @param cif
+	 *            Atribut id de l'emisor a trobar.
+	 * @return L'emisor amb l'id especificat.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat cap emisor amb l'id especificat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public EmisorDto emisorFindByCif(String cif) throws NotFoundException;
+
+	/**
+	 * Consulta dels emisor amb paginació.
+	 *
+	 * @param paginacioParams
+	 *            Paràmetres per a la paginació.
+	 * @return La pàgina d'emisors.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public PaginaDto<EmisorDto> emisorFindByFiltrePaginat(
+			EmisorFiltreDto filtre,
+			PaginacioParamsDto paginacioParams);
+
+	/**
 	 * Consulta els emissors SCSP disponibles.
 	 * 
 	 * @return El llistat d'emissors SCSP.
