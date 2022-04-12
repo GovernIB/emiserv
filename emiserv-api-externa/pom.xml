@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>es.caib.emiserv</groupId>
 		<artifactId>emiserv</artifactId>
-		<version>2.0.3</version>
+		<version>2.0.4</version>
 	</parent>
 	<artifactId>emiserv-api-externa</artifactId>
 	<packaging>war</packaging>
