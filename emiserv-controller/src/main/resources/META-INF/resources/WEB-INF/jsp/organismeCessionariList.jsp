@@ -39,6 +39,7 @@
 				<th data-col-name="nom" width="40%"><spring:message code="organisme.list.columna.nom"/></th>
 				<th data-col-name="dataAlta" data-converter="date" width="15%"><spring:message code="organisme.list.columna.dataalta" /></th>
 				<th data-col-name="dataBaixa" data-converter="date" width="15%"><spring:message code="organisme.list.columna.databaixa" /></th>
+				<th data-col-name="codiUnitatTramitadora" width="10%"><spring:message code="organisme.list.columna.unitat.adm" /></th>
 				<th data-col-name="bloquejat" width="10%" data-template="#cellBloquejatTemplate">
 					<spring:message code="organisme.list.columna.bloquejat"/>
 						<script id="cellBloquejatTemplate" type="text/x-jsrender">
