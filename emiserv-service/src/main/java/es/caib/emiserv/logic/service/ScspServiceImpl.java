@@ -71,11 +71,18 @@ public class ScspServiceImpl implements ScspService {
 	public AplicacioDto aplicacioCreate(
 			AplicacioDto aplicacio) {
 		log.debug("Creant una nova aplicació (aplicacio=" + aplicacio + ")");
+		ScspCoreEmAutorizacionAutoridadCertEntity autoritat = null;
+		if (aplicacio.getAutoridadCertificacio() != null) {
+			autoritat = scspCoreEmAutorizacionAutoridadCertRepository.findById(aplicacio.getAutoridadCertificacio().getId());
+		}
+		if (autoritat == null) {
+			throw new NotFoundException(aplicacio.getAutoridadCertificacio().getId(), ScspCoreEmAutorizacionAutoridadCertEntity.class);
+		}
 		ScspCoreEmAplicacionEntity entity = ScspCoreEmAplicacionEntity.getBuilder(
 				aplicacio.getCertificatNif(),
 				aplicacio.getNumeroSerie(),
 				aplicacio.getCn(),
-				aplicacio.getAutoridadCertifId()).
+				autoritat).
 				fechaAlta(aplicacio.getDataAlta()).
 				fechaBaja(aplicacio.getDataBaixa()).
 				build();
@@ -91,15 +98,20 @@ public class ScspServiceImpl implements ScspService {
 		Optional<ScspCoreEmAplicacionEntity> entity = scspCoreEmAutorizacionAplicacionRepository.findById(
 				aplicacio.getId());
 		if (!entity.isPresent()) {
-			throw new NotFoundException(
-					aplicacio.getId(),
-					ScspCoreEmAplicacionEntity.class);
+			throw new NotFoundException(aplicacio.getId(), ScspCoreEmAplicacionEntity.class);
+		}
+		ScspCoreEmAutorizacionAutoridadCertEntity autoritat = null;
+		if (aplicacio.getAutoridadCertificacio() != null) {
+			autoritat = scspCoreEmAutorizacionAutoridadCertRepository.findById(aplicacio.getAutoridadCertificacio().getId());
+		}
+		if (autoritat == null) {
+			throw new NotFoundException(aplicacio.getAutoridadCertificacio().getId(), ScspCoreEmAutorizacionAutoridadCertEntity.class);
 		}
 		entity.get().update(
 				aplicacio.getCertificatNif(),
 				aplicacio.getNumeroSerie(),
 				aplicacio.getCn(),
-				aplicacio.getAutoridadCertifId(),
+				autoritat,
 				aplicacio.getDataAlta(),
 				aplicacio.getDataBaixa());
 	}
@@ -793,10 +805,11 @@ public class ScspServiceImpl implements ScspService {
 				Sort.by(Order.asc("nombre")));
 		List<AutoritatCertificacioDto> resposta = new ArrayList<AutoritatCertificacioDto>();
 		for (ScspCoreEmAutorizacionAutoridadCertEntity autoritat: autoritats) {
-			AutoritatCertificacioDto dto = new AutoritatCertificacioDto();
-			dto.setId(autoritat.getId());
-			dto.setCodca(autoritat.getCodca());
-			dto.setNombre(autoritat.getNombre());
+			AutoritatCertificacioDto dto = AutoritatCertificacioDto.builder()
+					.id(autoritat.getId())
+					.codca(autoritat.getCodca())
+					.nombre(autoritat.getNombre())
+					.build();
 			resposta.add(dto);
 		}
 		return resposta;
@@ -980,17 +993,20 @@ public class ScspServiceImpl implements ScspService {
 
 	private AplicacioDto toAplicacioDto(
 			ScspCoreEmAplicacionEntity entity) {
-		AplicacioDto dto = new AplicacioDto();
-		dto.setId(entity.getIdAplicacion());
-		dto.setCertificatNif(entity.getNifCertificado());
-		dto.setNumeroSerie(entity.getNumeroSerie());
-		dto.setCn(entity.getCn());
-		dto.setDarreraComprovacio(entity.getTiempoComprobacion());
-		dto.setAutoridadCertifId(entity.getAutoridadcertif());
-		
-		dto.setDataAlta(entity.getFechaAlta());
-		dto.setDataBaixa(entity.getFechaBaja());
-		return dto;
+		return AplicacioDto.builder()
+				.id(entity.getIdAplicacion())
+				.certificatNif(entity.getNifCertificado())
+				.numeroSerie(entity.getNumeroSerie())
+				.cn(entity.getCn())
+				.darreraComprovacio(entity.getTiempoComprobacion())
+				.autoridadCertificacio(AutoritatCertificacioDto.builder()
+						.id(entity.getAutoridadCertificacion().getId())
+						.nombre(entity.getAutoridadCertificacion().getNombre())
+						.codca(entity.getAutoridadCertificacion().getCodca())
+						.build())
+				.dataAlta(entity.getFechaAlta())
+				.dataBaixa(entity.getFechaBaja())
+				.build();
 	}
 
 	private OrganismeDto toOrganismeDto(
