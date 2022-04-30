@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * Client amb la lògica bàsica per a accedir al servei de consulta
@@ -76,7 +77,7 @@ public abstract class ClientBase {
 		WebTarget webTarget = jerseyClient.target(urlAmbMetode);
 		if (queryParams != null) {
 			for (String key: queryParams.keySet()) {
-				webTarget.queryParam(key, queryParams.get(key));
+				webTarget = webTarget.queryParam(key, queryParams.get(key));
 			}
 		}
 		R response = webTarget.request(MediaType.APPLICATION_JSON).get(responseType);
@@ -96,7 +97,7 @@ public abstract class ClientBase {
 		WebTarget webTarget = jerseyClient.target(urlAmbMetode);
 		if (queryParams != null) {
 			for (String key: queryParams.keySet()) {
-				webTarget.queryParam(key, queryParams.get(key));
+				webTarget = webTarget.queryParam(key, queryParams.get(key));
 			}
 		}
 		List<R> response = webTarget
@@ -118,7 +119,7 @@ public abstract class ClientBase {
 		WebTarget webTarget = jerseyClient.target(urlAmbMetode);
 		if (queryParams != null) {
 			for (String key: queryParams.keySet()) {
-				webTarget.queryParam(key, queryParams.get(key));
+				webTarget = webTarget.queryParam(key, queryParams.get(key));
 			}
 		}
 		String response = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
@@ -138,7 +139,7 @@ public abstract class ClientBase {
 		WebTarget webTarget = jerseyClient.target(urlAmbMetode);
 		if (queryParams != null) {
 			for (String key: queryParams.keySet()) {
-				webTarget.queryParam(key, queryParams.get(key));
+				webTarget = webTarget.queryParam(key, queryParams.get(key));
 			}
 		}
 		Response response = webTarget.request(MediaType.APPLICATION_JSON).accept(acceptedMediaType).get(Response.class);
@@ -222,7 +223,7 @@ public abstract class ClientBase {
 	public void enableLogginFilter() {
 		jerseyClient.register(LoggingFeature.class);
 		jerseyClient.property(LoggingFeature.LOGGING_FEATURE_VERBOSITY_CLIENT, LoggingFeature.Verbosity.PAYLOAD_ANY);
-		jerseyClient.property(LoggingFeature.LOGGING_FEATURE_LOGGER_LEVEL_CLIENT, "DEBUG");
+		jerseyClient.property(LoggingFeature.LOGGING_FEATURE_LOGGER_LEVEL_CLIENT, Level.FINE.getName());
 	}
 
 }

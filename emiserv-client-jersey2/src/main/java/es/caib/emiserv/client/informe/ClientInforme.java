@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class ClientInforme extends ClientBase {
 
-	private static final String BASE_URL_SUFIX = "/api/interna/reports/";
+	private static final String BASE_URL_SUFIX = "/interna/reports/";
 
 	public ClientInforme(
 			String urlBase,

@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Disabled
 public class EstadistiquesTest {
 
-	private static final String URL_BASE = "http://localhost:8080/emiservback";
-	private static final String USUARI = "emsadm";
-	private static final String CONTRASENYA = "emsadm";
+	private static final String URL_BASE = "http://localhost:8080/emiservapi";
+	private static final String USUARI = "u999001";
+	private static final String CONTRASENYA = "u999001";
 
 	private static final String ENTITAT_NIF = "12345678Z";
 

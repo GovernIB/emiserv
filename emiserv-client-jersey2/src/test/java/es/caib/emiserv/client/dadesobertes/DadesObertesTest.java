@@ -25,9 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Disabled
 public class DadesObertesTest {
 
-	private static final String URL_BASE = "http://localhost:8080/emiservback";
-	private static final String USUARI = "emsadm";
-	private static final String CONTRASENYA = "emsadm";
+	private static final String URL_BASE = "http://localhost:8080/emiservapi";
 
 	@Test
 	public void opendata() throws Exception {
