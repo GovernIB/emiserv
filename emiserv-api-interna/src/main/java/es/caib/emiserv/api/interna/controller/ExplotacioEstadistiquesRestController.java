@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -153,8 +154,8 @@ public class ExplotacioEstadistiquesRestController {
             @RequestParam(required = false) @Parameter(description = "Codi del procediment") final String procedimentCodi,
             @RequestParam(required = false) @Parameter(description = "Codi del servei") final String serveiCodi,
             @RequestParam(required = false) @Parameter(description = "Estat de la consulta") final EstatTipus estat,
-            @RequestParam(required = false) @Parameter(description = "Data inicial de la consulta en format yyyy-MM-dd") final Date dataInici,
-            @RequestParam(required = false) @Parameter(description = "Data final de la consulta en format yyyy-MM-dd") final Date dataFi,
+            @RequestParam(required = false) @Parameter(description = "Data inicial de la consulta en format yyyy-MM-dd") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final Date dataInici,
+            @RequestParam(required = false) @Parameter(description = "Data final de la consulta en format yyyy-MM-dd") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final Date dataFi,
             @RequestParam(required = false) @Parameter(description = "Tipus del servei") final ServeiTipus tipus) {
 
         List<EstadisticaDto> estadistiques = explotacioService.findEstadistiquesByFiltre(
