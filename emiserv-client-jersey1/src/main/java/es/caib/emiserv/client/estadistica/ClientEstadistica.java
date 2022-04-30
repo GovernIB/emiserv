@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class ClientEstadistica extends ClientBase {
 
-	private static final String BASE_URL_SUFIX = "api/interna/stats/";
+	private static final String BASE_URL_SUFIX = "/interna/stats/";
 
 	public ClientEstadistica(
 			String urlBase,

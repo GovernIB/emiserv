@@ -1,7 +1,7 @@
 /**
  * 
  */
-package es.caemiserv.client.informe;
+package es.caib.emiserv.client.estadistica;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -9,13 +9,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import es.caib.emiserv.client.comu.Entitat;
-import es.caib.emiserv.client.informe.ClientInforme;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
@@ -25,30 +21,38 @@ import static org.junit.Assert.assertNotNull;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
-@Ignore
-public class InformeTest {
+//@Ignore
+public class EstadistiquesTest {
 
-	private static final String URL_BASE = "http://localhost:8080/emiservback";
-	private static final String USUARI = "emsadm";
-	private static final String CONTRASENYA = "emsadm";
+	private static final String URL_BASE = "http://localhost:8080/emiservapi";
+	private static final String USUARI = "u999001";
+	private static final String CONTRASENYA = "u999001";
 
-	private ClientInforme client = new ClientInforme(URL_BASE, USUARI, CONTRASENYA, null, null);
+	private static final String ENTITAT_NIF = "12345678Z";
+
+	private ClientEstadistica client = new ClientEstadistica(URL_BASE, USUARI, CONTRASENYA, null, null);
 
 	@Test
-	public void general() throws IOException {
-		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.HOUR_OF_DAY, 0);
-		cal.set(Calendar.MINUTE, 0);
-		cal.set(Calendar.SECOND, 0);
-		cal.set(Calendar.MILLISECOND, 0);
-
-		Date dataFi = cal.getTime();
-		cal.add(Calendar.MONTH, -6);
-		Date dataInici = cal.getTime();
-
-		List<Entitat> resposta = client.general(dataInici, dataFi, null);
+	public void consultes() throws IOException {
+		client.enableLogginFilter();
+		Entitat resposta = client.consultes(
+				ENTITAT_NIF,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null);
 		assertNotNull(resposta);
-		System.out.println("-> entitats: " + objectToJsonString(resposta));
+		System.out.println("-> consultes: " + objectToJsonString(resposta));
+	}
+
+	@Test
+	public void carrega() throws IOException {
+		client.enableLogginFilter();
+		List<Entitat> resposta = client.carrega();
+		assertNotNull(resposta);
+		System.out.println("-> carrega: " + objectToJsonString(resposta));
 	}
 
 	private String objectToJsonString(Object obj) throws JsonProcessingException {

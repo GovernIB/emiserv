@@ -1,16 +1,13 @@
 /**
  * 
  */
-package es.caemiserv.client.dadesobertes;
+package es.caib.emiserv.client.dadesobertes;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import es.caib.emiserv.client.dadesobertes.ClientDadesObertes;
-import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -25,12 +22,10 @@ import static org.junit.Assert.assertNotNull;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
-@Ignore
+//@Ignore
 public class DadesObertesTest {
 
-	private static final String URL_BASE = "http://localhost:8080/emiservback";
-	private static final String USUARI = "emsadm";
-	private static final String CONTRASENYA = "emsadm";
+	private static final String URL_BASE = "http://localhost:8080/emiservapi";
 
 	@Test
 	public void opendata() throws IOException {
