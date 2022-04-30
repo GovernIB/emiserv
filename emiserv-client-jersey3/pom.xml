@@ -15,8 +15,23 @@
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
             <version>3.0.0</version>
-<!--            <scope>provided</scope>-->
         </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
@@ -25,6 +40,10 @@
                 <exclusion>
                     <artifactId>jersey-common</artifactId>
                     <groupId>org.glassfish.jersey.core</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jakarta.ws.rs-api</artifactId>
+                    <groupId>jakarta.ws.rs</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -37,13 +56,50 @@
                     <artifactId>jersey-common</artifactId>
                     <groupId>org.glassfish.jersey.core</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>jersey-entity-filtering</artifactId>
+                    <groupId>org.glassfish.jersey.ext</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.ext</groupId>
+            <artifactId>jersey-entity-filtering</artifactId>
+            <version>3.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jakarta.ws.rs-api</artifactId>
+                    <groupId>jakarta.ws.rs</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-common</artifactId>
             <version>3.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jakarta.annotation-api</artifactId>
+                    <groupId>jakarta.annotation</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jakarta.ws.rs-api</artifactId>
+                    <groupId>jakarta.ws.rs</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>3.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jersey-common</artifactId>
+                    <groupId>org.glassfish.jersey.core</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>es.caib.emiserv</groupId>
             <artifactId>emiserv-client-intf</artifactId>

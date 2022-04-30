@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class ClientDadesObertes extends ClientBase {
 
-	private static final String BASE_URL_SUFIX = "/api/externa/";
+	private static final String BASE_URL_SUFIX = "/externa/";
 
 	public ClientDadesObertes(String urlBase) {
 		super(urlBase + BASE_URL_SUFIX);
