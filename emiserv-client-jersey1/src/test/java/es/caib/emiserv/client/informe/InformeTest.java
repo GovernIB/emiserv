@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import es.caib.emiserv.client.comu.Entitat;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
-//@Ignore
+@Ignore
 public class InformeTest {
 
 	private static final String URL_BASE = "http://localhost:8080/emiservapi";
