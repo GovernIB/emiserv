@@ -29,4 +29,11 @@ public interface AplicacioService {
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public void updateIdiomaUsuariActual(String idioma);
 
+
+	/**
+	 * Carrega les propietats de la base de dades a l'environment
+	 */
+    public void propagateDbProperties();
+
+//	public Map<String, String> readProperties();
 }

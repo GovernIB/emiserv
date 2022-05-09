@@ -3,21 +3,18 @@
  */
 package es.caib.emiserv.logic.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
+import es.caib.emiserv.logic.helper.ConversioTipusHelper;
+import es.caib.emiserv.logic.helper.PaginacioHelper;
+import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
+import es.caib.emiserv.logic.helper.XmlHelper;
+import es.caib.emiserv.logic.intf.dto.*;
+import es.caib.emiserv.logic.intf.exception.NotFoundException;
+import es.caib.emiserv.logic.intf.service.RedireccioService;
+import es.caib.emiserv.logic.resolver.EntitatResolver;
+import es.caib.emiserv.logic.resolver.ResponseResolver;
+import es.caib.emiserv.persist.entity.*;
+import es.caib.emiserv.persist.repository.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,35 +22,15 @@ import org.springframework.web.util.HtmlUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import es.caib.emiserv.logic.helper.ConversioTipusHelper;
-import es.caib.emiserv.logic.helper.PaginacioHelper;
-import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
-import es.caib.emiserv.logic.helper.XmlHelper;
-import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
-import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
-import es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
-import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
-import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
-import es.caib.emiserv.logic.intf.dto.ServeiDto;
-import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
-import es.caib.emiserv.logic.intf.exception.NotFoundException;
-import es.caib.emiserv.logic.intf.service.RedireccioService;
-import es.caib.emiserv.logic.resolver.EntitatResolver;
-import es.caib.emiserv.logic.resolver.ResponseResolver;
-import es.caib.emiserv.persist.entity.RedireccioMissatgeEntity;
-import es.caib.emiserv.persist.entity.RedireccioPeticioEntity;
-import es.caib.emiserv.persist.entity.RedireccioSolicitudEntity;
-import es.caib.emiserv.persist.entity.ServeiEntity;
-import es.caib.emiserv.persist.entity.ServeiRutaDestiEntity;
-import es.caib.emiserv.persist.repository.RedireccioMissatgeRepository;
-import es.caib.emiserv.persist.repository.RedireccioPeticioRepository;
-import es.caib.emiserv.persist.repository.RedireccioSolicitudRepository;
-import es.caib.emiserv.persist.repository.ServeiRepository;
-import es.caib.emiserv.persist.repository.ServeiRutaDestiRepository;
-import lombok.extern.slf4j.Slf4j;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implementació del servei de backoffice.
@@ -780,7 +757,21 @@ public class RedireccioServiceImpl implements RedireccioService {
 			}
 		}
 		peticio.setError(redireccioPeticio.getError());
+		List<RedireccioSolicitudEntity> solicituds = redireccioSolicitudRepository.findByPeticioOrderBySolicitudIdAsc(redireccioPeticio);
+		peticio.setProcedimentCodi(solicituds.stream().map(s -> s.getProcedimentCodi()).distinct().collect(Collectors.joining(", ")));
+		peticio.setProcedimentNom(solicituds.stream().map(s -> s.getProcedimentNom()).distinct().collect(Collectors.joining(", ")));
+		peticio.setProcedimentCodiNom(solicituds.stream().map(s -> getCodiNom(s.getProcedimentCodi(),  s.getProcedimentNom())).distinct().collect(Collectors.joining(", ")));
 		return peticio;
+	}
+
+	private String getCodiNom(String codi, String nom) {
+		if ((codi == null || codi.isBlank()) && (nom == null || nom.isBlank()))
+			return null;
+		if (codi == null || codi.isBlank())
+			return nom;
+		if ((nom == null || nom.isBlank()))
+			return codi;
+		return codi + " - " + nom;
 	}
 
 }

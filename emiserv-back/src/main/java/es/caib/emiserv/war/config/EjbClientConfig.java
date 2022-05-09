@@ -3,16 +3,11 @@
  */
 package es.caib.emiserv.war.config;
 
+import es.caib.emiserv.logic.intf.service.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ejb.access.LocalStatelessSessionProxyFactoryBean;
-
-import es.caib.emiserv.logic.intf.service.AplicacioService;
-import es.caib.emiserv.logic.intf.service.BackofficeService;
-import es.caib.emiserv.logic.intf.service.RedireccioService;
-import es.caib.emiserv.logic.intf.service.ScspService;
-import es.caib.emiserv.logic.intf.service.ServeiService;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Configuració d'accés als services de Spring mitjançant EJBs.
@@ -49,6 +44,11 @@ public class EjbClientConfig {
 	@Bean
 	public LocalStatelessSessionProxyFactoryBean serveiService() {
 		return getLocalEjbFactoyBean(ServeiService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean configService() {
+		return getLocalEjbFactoyBean(ConfigService.class);
 	}
 
 	private LocalStatelessSessionProxyFactoryBean getLocalEjbFactoyBean(Class<?> serviceClass) {

@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.ejb;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 
@@ -25,5 +26,16 @@ public class AplicacioService extends AbstractService<es.caib.emiserv.logic.intf
 	public void updateIdiomaUsuariActual(String idioma) {
 		getDelegateService().updateIdiomaUsuariActual(idioma);
 	}
+
+    @Override
+	@PermitAll
+    public void propagateDbProperties() {
+        getDelegateService().propagateDbProperties();
+    }
+
+//    @Override
+//    public Map<String, String> readProperties() {
+//        return getDelegateService().readProperties();
+//    }
 
 }

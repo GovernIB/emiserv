@@ -3,17 +3,16 @@
  */
 package es.caib.emiserv.persist.entity.scsp;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-import org.apache.commons.lang.builder.ToStringBuilder;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * Classe de model de dades que conté la informació d'un
@@ -30,11 +29,11 @@ import lombok.NoArgsConstructor;
 public class ScspCoreParametroConfiguracionEntity {
 
 	@Id
-	@Column(length = 64, nullable = false)
+	@Column(name = "nombre", length = 64, nullable = false)
 	private String nombre;
-	@Column(length = 512, nullable = false)
+	@Column(name = "valor", length = 512, nullable = false)
 	private String valor;
-	@Column(length = 512)
+	@Column(name = "descripcion", length = 512)
 	private String descripcion;
 
 	public void update(

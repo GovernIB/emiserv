@@ -3,69 +3,13 @@
  */
 package es.caib.emiserv.logic.helper;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.rmi.RemoteException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import javax.naming.NamingException;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.xpath.XPathExpressionException;
-
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.BackofficeSolicitudEstatEnumDto;
 import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
 import es.caib.emiserv.logic.intf.exception.BackofficeException;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Atributos;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Consentimiento;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.DatosGenericos;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.EmiservBackoffice;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Emisor;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Estado;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Funcionario;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Procedimiento;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Solicitante;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudTransmision;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Solicitudes;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.TipoDocumentacion;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Titular;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Transmision;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.TransmisionDatos;
-import es.caib.emiserv.logic.intf.service.ws.backoffice.Transmisiones;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.*;
 import es.caib.emiserv.logic.service.ws.DatosEspecificosHandler;
 import es.caib.emiserv.logic.service.ws.EmiservBackofficeImpl;
 import es.caib.emiserv.logic.service.ws.PeticioRespostaHandler;
@@ -89,6 +33,33 @@ import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
 import es.caib.loginModule.auth.ControladorSesion;
 import es.caib.loginModule.client.AuthorizationToken;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.naming.NamingException;
+import javax.xml.bind.*;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Helper per a operacions amb els backoffices.
@@ -120,7 +91,7 @@ public class BackofficeHelper {
 	@Autowired
 	private XmlHelper xmlHelper;
 	@Autowired
-	private Environment env;
+	private Environment environment;
 
 	private EmiservBackofficeHandlerProxy testBackoffice;
 	private String testXmlPeticio;
@@ -1072,72 +1043,40 @@ public class BackofficeHelper {
 	}
 
 	private String getBackofficePropertyUsername(String serveiCodi) {
-		String username = env.getProperty(
-				"es.caib.emiserv.int.backoffice." + serveiCodi + ".usuari");
-		if (username == null) {
-			username = env.getProperty(
+		String username = environment.getProperty(
 					"es.caib.emiserv.backoffice." + serveiCodi + ".caib.auth.username");
-		}
 		if (username == null) {
-			username = env.getProperty(
-					"es.caib.emiserv.int.backoffice.usuari");
-		}
-		if (username == null) {
-			username = env.getProperty(
+			username = environment.getProperty(
 					"es.caib.emiserv.backoffice.caib.auth.username");
 		}
 		return username;
 	}
 
 	private String getBackofficePropertyPassword(String serveiCodi) {
-		String password = env.getProperty(
-				"es.caib.emiserv.int.backoffice." + serveiCodi + ".secret");
-		if (password == null) {
-			password = env.getProperty(
+		String password = environment.getProperty(
 					"es.caib.emiserv.backoffice." + serveiCodi + ".caib.auth.password");
-		}
 		if (password == null) {
-			password = env.getProperty(
-					"es.caib.emiserv.int.backoffice.secret");
-		}
-		if (password == null) {
-			password = env.getProperty(
+			password = environment.getProperty(
 					"es.caib.emiserv.backoffice.caib.auth.password");
 		}
 		return password;
 	}
 
 	private String getBackofficePropertySoapAction(String serveiCodi) {
-		String soapAction = env.getProperty(
-				"es.caib.emiserv.int.backoffice." + serveiCodi + ".soap.action");
-		if (soapAction == null) {
-			soapAction = env.getProperty(
+		String soapAction = environment.getProperty(
 					"es.caib.emiserv.backoffice." + serveiCodi + ".caib.soap.action");
-		}
 		if (soapAction == null) {
-			soapAction = env.getProperty(
-					"es.caib.emiserv.int.backoffice.soap.action");
-		}
-		if (soapAction == null) {
-			soapAction = env.getProperty(
+			soapAction = environment.getProperty(
 					"es.caib.emiserv.backoffice.caib.soap.action");
 		}
 		return soapAction;
 	}
 
 	private boolean isBackofficeProcessarDatosEspecificosPeticio(String serveiCodi) {
-		String processar = env.getProperty(
-				"es.caib.emiserv.int.backoffice." + serveiCodi + ".processar.datosespecificos");
-		if (processar == null) {
-			processar = env.getProperty(
+		String processar = environment.getProperty(
 					"es.caib.emiserv.backoffice." + serveiCodi + ".processar.datos.especificos.peticio");
-		}
 		if (processar == null) {
-			processar = env.getProperty(
-					"es.caib.emiserv.int.backoffice.processar.datosespecificos");
-		}
-		if (processar == null) {
-			processar = env.getProperty(
+			processar = environment.getProperty(
 					"es.caib.emiserv.backoffice.processar.datos.especificos.peticio");
 		}
 		if (processar == null) {
@@ -1281,7 +1220,7 @@ public class BackofficeHelper {
 	}
 
 	private boolean isPropertyBackofficeMock() {
-		String backofficeMock = env.getProperty("es.caib.emiserv.backoffice.mock");
+		String backofficeMock = environment.getProperty("es.caib.emiserv.backoffice.mock");
 		if (backofficeMock != null) {
 			return Boolean.valueOf(backofficeMock);
 		} else {

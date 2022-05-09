@@ -57,7 +57,7 @@ $(document).ready(function() {
 							'<tr>' +
 							'<td>' + data[i].solicitudId + '</td>' +
 							'<td>' + data[i].solicitanteNombre + '</td>' +
-							'<td>' + ((data[i].procedimientoNombre) ? data[i].procedimientoNombre : '') + '</td>' +
+							'<td>' + ((data[i].procedimientoCodigoNombre) ? data[i].procedimientoCodigoNombre : '') + '</td>' +
 							'<td>' + data[i].funcionarioNombre + ' (NIF: ' + data[i].funcionarioDocumento + ')</td>' +
 							'<td>' + ((data[i].backofficeEstat) ? estats[data[i].backofficeEstat] : '') + '</td>' +
 							'<td><a href="auditoriaBackoffice/' + rowData.peticioId + '/solicitud/' + data[i].solicitudId + '/detall" class="btn btn-default btn-sm" data-toggle="modal"><span class="fa fa-info-circle"></span></a></td>' +
@@ -76,16 +76,16 @@ $(document).ready(function() {
 	<form:form action="" method="post" cssClass="well" modelAttribute="auditoriaFiltreCommand">
 		<div class="row">
 			<div class="col-md-4">
-				<emi:inputSelect name="procediment" optionItems="${procediments}" optionValueAttribute="codi" optionTextAttribute="nom" emptyOption="true" placeholderKey="auditoria.list.filtre.procediment" inline="true"/>
+				<emi:inputSelect name="procediment" optionItems="${procediments}" optionValueAttribute="codi" optionTextAttribute="codiNom" emptyOption="true" placeholderKey="auditoria.list.filtre.procediment" inline="true"/>
 			</div>
-			<div class="col-md-4">
-				<emi:inputSelect name="servei" optionItems="${serveis}" optionValueAttribute="id" optionTextAttribute="nom" emptyOption="true" placeholderKey="auditoria.list.filtre.servei" inline="true"/>
-			</div>
-			<div class="col-md-4">
-				<emi:inputSelect name="estat" optionItems="${peticioEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true"/>
+			<div class="col-md-8">
+				<emi:inputSelect name="servei" optionItems="${serveis}" optionValueAttribute="id" optionTextAttribute="codiNom" emptyOption="true" placeholderKey="auditoria.list.filtre.servei" inline="true"/>
 			</div>
 		</div>
 		<div class="row">
+			<div class="col-md-4">
+				<emi:inputSelect name="estat" optionItems="${peticioEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true"/>
+			</div>
 			<div class="col-md-2">
 				<emi:inputDate name="dataInici" inline="true" placeholderKey="auditoria.list.filtre.data.inici"/>
 			</div>
@@ -101,6 +101,8 @@ $(document).ready(function() {
 			<div class="col-md-4">
 				<emi:inputText name="numeroPeticio" placeholderKey="auditoria.list.filtre.numero.peticio" inline="true"/>
 			</div>
+		</div>
+		<div class="row">
 			<div class="col-md-4 pull-right">
 				<div class="pull-right">
 					<button type="submit" name="accio" value="netejar" class="btn btn-default"><spring:message code="comu.boto.netejar"/></button>
@@ -109,24 +111,26 @@ $(document).ready(function() {
 			</div>
 		</div>
 	</form:form>
-	<table id="peticions" data-toggle="datatable" data-url="auditoriaBackoffice/datatable" data-search-enabled="false" data-default-order="5" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
+	<table id="peticions" data-toggle="datatable" data-url="auditoriaBackoffice/datatable" data-search-enabled="false" data-default-order="6" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
 				<th data-col-name="error" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="estatScspError" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiDescripcio" data-visible="false" data-orderable="false">#</th>
+				<th data-col-name="serveiCodiNom" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="sincrona" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="processadesPercent" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="dataPeticio" data-converter="datetime" width="15%"><spring:message code="auditoria.list.columna.data"/></th>
-				<th data-col-name="peticioId" data-template="#cellPeticioIdTemplate" width="25%">
+				<th data-col-name="peticioId" data-template="#cellPeticioIdTemplate" width="15%">
 					<script id="cellPeticioIdTemplate" type="text/x-jsrender">
 						{{:peticioId}}{{if !sincrona}}<span class="label label-default pull-right" title="<spring:message code="auditoria.list.asincrona"/>">A</span>{{/if}}
 					</script>
 					<spring:message code="auditoria.list.columna.num.peticio"/>
 				</th>
+				<th data-col-name="procedimentCodiNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
-					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiDescripcio}}</script>
+					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiCodiNom}}</script>
 				</th>
 				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%" data-orderable="false">
 					<spring:message code="auditoria.list.columna.estat"/>

@@ -10,10 +10,17 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.type.ClassMetadata;
 import org.springframework.core.type.filter.AbstractClassTestingTypeFilter;
+import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,35 +33,73 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-@PropertySource(ignoreResourceNotFound = true, value = {
-//        "file://${" + ScspService.APP_PROPERTIES + "}",
-        "file://${" + ScspService.APP_SYSTEM_PROPERTIES + "}"})
+@PropertySource(ignoreResourceNotFound = true, value = {"file://${" + ScspService.APP_SYSTEM_PROPERTIES + "}"})
 public class BackofficeInitialization {
 
     @Autowired
     private Environment env;
 
+    private String backofficeJarPath;
+
     BackofficeClassloader backofficeClassloader;
 
+    @Scheduled(fixedDelay = 300000, initialDelay = 5000)
     @PostConstruct
     public void loadBackofficeClasses() throws IOException {
-        log.info("BKO - Inicialitzant classes del backoffice...");
-        backofficeClassloader = new BackofficeClassloader();
-        String backofficeJarPath = env.getProperty("es.caib.emiserv.backoffice.jar.path");
-        if (backofficeJarPath != null && !backofficeJarPath.isEmpty())
-            backofficeClassloader.setBackofficeJarPath(backofficeJarPath);
-        List<String> backofficeClassNames = getBackofficeClasses();
-        Set<String> backofficeJarClassNames = backofficeClassloader.getClassNamesFromBackofficeJarFile();
-        backofficeClassNames.retainAll(backofficeJarClassNames);
-        backofficeClassNames.forEach(c -> {
-            try {
-                backofficeClassloader.findClass(c);
-                log.info("BKO - Classe de backoffice {} carregada correctament", c);
-            } catch (ClassNotFoundException e) {
-                log.error("BKO - No ha estat possible carregar la classe '{}' del backoffice", e);
+        log.debug("BKO - Inicialitzant classes del backoffice...");
+
+        String currentBackofficeJarPath = getBackofficeJarPath();
+        if (currentBackofficeJarPath != null && !currentBackofficeJarPath.isBlank() && !currentBackofficeJarPath.equals(backofficeJarPath)) {
+            log.info("BKO - Carregant classes del backoffice...");
+            backofficeJarPath = currentBackofficeJarPath;
+            backofficeClassloader = new BackofficeClassloader();
+            if (backofficeJarPath != null && !backofficeJarPath.isEmpty())
+                backofficeClassloader.setBackofficeJarPath(backofficeJarPath);
+            List<String> backofficeClassNames = getBackofficeClasses();
+            Set<String> backofficeJarClassNames = backofficeClassloader.getClassNamesFromBackofficeJarFile();
+            backofficeClassNames.retainAll(backofficeJarClassNames);
+            backofficeClassNames.forEach(c -> {
+                try {
+                    backofficeClassloader.findClass(c);
+                    log.info("BKO - Classe de backoffice {} carregada correctament", c);
+                } catch (ClassNotFoundException e) {
+                    log.error("BKO - No ha estat possible carregar la classe '{}' del backoffice", e);
+                }
+            });
+            log.info("BKO - Carrega finalitzada");
+        } else {
+            log.debug("BKO - No ha estat necessari inicialitzar les classes del backoffice.");
+        }
+        log.debug("BKO - Inicialització finalitzada");
+    }
+
+    private String getBackofficeJarPath() {
+        log.debug("Obtenint dataSource per a consultar la ruta del jar de backoffice de la BBDD...");
+        String backofficeJarPath = null;
+        try {
+            JndiDataSourceLookup lookup = new JndiDataSourceLookup();
+            String datasourceJndi = env.getProperty("spring.datasource.jndi-name", "java:jboss/datasources/emiservDS");
+            DataSource dataSource = lookup.getDataSource(datasourceJndi);
+            log.debug("... Datasource carregat correctament.");
+
+            log.debug("Carregant la ruta...");
+            try (Connection connection = dataSource.getConnection()) {
+                PreparedStatement preparedStatement = connection.prepareStatement("SELECT value FROM ems_config WHERE key = 'es.caib.emiserv.backoffice.jar.path'");
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        backofficeJarPath = resultSet.getString("value");
+                        log.debug("   ... carregada la ruta: {}", backofficeJarPath);
+                    }
+                }
+                preparedStatement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        });
-        log.info("BKO - Inicialització finalitzada");
+            log.debug("... Finalitzada la càrega de la ruta del jar de backoffice");
+        } catch (Throwable ex) {
+            log.error("No s'han pogut carregar les propietats de la BBDD", ex);
+        }
+        return backofficeJarPath;
     }
 
     private List<String> getBackofficeClasses() {

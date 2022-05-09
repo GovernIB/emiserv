@@ -6,6 +6,9 @@
 	margin-right: 0 !important;
 	min-width: 1000px;
 }
+.container {
+	width: calc(100% - 60px);
+}
 .navbar-app {
 	background-color: #ff9523;
 	height: 100px;

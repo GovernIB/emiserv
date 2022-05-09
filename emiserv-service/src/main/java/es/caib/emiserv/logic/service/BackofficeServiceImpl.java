@@ -23,6 +23,7 @@ import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCorePeticionRespuestaEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreTokenDataEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreTransmisionEntity;
 import es.caib.emiserv.persist.repository.BackofficePeticioRepository;
 import es.caib.emiserv.persist.repository.BackofficeSolicitudRepository;
 import es.caib.emiserv.persist.repository.ServeiRepository;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implementació del servei de backoffice.
@@ -88,51 +90,6 @@ public class BackofficeServiceImpl implements BackofficeService {
 	@Autowired
 	private BackofficeClassloader backofficeClassloader;
 
-//	@Transactional(readOnly = true)
-//	@Override
-//	public ServeiDto serveiFindByCodi(String codi) {
-//		log.debug(
-//				"Consulta de servei amb codi pel backoffice (" +
-//				"codi=" + codi + ")");
-//		ServeiEntity servei = serveiRepository.findByCodi(codi);
-//		if (servei == null) {
-//			throw new NotFoundException(
-//					codi,
-//					ServeiEntity.class);
-//		}
-//		if (!servei.isActiu()) {
-//			throw new NotActiveException(
-//					codi,
-//					ServeiEntity.class);
-//		}
-//		return conversioTipusHelper.convertir(
-//				servei,
-//				ServeiDto.class);
-//	}
-//
-//	@Transactional(readOnly = true)
-//	@Override
-//	public ServeiConfigScspDto serveiFindConfiguracioScsp(
-//			String codi) {
-//		log.debug("Obté la configuració SCSP del servei per a un backoffice (" +
-//				"codi=" + codi + ")");
-//		ServeiEntity servei = serveiRepository.findByCodi(codi);
-//		if (servei == null) {
-//			throw new NotFoundException(
-//					codi,
-//					ServeiEntity.class);
-//		}
-//		if (!servei.isActiu()) {
-//			throw new NotActiveException(
-//					codi,
-//					ServeiEntity.class);
-//		}
-//		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.findByCodigoCertificado(
-//				servei.getCodi());
-//		return conversioTipusHelper.convertir(
-//				scspCoreServicio,
-//				ServeiConfigScspDto.class);
-//	}
 
 	@Transactional(readOnly = true)
 	@Override
@@ -216,6 +173,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 				}
 			}
 		}
+
 		return resposta;
 	}
 
@@ -632,9 +590,22 @@ public class BackofficeServiceImpl implements BackofficeService {
 						backofficePeticio.getComunicacioDarrera().getError() != null);
 			}
 		}
+		List<ScspCoreTransmisionEntity> transmissions = scspCoreTransmisionRepository.findByPeticionIdOrderBySolicitudIdAsc(peticionRespuesta.getPeticionId());
+		peticio.setProcedimentCodi(transmissions.stream().map(t -> t.getProcedimientoCodigo()).distinct().collect(Collectors.joining(", ")));
+		peticio.setProcedimentNom(transmissions.stream().map(t -> t.getProcedimientoNombre()).distinct().collect(Collectors.joining(", ")));
+		peticio.setProcedimentCodiNom(transmissions.stream().map(t -> getCodiNom(t.getProcedimientoCodigo(),  t.getProcedimientoNombre())).distinct().collect(Collectors.joining(", ")));
 		return peticio;
 	}
 
+	private String getCodiNom(String codi, String nom) {
+		if ((codi == null || codi.isBlank()) && (nom == null || nom.isBlank()))
+			return null;
+		if (codi == null || codi.isBlank())
+			return nom;
+		if ((nom == null || nom.isBlank()))
+			return codi;
+		return codi + " - " + nom;
+	}
 /*	private void copiarDatosEspecificosPeticion(
 			Peticion peticionOrigen,
 			es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionDesti) {

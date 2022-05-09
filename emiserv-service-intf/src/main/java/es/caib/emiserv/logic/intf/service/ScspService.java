@@ -8,6 +8,7 @@ import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Mètodes per a gestionar else manteniments d'informació SCSP.
@@ -370,12 +371,14 @@ public interface ScspService {
 	/**
 	 * Consulta les claus privades SCSP disponibles amb paginació.
 	 * 
+	 *
+	 * @param filtre
 	 * @param paginacioParams
 	 *            Paràmetres per a la paginació.
 	 * @return La pàgina de claus privades SCSP.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
-	PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(PaginacioParamsDto paginacioParams);
+	PaginaDto<AutoritatCertificacioDto> autoritatCertificacioFindByFiltrePaginat(AutoritatCertificacioFiltreDto filtre, PaginacioParamsDto paginacioParams);
 	
 	AutoritatCertificacioDto autoritatCertificacioFindById(Long id) throws NotFoundException;
 	AutoritatCertificacioDto autoritatCertificacioCreate(AutoritatCertificacioDto item);
@@ -398,11 +401,11 @@ public interface ScspService {
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public List<OrganismeDto> organismeFindAll();
 
-	/**
-	 * Propaga les propietats dels fitxers de properties de EMISERV a la
-	 * taula core_parametro_configuracion.
-	 */
-	public void propagateScspPropertiesToDb();
+//	/**
+//	 * Propaga les propietats dels fitxers de properties de EMISERV a la
+//	 * taula core_parametro_configuracion.
+//	 */
+//	public void propagateScspPropertiesToDb();
 
 	/**
 	 * Consulta el llistat de informació de activació de mòduls scsp
@@ -426,4 +429,51 @@ public interface ScspService {
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
 	void updateScspModul(ScspModulDto modulDto) throws NotFoundException;
+
+	/**
+	 * Obté tots els paràmetre de configuració de scsp
+	 * @return El llistat dels paràmetres de configuració de scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+    public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioParams);
+
+	/**
+	 * Consulta un parametre SCSP donat el seu nom
+	 *
+	 * @param nom Nom del parametre a consultar
+	 * @return
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public ScspParametreDto getScspParametre(String nom);
+
+	/**
+	 * Consulta un parametre SCSP donat el seu nom
+	 *
+	 * @param nom Nom del parametre a consultar
+	 * @return
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public Optional<ScspParametreDto> getOptionalScspParametre(String nom);
+
+	/**
+	 * Actualitza el paràmetre scsp
+	 * @param parametreDto Informació del paràmetre scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	void updateScspParametre(ScspParametreDto parametreDto);
+
+	/**
+	 * Crea el paràmetre scsp
+	 * @param parametreDto Informació del paràmetre scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	void createScspParametre(ScspParametreDto parametreDto);
+
+	/**
+	 * Esborra el paràmetre scsp
+	 * @param nom Nom del paràmetre scsp
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	void deleteParametre(String nom);
+
 }

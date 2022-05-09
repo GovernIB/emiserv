@@ -3,36 +3,30 @@
  */
 package es.caib.emiserv.logic.intf.dto;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Informació d'un procediment.
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Data
+@NoArgsConstructor
 public class ProcedimentDto extends ObjecteAmbPermisosDto {
 
 	private String codi;
 	private String nom;
 
-	public String getCodi() {
-		return codi;
+	public String getCodiNom() {
+		if ((codi == null || codi.isBlank()) && (nom == null || nom.isBlank()))
+			return null;
+		if (codi == null || codi.isBlank())
+			return nom;
+		if ((nom == null || nom.isBlank()))
+			return codi;
+		return this.codi + " - " + this.nom;
 	}
-	public void setCodi(String codi) {
-		this.codi = codi;
-	}
-	public String getNom() {
-		return nom;
-	}
-	public void setNom(String nom) {
-		this.nom = nom;
-	}
-
-	@Override
-	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
-	}
-
 	private static final long serialVersionUID = -139254994389509932L;
 
 }

@@ -3,9 +3,9 @@
  */
 package es.caib.emiserv.back.controller;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-
+import es.caib.emiserv.back.helper.AjaxHelper;
+import es.caib.emiserv.back.helper.ModalHelper;
+import es.caib.emiserv.logic.intf.service.AplicacioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -13,9 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import es.caib.emiserv.back.helper.AjaxHelper;
-import es.caib.emiserv.back.helper.ModalHelper;
-import es.caib.emiserv.logic.intf.service.ScspService;
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Controlador amb utilitats per a l'aplicació EMISERV.
@@ -26,7 +25,7 @@ import es.caib.emiserv.logic.intf.service.ScspService;
 public class IndexController {
 
 	@Autowired
-	private ScspService scspService;
+	private AplicacioService aplicacioService;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String root(HttpServletRequest request) {
@@ -48,9 +47,19 @@ public class IndexController {
 		return "util/missatges";
 	}
 
+//	@PostConstruct
+//	public void propagateScspPropertiesToDb() {
+//		scspService.propagateScspPropertiesToDb();
+//	}
 	@PostConstruct
-	public void propagateScspPropertiesToDb() {
-		scspService.propagateScspPropertiesToDb();
+	public void propagateDbProperties() {
+		aplicacioService.propagateDbProperties();
 	}
+
+//	@GetMapping(value = "/properties")
+//	@ResponseBody
+//	public Map<String, String> getPRoperties() {
+//		return aplicacioService.readProperties();
+//	}
 
 }

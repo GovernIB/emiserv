@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>es.caib.emiserv</groupId>
 	<artifactId>emiserv</artifactId>
-	<version>2.0.2</version>
+	<version>2.0.3</version>
 	<packaging>pom</packaging>
 	<name>Emissor SCSP CAIB</name>
 	<parent>
@@ -40,7 +40,7 @@
 		<webjars-locator.version>0.40</webjars-locator.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.compiler.version>1.8</java.compiler.version>
+		<java.compiler.version>11</java.compiler.version>
 		<maven.compiler.target>${java.compiler.version}</maven.compiler.target>
 		<maven.compiler.source>${java.compiler.version}</maven.compiler.source>
 		<skipTests>true</skipTests>
