@@ -23,8 +23,8 @@
     <mvc:annotation-driven/>
 
 <!--    <mvc:resources order="1" location="classpath:/META-INF/resources/" mapping="/resources/**" />-->
-<!--    <mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/" />-->
-<!--    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/" />-->
+    <mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/swagger-ui.html" />
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/" />
 
 <!--    <mvc:default-servlet-handler />-->
 

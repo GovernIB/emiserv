@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
+@Tag(name = "Estadístiques")
 @RestController
 @RequestMapping("/stats")
 public class ExplotacioEstadistiquesRestController {
@@ -296,8 +297,8 @@ public class ExplotacioEstadistiquesRestController {
     // ESTADÍSTIQUES DE CÀRREGA
     // ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    @Operation(summary = "Informe general",
-            description = "Aquest servei retorna una l’acumulat de sol·licituds agrupades per procediment \n" +
+    @Operation(summary = "Estadístiques de càrrega",
+            description = "Aquest servei retorna un l’acumulat de sol·licituds agrupades per procediment \n" +
                     "i servei distingint entre les peticions realitzades via interfície web o via \n" +
                     "recobriment i també si hi ha hagut errors o no.")
     @ApiResponses(value = {
