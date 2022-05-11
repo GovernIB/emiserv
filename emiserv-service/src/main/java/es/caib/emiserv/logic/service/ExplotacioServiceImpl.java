@@ -99,33 +99,33 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<DadesObertesRespostaConsulta> findOpenData(String entitatCodi, Date dataInici, Date dataFi, String procedimentCodi, String serveiCodi) {
+	public List<DadesObertesRespostaConsulta> findOpenData(String entitatNif, Date dataInici, Date dataFi, String procedimentCodi, String serveiCodi) {
 		log.debug("Consultant informació per opendata (" +
-				"entitatCodi=" + entitatCodi + ", " +
+				"entitatNif=" + entitatNif + ", " +
 				"dataInici=" + dataInici + ", " +
 				"dataFi" + dataFi + ", " +
 				"procedimentCodi=" + procedimentCodi + ", " +
 				"serveiCodi=" + serveiCodi + ")");
 		List<DadesObertesRespostaConsulta> openData = new ArrayList<>();
 		List<DadesObertesRespostaConsulta> openDataBackoffice = scspCoreTransmisionRepository.findByOpendata(
-				isBlank(entitatCodi),
-				isBlank(entitatCodi) ? entitatCodi : null,
+				isBlank(entitatNif),
+				!isBlank(entitatNif) ? entitatNif : null,
 				isBlank(procedimentCodi),
-				isBlank(procedimentCodi) ? procedimentCodi : null,
+				!isBlank(procedimentCodi) ? procedimentCodi : null,
 				isBlank(serveiCodi),
-				isBlank(serveiCodi) ? serveiCodi : null,
+				!isBlank(serveiCodi) ? serveiCodi : null,
 				dataInici == null,
 				dataInici,
 				dataFi == null,
 				dataFi);
 		openData.addAll(openDataBackoffice);
 		List<DadesObertesRespostaConsulta> openDataEnrutador = redireccioPeticioRepository.findByOpendata(
-				isBlank(entitatCodi),
-				isBlank(entitatCodi) ? entitatCodi : null,
+				isBlank(entitatNif),
+				!isBlank(entitatNif) ? entitatNif : null,
 				isBlank(procedimentCodi),
-				isBlank(procedimentCodi) ? procedimentCodi : null,
+				!isBlank(procedimentCodi) ? procedimentCodi : null,
 				isBlank(serveiCodi),
-				isBlank(serveiCodi) ? serveiCodi : null,
+				!isBlank(serveiCodi) ? serveiCodi : null,
 				dataInici == null,
 				dataInici,
 				dataFi == null,

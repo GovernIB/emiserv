@@ -37,12 +37,12 @@ public class ExplotacioService extends AbstractService<es.caib.emiserv.logic.int
 	@PermitAll
     @Override
     public List<DadesObertesRespostaConsulta> findOpenData(
-			String entitatCodi,
+			String entitatNif,
 			Date dataInici,
 			Date dataFi,
 			String procedimentCodi,
 			String serveiCodi) {
-        return getDelegateService().findOpenData(entitatCodi, dataInici, dataFi, procedimentCodi, serveiCodi);
+        return getDelegateService().findOpenData(entitatNif, dataInici, dataFi, procedimentCodi, serveiCodi);
     }
 
 	@Override

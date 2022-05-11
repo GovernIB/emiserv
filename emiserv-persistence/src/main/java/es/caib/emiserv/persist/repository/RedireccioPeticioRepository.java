@@ -144,7 +144,7 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			"			inner join rs.peticio as rp, " +
 			"		ServeiEntity s " +
 			"	where rp.serveiCodi = s.codi " +
-			"    	and (:esNullEntitatId = true or rs.solicitantId = :entitatId) " +
+			"    	and (:esNullEntitatNif = true or rs.solicitantId = :entitatNif) " +
 			"		and (:esNullProcedimentId = true or rs.procedimentCodi = :procedimentId) " +
 			"		and (:esNullServeiCodi = true or rp.serveiCodi = :serveiCodi) " +
 			"		and (:esNullDataInici = true or rp.dataPeticio >= :dataInici) " +
@@ -153,8 +153,8 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			"	rp.dataPeticio "
 	)
 	List<DadesObertesRespostaConsulta> findByOpendata(
-			@Param("esNullEntitatId") boolean esNullEntitatId,
-			@Param("entitatId") String entitatId,
+			@Param("esNullEntitatNif") boolean esNullEntitatNif,
+			@Param("entitatNif") String entitatNif,
 			@Param("esNullProcedimentId") boolean esNullProcedimentId,
 			@Param("procedimentId") String procedimentId,
 			@Param("esNullServeiCodi") boolean esNullServeiCodi,

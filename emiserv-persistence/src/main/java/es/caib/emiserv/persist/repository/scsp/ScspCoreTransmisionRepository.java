@@ -120,7 +120,7 @@ public interface ScspCoreTransmisionRepository extends JpaRepository<ScspCoreTra
 			"			inner join ct.peticionRespuesta cpr, " +
 			"		ScspCoreServicioEntity cs " +
 			"	where cpr.certificado = cs.id " +
-			"    	and (:esNullEntitatId = true or ct.solicitanteId = :entitatId) " +
+			"    	and (:esNullEntitatNif = true or ct.solicitanteId = :entitatNif) " +
 			"		and (:esNullProcedimentId = true or ct.procedimientoCodigo = :procedimentId) " +
 			"		and (:esNullServeiCodi = true or cs.codigoCertificado = :serveiCodi) " +
 			"		and (:esNullDataInici = true or cpr.fechaPeticion >= :dataInici) " +
@@ -129,8 +129,8 @@ public interface ScspCoreTransmisionRepository extends JpaRepository<ScspCoreTra
 			"	cpr.fechaPeticion "
 	)
 	List<DadesObertesRespostaConsulta> findByOpendata(
-			@Param("esNullEntitatId") boolean esNullEntitatId,
-			@Param("entitatId") String entitatId,
+			@Param("esNullEntitatNif") boolean esNullEntitatNif,
+			@Param("entitatNif") String entitatNif,
 			@Param("esNullProcedimentId") boolean esNullProcedimentId,
 			@Param("procedimentId") String procedimentId,
 			@Param("esNullServeiCodi") boolean esNullServeiCodi,

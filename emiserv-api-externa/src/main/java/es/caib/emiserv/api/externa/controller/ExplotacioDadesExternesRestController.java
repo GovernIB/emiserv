@@ -39,7 +39,7 @@ public class ExplotacioDadesExternesRestController {
     @RequestMapping(value = "/opendata", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<DadesObertesRespostaConsulta>> opendata(
             @RequestParam(required = false) @ApiParam(value = "Nif de l’entitat")
-            final String entitatCodi,
+            final String entitatNif,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @ApiParam(value = "Data inicial de la consulta en format yyyy-MM-dd")
             final Date dataInici,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @ApiParam(value = "Data final de la consulta en format yyyy-MM-dd")
@@ -65,7 +65,7 @@ public class ExplotacioDadesExternesRestController {
         }
 
         List<DadesObertesRespostaConsulta> entitats = explotacioService.findOpenData(
-                entitatCodi,
+                entitatNif,
                 dInici,
                 dFi,
                 procedimentCodi,

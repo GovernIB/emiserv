@@ -48,7 +48,7 @@ public interface ExplotacioService {
 	 */
 	@PreAuthorize("permitAll()")
     List<DadesObertesRespostaConsulta> findOpenData(
-			String entitatCodi,
+			String entitatNif,
 			Date dataInici,
 			Date dataFi,
 			String procedimentCodi,
