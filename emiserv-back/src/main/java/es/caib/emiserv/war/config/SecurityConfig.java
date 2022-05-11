@@ -55,11 +55,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private static final String[] AUTH_WHITELIST = {
 			"/scspRouting/**/*",
-			"/swagger-resources/**",
-			"/swagger-ui/**",
-			"/api/rest",
-			"/api-docs",
-			"/api-docs/**",
 			"/webjars/**"
 	};
 

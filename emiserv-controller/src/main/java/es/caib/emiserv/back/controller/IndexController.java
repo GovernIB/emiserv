@@ -9,7 +9,6 @@ import es.caib.emiserv.logic.intf.service.AplicacioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -63,8 +62,8 @@ public class IndexController {
 //		return aplicacioService.readProperties();
 //	}
 
-	@GetMapping(value = "/api/swagger-ui/api-docs/swagger-config")
-	public String getSwaggerCongig() {
-		return "redirect:/api-docs-swagger-config";
-	}
+//	@GetMapping(value = "/api/swagger-ui/api-docs/swagger-config")
+//	public String getSwaggerCongig() {
+//		return "redirect:/api-docs-swagger-config";
+//	}
 }
