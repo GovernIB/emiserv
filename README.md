@@ -3,7 +3,7 @@ EMISERV és una solució tecnològica desenvolupada pel Govern de les Illes Bale
 ## <a name="docs"></a> Documentació
 * [Manual d'instal·lació](https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/00_emiserv_instalar.pdf)
 * [Manual d'implementació de backoffices](https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/01_emiserv_backoffice.pdf)
-* [Manual d'usuari](https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/02_emiserv_usuari.pdff)
+* [Manual d'usuari](https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/02_emiserv_usuari.pdf)
 * [Manual d'integració](https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/03_emiserv_integracio.pdf)
 ## <a name="v_estable"></a> Versió estable
 ### [v2.0.3](https://github.com/GovernIB/emiserv/releases/tag/v2.0.3)
