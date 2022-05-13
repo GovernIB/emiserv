@@ -78,6 +78,20 @@
 		</exclude-subsystems>
 		<exclusions>
 			<module name="emiserv.ear"/>
+			<module name="emiserv-back.war"/>
+		</exclusions>
+		<dependencies>
+			<module name="deployment.emiserv-service-intf"/>
+			<module name="deployment.emiserv-client-intf"/>
+			<module name="deployment.emiserv-api-libs"/>
+		</dependencies>
+	</sub-deployment>
+	<sub-deployment name="emiserv-api-interna-scsp.war">
+		<exclude-subsystems>
+			<subsystem name="jsf"/>
+		</exclude-subsystems>
+		<exclusions>
+			<module name="emiserv.ear"/>
 		</exclusions>
 		<dependencies>
 			<module name="deployment.emiserv-service-intf"/>

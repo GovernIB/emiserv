@@ -57,7 +57,7 @@
 	<!-- ==================================================================== -->
 	<bean id="propertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="properties">
-			<bean class="es.caib.emiserv.api.externa.EmiservPropertiesFactoryBean" />
+			<bean class="es.caib.emiserv.api.interna.scsp.EmiservPropertiesFactoryBean" />
 		</property>
 		<property name="placeholderPrefix" value="${config:" />
 	</bean>

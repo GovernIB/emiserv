@@ -18,4 +18,14 @@
                 <principal-attribute>preferred_username</principal-attribute>
                 <credential name="secret">${env.KEYCLOAK_SECRET}</credential>
             </secure-deployment>
+            <secure-deployment name="emiserv-api-externa.war">
+                <auth-server-url>${env.KEYCLOAK_URL}</auth-server-url>
+                <realm>${env.KEYCLOAK_REALM}</realm>
+                <resource>${env.KEYCLOAK_RESOURCE_REST}</resource>
+                <use-resource-role-mappings>false</use-resource-role-mappings>
+                <bearer-only>true</bearer-only>
+                <enable-basic-auth>true</enable-basic-auth>
+                <principal-attribute>preferred_username</principal-attribute>
+                <credential name="secret">${env.KEYCLOAK_SECRET}</credential>
+            </secure-deployment>
         </subsystem>

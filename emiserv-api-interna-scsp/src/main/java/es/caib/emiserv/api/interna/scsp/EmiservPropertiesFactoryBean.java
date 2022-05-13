@@ -1,14 +1,14 @@
 /**
  * 
  */
-package es.caib.emiserv.api.externa;
+package es.caib.emiserv.api.interna.scsp;
+
+import org.springframework.beans.factory.FactoryBean;
 
 import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import org.springframework.beans.factory.FactoryBean;
 
 /**
  * FactoryBean per a accedir a les propietats de EMISERV.

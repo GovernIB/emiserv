@@ -21,6 +21,36 @@ public class EjbClientConfig {
 	private static final String EJB_JNDI_PREFIX = "java:app/emiserv-ejb/";
 	private static final String EJB_JNDI_SUFFIX = "";
 
+//	@Bean
+//	public LocalStatelessSessionProxyFactoryBean aplicacioService() {
+//		return getLocalEjbFactoyBean(AplicacioService.class);
+//	}
+//
+//	@Bean
+//	public LocalStatelessSessionProxyFactoryBean backofficeService() {
+//		return getLocalEjbFactoyBean(BackofficeService.class);
+//	}
+//
+//	@Bean
+//	public LocalStatelessSessionProxyFactoryBean redireccioService() {
+//		return getLocalEjbFactoyBean(RedireccioService.class);
+//	}
+//
+//	@Bean
+//	public LocalStatelessSessionProxyFactoryBean scspService() {
+//		return getLocalEjbFactoyBean(ScspService.class);
+//	}
+//
+//	@Bean
+//	public LocalStatelessSessionProxyFactoryBean serveiService() {
+//		return getLocalEjbFactoyBean(ServeiService.class);
+//	}
+//
+//	@Bean
+//	public LocalStatelessSessionProxyFactoryBean configService() {
+//		return getLocalEjbFactoyBean(ConfigService.class);
+//	}
+
 	@Bean
 	public LocalStatelessSessionProxyFactoryBean explotacioService() {
 		return getLocalEjbFactoyBean(ExplotacioService.class);

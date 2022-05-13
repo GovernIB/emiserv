@@ -56,13 +56,14 @@
 		<module>emiserv-persistence</module>
 		<module>emiserv-service</module>
 		<module>emiserv-service-intf</module>
+		<module>emiserv-api-interna</module>
+		<module>emiserv-api-interna-scsp</module>
 		<module>emiserv-api-externa</module>
-        <module>emiserv-client-intf</module>
-        <module>emiserv-client-jersey1</module>
-        <module>emiserv-client-jersey2</module>
+		<module>emiserv-client-intf</module>
+		<module>emiserv-client-jersey1</module>
+		<module>emiserv-client-jersey2</module>
 		<module>emiserv-client-jersey3</module>
-        <module>emiserv-api-interna</module>
-    </modules>
+	</modules>
 	<build>
 		<plugins>
 			<plugin>

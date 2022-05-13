@@ -53,6 +53,12 @@
 			<version>${project.version}</version>
 			<type>war</type>
 		</dependency>
+		<dependency>
+			<groupId>es.caib.emiserv</groupId>
+			<artifactId>emiserv-api-interna-scsp</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
 		<!-- 
 			 La següent dependència ja està inclosa a dins el .war. Només s'inclou aquí per a que l'ear
 			 contengui les seves dependències. Després s'haurà d'excloure el fitxer emiserv-controller*.jar
@@ -165,6 +171,12 @@
 							<artifactId>emiserv-api-interna</artifactId>
 							<contextRoot>/emiservapi/interna</contextRoot>
 							<bundleFileName>emiserv-api-interna.war</bundleFileName>
+						</webModule>
+						<webModule>
+							<groupId>${project.groupId}</groupId>
+							<artifactId>emiserv-api-interna-scsp</artifactId>
+							<contextRoot>/emiservapi/interna/services</contextRoot>
+							<bundleFileName>emiserv-api-interna-scsp.war</bundleFileName>
 						</webModule>
 					</modules>
 				</configuration>
