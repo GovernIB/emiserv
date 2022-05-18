@@ -38,7 +38,7 @@ import java.util.Date;
 import java.util.List;
 @Tag(name = "Estadístiques")
 @RestController
-@RequestMapping("/stats")
+@RequestMapping("/interna/stats")
 public class ExplotacioEstadistiquesRestController {
 
     @Autowired

@@ -169,13 +169,13 @@
 						<webModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>emiserv-api-interna</artifactId>
-							<contextRoot>/emiservapi/interna</contextRoot>
+							<contextRoot>/emiservapi</contextRoot>
 							<bundleFileName>emiserv-api-interna.war</bundleFileName>
 						</webModule>
 						<webModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>emiserv-api-interna-scsp</artifactId>
-							<contextRoot>/emiservapi/interna/services</contextRoot>
+							<contextRoot>/emiservapi/interna</contextRoot>
 							<bundleFileName>emiserv-api-interna-scsp.war</bundleFileName>
 						</webModule>
 					</modules>
