@@ -35,7 +35,7 @@ import java.util.List;
 
 @Tag(name = "Informes")
 @RestController
-@RequestMapping("/interna/reports")
+@RequestMapping("/reports")
 public class ExplotacioInformesRestController {
 
     @Autowired
