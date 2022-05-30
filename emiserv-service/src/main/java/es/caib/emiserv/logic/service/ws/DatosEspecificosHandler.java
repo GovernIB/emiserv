@@ -3,11 +3,11 @@
  */
 package es.caib.emiserv.logic.service.ws;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,12 +27,11 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * SOAP Handler per a extreure els datosEspecificos de la resposta.
@@ -124,7 +123,7 @@ public class DatosEspecificosHandler implements SOAPHandler<SOAPMessageContext> 
 						Node nde = nlde.item(k);
 						if (nde != null) {
 							datosEspecificosNou.appendChild(nde.cloneNode(true));
-							datosEspecificosElement.removeChild(nde);
+//							datosEspecificosElement.removeChild(nde);
 						}
 					}
 					afegirDatosEspecificos(

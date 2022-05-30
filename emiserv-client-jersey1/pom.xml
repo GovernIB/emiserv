@@ -2,16 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>emiserv</artifactId>
-        <groupId>es.caib.emiserv</groupId>
-        <version>2.0.4</version>
-    </parent>
-
-    <packaging>jar</packaging>
+<!--    <parent>-->
+<!--        <artifactId>emiserv</artifactId>-->
+<!--        <groupId>es.caib.emiserv</groupId>-->
+<!--        <version>2.0.4</version>-->
+<!--    </parent>-->
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>es.caib.emiserv</groupId>
     <artifactId>emiserv-client-jersey1</artifactId>
+    <version>2.0.4</version>
+    <packaging>jar</packaging>
+
 
     <dependencyManagement>
         <dependencies>
@@ -33,7 +35,7 @@
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>${local.jersey.version}</version>
+            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <groupId>es.caib.emiserv</groupId>
@@ -57,17 +59,17 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>${local.jackson.version}</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${local.jackson.version}</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-jaxb-annotations</artifactId>
-            <version>${local.jackson.version}</version>
+            <version>${jackson.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>jackson-core</artifactId>
@@ -82,7 +84,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-base</artifactId>
-            <version>${local.jackson.version}</version>
+            <version>${jackson.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>jackson-core</artifactId>
@@ -97,7 +99,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${local.jackson.version}.5</version>
+            <version>${jackson.version}.5</version>
             <exclusions>
                 <exclusion>
                     <artifactId>jackson-annotations</artifactId>
@@ -112,7 +114,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>${local.jackson.version}</version>
+            <version>${jackson.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>jackson-core</artifactId>
@@ -150,8 +152,8 @@
     <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
-        <local.jersey.version>1.19.4</local.jersey.version>
-        <local.jackson.version>2.6.7</local.jackson.version>
+        <jersey.version>1.19.4</jersey.version>
+        <jackson.version>2.6.7</jackson.version>
     </properties>
 
 </project>
