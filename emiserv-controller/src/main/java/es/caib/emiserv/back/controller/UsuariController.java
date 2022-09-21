@@ -1,22 +1,24 @@
 package es.caib.emiserv.back.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-
 import es.caib.emiserv.back.command.UsuariCommand;
 import es.caib.emiserv.back.helper.EnumHelper;
 import es.caib.emiserv.back.helper.LocaleHelper;
 import es.caib.emiserv.logic.intf.dto.IdiomaEnumDto;
 import es.caib.emiserv.logic.intf.keycloak.KeycloakHelper;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
+import org.keycloak.KeycloakPrincipal;
+import org.keycloak.representations.AccessToken;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 /**
  * Controlador per a gestionar la configuració dels usuaris.
@@ -64,6 +66,19 @@ public class UsuariController extends BaseController {
 				request,
 				"redirect:/",
 				"usuari.controller.modificat.ok");
+	}
+
+	@RequestMapping(value = "/token", method = RequestMethod.GET)
+	@ResponseBody
+	public AccessToken getToken(
+			HttpServletRequest request,
+			Model model) {
+		KeycloakPrincipal<?> keycloakPrincipal = KeycloakHelper.getKeycloakPrincipal();
+		if (keycloakPrincipal != null) {
+			return keycloakPrincipal.getKeycloakSecurityContext().getToken();
+		} else {
+			return null;
+		}
 	}
 
 	private void addIdiomaOptionsToModel(Model model) {

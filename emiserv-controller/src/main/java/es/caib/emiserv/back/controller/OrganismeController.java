@@ -3,12 +3,13 @@
  */
 package es.caib.emiserv.back.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
+import es.caib.emiserv.back.command.OrganismeCommand;
+import es.caib.emiserv.back.helper.DatatablesHelper;
+import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
+import es.caib.emiserv.back.helper.RequestSessionHelper;
+import es.caib.emiserv.logic.intf.dto.OrganismeDto;
+import es.caib.emiserv.logic.intf.dto.OrganismeFiltreDto;
+import es.caib.emiserv.logic.intf.service.ScspService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -22,13 +23,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import es.caib.emiserv.back.command.OrganismeCommand;
-import es.caib.emiserv.back.helper.DatatablesHelper;
-import es.caib.emiserv.back.helper.RequestSessionHelper;
-import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
-import es.caib.emiserv.logic.intf.dto.OrganismeDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeFiltreDto;
-import es.caib.emiserv.logic.intf.service.ScspService;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Controlador per a la gestió dels organismes SCSP.
@@ -48,8 +46,7 @@ public class OrganismeController extends BaseController {
 	public String get(
 			HttpServletRequest request,
 			Model model) {
-		model.addAttribute(
-				getFiltreCommand(request));
+		model.addAttribute(getFiltreCommand(request));
 		return "organismeList";
 	}
 
@@ -61,14 +58,9 @@ public class OrganismeController extends BaseController {
 			BindingResult bindingResult,
 			Model model) {
 		if ("netejar".equals(accio)) {
-			RequestSessionHelper.esborrarObjecteSessio(
-					request,
-					SESSION_ATTRIBUTE_FILTRE);
+			RequestSessionHelper.esborrarObjecteSessio(request, SESSION_ATTRIBUTE_FILTRE);
 		} else if (!bindingResult.hasErrors()) {
-			RequestSessionHelper.actualitzarObjecteSessio(
-					request,
-					SESSION_ATTRIBUTE_FILTRE,
-					filtre);
+			RequestSessionHelper.actualitzarObjecteSessio(request, SESSION_ATTRIBUTE_FILTRE, filtre);
 		}
 		return "redirect:organisme";
 	}
@@ -89,22 +81,15 @@ public class OrganismeController extends BaseController {
 	}
 
 	@RequestMapping(value = "/new", method = RequestMethod.GET)
-	public String getNew(
-			HttpServletRequest request,
-			Model model) {
-		return get(
-				request,
-				null,
-				model);
+	public String getNew(HttpServletRequest request, Model model) {
+		return get(request, null, model);
 	}
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public String get(
 			HttpServletRequest request,
 			@PathVariable Long id,
 			Model model) {
-		emplenarModelForm(
-				id,
-				model);
+		emplenarModelForm(id, model);
 		OrganismeDto organisme = null;
 		if (id != null) {
 			organisme = scspService.organismeFindById(id);
@@ -122,9 +107,7 @@ public class OrganismeController extends BaseController {
 			BindingResult bindingResult,
 			Model model) {
 		if (bindingResult.hasErrors()) {
-			emplenarModelForm(
-					command.getId(),
-					model);
+			emplenarModelForm(command.getId(), model);
 			return "organismeForm";
 		}
 		if (command.getId() != null) {

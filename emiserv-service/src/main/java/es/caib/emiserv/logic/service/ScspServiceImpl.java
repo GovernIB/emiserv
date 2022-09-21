@@ -71,11 +71,18 @@ public class ScspServiceImpl implements ScspService {
 	public AplicacioDto aplicacioCreate(
 			AplicacioDto aplicacio) {
 		log.debug("Creant una nova aplicació (aplicacio=" + aplicacio + ")");
+		ScspCoreEmAutorizacionAutoridadCertEntity autoritat = null;
+		if (aplicacio.getAutoridadCertificacio() != null) {
+			autoritat = scspCoreEmAutorizacionAutoridadCertRepository.findById(aplicacio.getAutoridadCertificacio().getId());
+		}
+		if (autoritat == null) {
+			throw new NotFoundException(aplicacio.getAutoridadCertificacio().getId(), ScspCoreEmAutorizacionAutoridadCertEntity.class);
+		}
 		ScspCoreEmAplicacionEntity entity = ScspCoreEmAplicacionEntity.getBuilder(
 				aplicacio.getCertificatNif(),
 				aplicacio.getNumeroSerie(),
 				aplicacio.getCn(),
-				aplicacio.getAutoridadCertifId()).
+				autoritat).
 				fechaAlta(aplicacio.getDataAlta()).
 				fechaBaja(aplicacio.getDataBaixa()).
 				build();
@@ -91,15 +98,20 @@ public class ScspServiceImpl implements ScspService {
 		Optional<ScspCoreEmAplicacionEntity> entity = scspCoreEmAutorizacionAplicacionRepository.findById(
 				aplicacio.getId());
 		if (!entity.isPresent()) {
-			throw new NotFoundException(
-					aplicacio.getId(),
-					ScspCoreEmAplicacionEntity.class);
+			throw new NotFoundException(aplicacio.getId(), ScspCoreEmAplicacionEntity.class);
+		}
+		ScspCoreEmAutorizacionAutoridadCertEntity autoritat = null;
+		if (aplicacio.getAutoridadCertificacio() != null) {
+			autoritat = scspCoreEmAutorizacionAutoridadCertRepository.findById(aplicacio.getAutoridadCertificacio().getId());
+		}
+		if (autoritat == null) {
+			throw new NotFoundException(aplicacio.getAutoridadCertificacio().getId(), ScspCoreEmAutorizacionAutoridadCertEntity.class);
 		}
 		entity.get().update(
 				aplicacio.getCertificatNif(),
 				aplicacio.getNumeroSerie(),
 				aplicacio.getCn(),
-				aplicacio.getAutoridadCertifId(),
+				autoritat,
 				aplicacio.getDataAlta(),
 				aplicacio.getDataBaixa());
 	}
@@ -259,15 +271,15 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional
 	@Override
-	public OrganismeDto organismeCessionariCreate(
-			OrganismeDto organismo) {
+	public OrganismeCessionariDto organismeCessionariCreate(
+			OrganismeCessionariDto organismo) {
 		log.debug("Creant un nou organisme cessionari (organismo=" + organismo + ")");
 		ScspCoreOrganismoCessionarioEntity entity = ScspCoreOrganismoCessionarioEntity.getBuilder(
 				organismo.getNom(),
 				organismo.getCif(),
 				organismo.getDataAlta()).
 				dataBaixa(organismo.getDataBaixa()).
-				bloquejat(organismo.isBloquejat()).
+				bloquejat(organismo.getBloquejat()).
 				codiUnitatTramitadora(organismo.getCodiUnitatTramitadora()).
 				build();
 		return toOrganismeCessionariDto(
@@ -277,7 +289,7 @@ public class ScspServiceImpl implements ScspService {
 	@Transactional
 	@Override
 	public void organismeCessionariUpdate(
-			OrganismeDto organismo) {
+			OrganismeCessionariDto organismo) {
 		log.debug("Modificant l'organisme cessionari (organismo=" + organismo + ")");
 		Optional<ScspCoreOrganismoCessionarioEntity> entity = scspCoreOrganismoCessionarioRepository.findById(
 				organismo.getId());
@@ -291,7 +303,7 @@ public class ScspServiceImpl implements ScspService {
 				organismo.getCif(),
 				organismo.getDataAlta(),
 				organismo.getDataBaixa(),
-				organismo.isBloquejat(),
+				organismo.getBloquejat(),
 				organismo.getCodiUnitatTramitadora());
 	}
 
@@ -310,7 +322,7 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public OrganismeDto organismeCessionariFindById(Long id) {
+	public OrganismeCessionariDto organismeCessionariFindById(Long id) {
 		log.debug("Consultant l'organisme cessionari per id (id=" + id + ")");
 		Optional<ScspCoreOrganismoCessionarioEntity> entity = scspCoreOrganismoCessionarioRepository.findById(id);
 		if (!entity.isPresent()) {
@@ -323,7 +335,7 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public OrganismeDto organismeCessionariFindByCif(String cif) throws NotFoundException {
+	public OrganismeCessionariDto organismeCessionariFindByCif(String cif) throws NotFoundException {
 		ScspCoreOrganismoCessionarioEntity organisme = scspCoreOrganismoCessionarioRepository.findByCif(cif);
 		if (organisme != null) {
 			return toOrganismeCessionariDto(organisme);
@@ -334,7 +346,7 @@ public class ScspServiceImpl implements ScspService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public PaginaDto<OrganismeDto> organismeCessionariFindByFiltrePaginat(
+	public PaginaDto<OrganismeCessionariDto> organismeCessionariFindByFiltrePaginat(
 			OrganismeFiltreDto filtre,
 			PaginacioParamsDto paginacioParams) {
 		log.debug("Consultant organismes cessionaris amb paginació (" +
@@ -348,10 +360,10 @@ public class ScspServiceImpl implements ScspService {
 				paginacioHelper.toSpringDataPageable(paginacioParams));
 		return paginacioHelper.toPaginaDto(
 				page,
-				OrganismeDto.class,
-				new Converter<ScspCoreOrganismoCessionarioEntity, OrganismeDto>() {
+				OrganismeCessionariDto.class,
+				new Converter<ScspCoreOrganismoCessionarioEntity, OrganismeCessionariDto>() {
 					@Override
-					public OrganismeDto convert(ScspCoreOrganismoCessionarioEntity source) {
+					public OrganismeCessionariDto convert(ScspCoreOrganismoCessionarioEntity source) {
 						return toOrganismeCessionariDto(source);
 					}
 				});
@@ -493,6 +505,86 @@ public class ScspServiceImpl implements ScspService {
 						return toAutoritzacioDto(source);
 					}
 				});
+	}
+
+	@Override
+	@Transactional
+	public EmisorDto emisorCreate(EmisorDto emisor) throws NotFoundException {
+		log.debug("Creant un nou emisor (emisor=" + emisor + ")");
+		ScspCoreEmisorCertificadoEntity entity = ScspCoreEmisorCertificadoEntity.builder()
+				.nombre(emisor.getNom())
+				.cif(emisor.getCif())
+				.fechaAlta(emisor.getDataAlta())
+				.fechaBaja(emisor.getDataBaixa())
+				.build();
+		return conversioTipusHelper.convertir(scspCoreEmisorCertificadoRepository.save(entity), EmisorDto.class);
+	}
+
+	@Override
+	@Transactional
+	public void emisorUpdate(EmisorDto emisor) throws NotFoundException {
+		log.debug("Modificant l'emisor (emisor=" + emisor + ")");
+		Optional<ScspCoreEmisorCertificadoEntity> entity = scspCoreEmisorCertificadoRepository.findById(emisor.getId());
+		if (!entity.isPresent()) {
+			throw new NotFoundException(
+					emisor.getId(),
+					ScspCoreEmisorCertificadoEntity.class);
+		}
+		entity.get().update(
+				emisor.getNom(),
+				emisor.getCif(),
+				emisor.getDataAlta(),
+				emisor.getDataBaixa());
+	}
+
+	@Override
+	@Transactional
+	public void emisorDelete(Long id) throws NotFoundException {
+		log.debug("Esborrant l'emisor (id=" + id + ")");
+		Optional<ScspCoreEmisorCertificadoEntity> entity = scspCoreEmisorCertificadoRepository.findById(id);
+		if (!entity.isPresent()) {
+			throw new NotFoundException(
+					id,
+					ScspCoreEmisorCertificadoEntity.class);
+		}
+		scspCoreEmisorCertificadoRepository.deleteById(id);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public EmisorDto emisorFindById(Long id) throws NotFoundException {
+		log.debug("Consultant l'emisor per id (id=" + id + ")");
+		Optional<ScspCoreEmisorCertificadoEntity> entity = scspCoreEmisorCertificadoRepository.findById(id);
+		if (!entity.isPresent()) {
+			throw new NotFoundException(
+					id,
+					ScspCoreEmisorCertificadoEntity.class);
+		}
+		return conversioTipusHelper.convertir(entity.get(), EmisorDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public EmisorDto emisorFindByCif(String cif) throws NotFoundException {
+		log.debug("Consultant l'emisor per cif (cif={})", cif);
+		Optional<ScspCoreEmisorCertificadoEntity> entity = scspCoreEmisorCertificadoRepository.findByCif(cif);
+		if (!entity.isPresent()) {
+			return null;
+		}
+		return conversioTipusHelper.convertir(entity.get(), EmisorDto.class);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PaginaDto<EmisorDto> emisorFindByFiltrePaginat(EmisorFiltreDto filtre, PaginacioParamsDto paginacioParams) {
+		log.debug("Consultant emisors amb paginació (filtre={}, paginacioParams={})", filtre, paginacioParams);
+		Page<ScspCoreEmisorCertificadoEntity> page = scspCoreEmisorCertificadoRepository.findByFiltrePaginat(
+				(filtre == null || filtre.getNom() == null || filtre.getNom().isEmpty()),
+				filtre != null && filtre.getNom() != null ? filtre.getNom() : "",
+				(filtre == null || filtre.getCif() == null || filtre.getCif().isEmpty()),
+				filtre != null && filtre.getCif() != null ? filtre.getCif() : "",
+				paginacioHelper.toSpringDataPageable(paginacioParams));
+		return paginacioHelper.toPaginaDto(page, EmisorDto.class);
 	}
 
 	@Transactional(readOnly = true)
@@ -713,10 +805,11 @@ public class ScspServiceImpl implements ScspService {
 				Sort.by(Order.asc("nombre")));
 		List<AutoritatCertificacioDto> resposta = new ArrayList<AutoritatCertificacioDto>();
 		for (ScspCoreEmAutorizacionAutoridadCertEntity autoritat: autoritats) {
-			AutoritatCertificacioDto dto = new AutoritatCertificacioDto();
-			dto.setId(autoritat.getId());
-			dto.setCodca(autoritat.getCodca());
-			dto.setNombre(autoritat.getNombre());
+			AutoritatCertificacioDto dto = AutoritatCertificacioDto.builder()
+					.id(autoritat.getId())
+					.codca(autoritat.getCodca())
+					.nombre(autoritat.getNombre())
+					.build();
 			resposta.add(dto);
 		}
 		return resposta;
@@ -900,17 +993,20 @@ public class ScspServiceImpl implements ScspService {
 
 	private AplicacioDto toAplicacioDto(
 			ScspCoreEmAplicacionEntity entity) {
-		AplicacioDto dto = new AplicacioDto();
-		dto.setId(entity.getIdAplicacion());
-		dto.setCertificatNif(entity.getNifCertificado());
-		dto.setNumeroSerie(entity.getNumeroSerie());
-		dto.setCn(entity.getCn());
-		dto.setDarreraComprovacio(entity.getTiempoComprobacion());
-		dto.setAutoridadCertifId(entity.getAutoridadcertif());
-		
-		dto.setDataAlta(entity.getFechaAlta());
-		dto.setDataBaixa(entity.getFechaBaja());
-		return dto;
+		return AplicacioDto.builder()
+				.id(entity.getIdAplicacion())
+				.certificatNif(entity.getNifCertificado())
+				.numeroSerie(entity.getNumeroSerie())
+				.cn(entity.getCn())
+				.darreraComprovacio(entity.getTiempoComprobacion())
+				.autoridadCertificacio(AutoritatCertificacioDto.builder()
+						.id(entity.getAutoridadCertificacion().getId())
+						.nombre(entity.getAutoridadCertificacion().getNombre())
+						.codca(entity.getAutoridadCertificacion().getCodca())
+						.build())
+				.dataAlta(entity.getFechaAlta())
+				.dataBaixa(entity.getFechaBaja())
+				.build();
 	}
 
 	private OrganismeDto toOrganismeDto(
@@ -924,9 +1020,9 @@ public class ScspServiceImpl implements ScspService {
 		return dto;
 	}
 
-	private OrganismeDto toOrganismeCessionariDto(
+	private OrganismeCessionariDto toOrganismeCessionariDto(
 			ScspCoreOrganismoCessionarioEntity entity) {
-		OrganismeDto dto = new OrganismeDto();
+		OrganismeCessionariDto dto = new OrganismeCessionariDto();
 		dto.setId(entity.getId());
 		dto.setCif(entity.getCif());
 		dto.setNom(entity.getNom());

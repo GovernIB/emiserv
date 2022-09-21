@@ -62,4 +62,8 @@ public class IndexController {
 //		return aplicacioService.readProperties();
 //	}
 
+//	@GetMapping(value = "/api/swagger-ui/api-docs/swagger-config")
+//	public String getSwaggerCongig() {
+//		return "redirect:/api-docs-swagger-config";
+//	}
 }

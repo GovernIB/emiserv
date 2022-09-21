@@ -3,16 +3,15 @@
  */
 package es.caib.emiserv.back.validation;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
+import es.caib.emiserv.logic.intf.dto.OrganismeCessionariDto;
+import es.caib.emiserv.logic.intf.service.ScspService;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import es.caib.emiserv.logic.intf.dto.OrganismeDto;
-import es.caib.emiserv.logic.intf.service.ScspService;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
 /**
  * Validador per a controlar que no es repeteixi el CIF d'un organisme cessionari.
@@ -39,7 +38,7 @@ public class CifOrganismeCessionariNoRepetitValidator implements ConstraintValid
 		try {
 			id = BeanUtils.getProperty(value, campId);
 			final String cif = BeanUtils.getProperty(value, campCif);
-			OrganismeDto organisme = scspService.organismeCessionariFindByCif(cif);
+			OrganismeCessionariDto organisme = scspService.organismeCessionariFindByCif(cif);
 			if (organisme == null) {
 				return true;
 			} else {

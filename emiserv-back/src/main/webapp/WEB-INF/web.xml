@@ -20,6 +20,7 @@
 		<web-resource-collection>
 			<web-resource-name>scspRouting</web-resource-name>
 			<url-pattern>/scspRouting/*</url-pattern>
+			<url-pattern>/webjars/*</url-pattern>
 		</web-resource-collection>
 	</security-constraint>
 	<security-constraint>

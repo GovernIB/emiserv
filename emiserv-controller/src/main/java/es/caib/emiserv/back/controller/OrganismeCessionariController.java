@@ -3,12 +3,13 @@
  */
 package es.caib.emiserv.back.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
+import es.caib.emiserv.back.command.OrganismeCessionariCommand;
+import es.caib.emiserv.back.helper.DatatablesHelper;
+import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
+import es.caib.emiserv.back.helper.RequestSessionHelper;
+import es.caib.emiserv.logic.intf.dto.OrganismeCessionariDto;
+import es.caib.emiserv.logic.intf.dto.OrganismeFiltreDto;
+import es.caib.emiserv.logic.intf.service.ScspService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -22,13 +23,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import es.caib.emiserv.back.command.OrganismeCessionariCommand;
-import es.caib.emiserv.back.helper.DatatablesHelper;
-import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
-import es.caib.emiserv.back.helper.RequestSessionHelper;
-import es.caib.emiserv.logic.intf.dto.OrganismeDto;
-import es.caib.emiserv.logic.intf.dto.OrganismeFiltreDto;
-import es.caib.emiserv.logic.intf.service.ScspService;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Controlador per a la gestió dels organismes SCSP.
@@ -50,7 +48,7 @@ public class OrganismeCessionariController extends BaseController {
 			Model model) {
 		model.addAttribute(
 				getFiltreCommand(request));
-		return "organismeList";
+		return "organismeCessionariList";
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
@@ -105,14 +103,14 @@ public class OrganismeCessionariController extends BaseController {
 		emplenarModelForm(
 				id,
 				model);
-		OrganismeDto organisme = null;
+		OrganismeCessionariDto organisme = null;
 		if (id != null) {
 			organisme = scspService.organismeCessionariFindById(id);
 			model.addAttribute(OrganismeCessionariCommand.toCommand(organisme));
 		} else {
 			model.addAttribute(new OrganismeCessionariCommand());
 		}
-		return "organismeForm";
+		return "organismeCessionariForm";
 	}
 
 	@RequestMapping(value = "/save", method = RequestMethod.POST)
@@ -125,7 +123,7 @@ public class OrganismeCessionariController extends BaseController {
 			emplenarModelForm(
 					command.getId(),
 					model);
-			return "organismeForm";
+			return "organismeCessionariForm";
 		}
 		if (command.getId() != null) {
 			scspService.organismeCessionariUpdate(OrganismeCessionariCommand.toDto(command));

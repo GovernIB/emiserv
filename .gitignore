@@ -6,3 +6,8 @@
 /emiserv-boot/src/main/resources/emiserv.properties
 .idea/
 *.iml
+/emiserv-api-interna/target/
+/emiserv-client-intf/target/
+/emiserv-client-jersey1/target/
+/emiserv-client-jersey2/target/
+/emiserv-client-jersey3/target/

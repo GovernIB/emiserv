@@ -10,8 +10,8 @@ pageContext.setAttribute(
 		org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).getLanguage());
 %>
 <c:choose>
-	<c:when test="${empty serveiCommand.id}"><c:set var="titol"><spring:message code="organisme.cessionari.form.titol.crear"/></c:set></c:when>
-	<c:otherwise><c:set var="titol"><spring:message code="organisme.cessionari.form.titol.modificar"/></c:set></c:otherwise>
+	<c:when test="${empty organismeCommand.id}"><c:set var="titol"><spring:message code="organisme.form.titol.crear"/></c:set></c:when>
+	<c:otherwise><c:set var="titol"><spring:message code="organisme.form.titol.modificar"/></c:set></c:otherwise>
 </c:choose>
 <html>
 <head>
@@ -22,18 +22,16 @@ pageContext.setAttribute(
 	<emi:modalHead/>
 </head>
 <body>
-	<c:set var="formAction"><emi:modalUrl value="/organismeCessionari/save"/></c:set>
-	<form:form action="${formAction}" method="post" cssClass="form-horizontal" modelAttribute="organismeCessionariCommand" role="form" style="height:400px;">
+	<c:set var="formAction"><emi:modalUrl value="/organisme/save"/></c:set>
+	<form:form action="${formAction}" method="post" cssClass="form-horizontal" modelAttribute="organismeCommand" role="form" style="height:400px;">
 		<form:hidden path="id"/>
 		<emi:inputText name="cif" textKey="organisme.form.camp.cif" required="true"/>
 		<emi:inputText name="nom" textKey="organisme.form.camp.nom" required="true"/>
 		<emi:inputDate name="dataAlta" textKey="organisme.form.camp.data.alta" required="true"/>
 		<emi:inputDate name="dataBaixa" textKey="organisme.form.camp.data.baixa"/>
-		<emi:inputText name="codiUnitatTramitadora" textKey="organisme.form.camp.unitat.adm"/>
-		<emi:inputCheckbox name="bloquejat" textKey="organisme.form.camp.bloquejat"/>
 		<div id="modal-botons" class="well">
 			<button type="submit" class="btn btn-success"><span class="fa fa-save"></span> <spring:message code="comu.boto.guardar"/></button>
-			<a href="<c:url value="/organismeCessionari"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.cancelar"/></a>
+			<a href="<c:url value="/organisme"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.cancelar"/></a>
 		</div>
 	</form:form>
 </body>

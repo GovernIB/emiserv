@@ -21,6 +21,7 @@
 			<tr>
 				<th data-col-name="certificatNif"><spring:message code="aplicacio.list.columna.cif"/></th>
 				<th data-col-name="cn"><spring:message code="aplicacio.list.columna.nom"/></th>
+				<th data-col-name="autoridadCertificacio.formatName"><spring:message code="aplicacio.list.columna.autoritat"/></th>
 				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%">
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="dropdown">

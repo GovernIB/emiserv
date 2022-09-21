@@ -3,8 +3,6 @@
  */
 package es.caib.emiserv.config;
 
-import org.keycloak.adapters.KeycloakConfigResolver;
-import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
 import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
@@ -29,6 +27,15 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
 	private static final String ROLE_PREFIX = "";
 
+	private static final String[] AUTH_WHITELIST = {
+			"/scspRouting/**/*",
+			"/swagger-resources/**",
+			"/swagger-ui/**",
+			"/api/rest",
+			"/api-docs",
+			"/webjars/**"
+	};
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		super.configure(http);
@@ -40,7 +47,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 		permitAll(false);
 		http.authorizeRequests().
 		//antMatchers("/test").hasRole("tothom").
-		antMatchers("/scspRouting/**/*").permitAll().
+		antMatchers(AUTH_WHITELIST).permitAll().
 		anyRequest().authenticated();
 		http.cors();
 		http.csrf().disable();
@@ -65,11 +72,6 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 	@Override
 	protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
 		return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
-	}
-
-	@Bean
-	public KeycloakConfigResolver KeycloakConfigResolver() {
-		return new KeycloakSpringBootConfigResolver();
 	}
 
 }

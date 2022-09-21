@@ -3,45 +3,13 @@
  */
 package es.caib.emiserv.logic.service;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.type.ClassMetadata;
-import org.springframework.core.type.filter.AbstractClassTestingTypeFilter;
-import org.springframework.security.acls.domain.BasePermission;
-import org.springframework.security.acls.model.Permission;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import es.caib.emiserv.logic.helper.ConversioTipusHelper;
 import es.caib.emiserv.logic.helper.PaginacioHelper;
 import es.caib.emiserv.logic.helper.PermisosHelper;
 import es.caib.emiserv.logic.helper.PermisosHelper.ObjectIdentifierExtractor;
 import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.helper.ServeiXsdHelper;
-import es.caib.emiserv.logic.intf.dto.FitxerDto;
-import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
-import es.caib.emiserv.logic.intf.dto.PaginaDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.PermisDto;
-import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
-import es.caib.emiserv.logic.intf.dto.ServeiConfigScspDto;
-import es.caib.emiserv.logic.intf.dto.ServeiDto;
-import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiDto;
-import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
-import es.caib.emiserv.logic.intf.dto.ServeiXsdDto;
-import es.caib.emiserv.logic.intf.dto.XsdTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.*;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
@@ -61,6 +29,24 @@ import es.caib.emiserv.persist.repository.scsp.ScspCorePeticionRespuestaReposito
 import es.caib.emiserv.persist.repository.scsp.ScspCoreServicioRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.ClassMetadata;
+import org.springframework.core.type.filter.AbstractClassTestingTypeFilter;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Permission;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Implementació del servei de gestió de serveis.
@@ -697,57 +683,6 @@ public class ServeiServiceImpl implements ServeiService {
 				ServeiEntity.class,
 				permisId);
 	}
-
-	@Transactional(readOnly = true)
-	@Override
-	public List<InformeGeneralEstatDto> informeGeneralEstat(
-			Date dataInici, 
-			Date dataFi,
-			ServeiTipusEnumDto tipusPeticio) {
-		
-		log.debug("Consulta de dades per l'informe general d'estat (dataInici=" + dataInici + 
-				", dataFi" + dataFi + 
-				", tipusPeticio=" + tipusPeticio + ")");
-
-		// Adequa les dates posant el primer dia a 0 i el segon a 0 del dia següent
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(dataInici);
-		cal.set(Calendar.HOUR_OF_DAY,0);
-		cal.set(Calendar.MINUTE,0);
-		cal.set(Calendar.SECOND,0);
-		cal.set(Calendar.MILLISECOND,0);
-		dataInici = cal.getTime();
-		cal.setTime(dataFi);
-		cal.set(Calendar.HOUR_OF_DAY,0);
-		cal.set(Calendar.MINUTE,0);
-		cal.set(Calendar.SECOND,0);
-		cal.set(Calendar.MILLISECOND,0);
-		cal.add(Calendar.DATE, 1);
-		dataFi = cal.getTime();
-
-		List<InformeGeneralEstatDto> informe = new ArrayList<InformeGeneralEstatDto>();
-		
-		// Consulta als backoffices
-		if (tipusPeticio == null || tipusPeticio.equals(ServeiTipusEnumDto.BACKOFFICE)) {
-			List<InformeGeneralEstatDto> informeBackoffices = 
-					scspCoreTransmisionRepository.informeGeneralEstat(
-							dataInici,
-							dataFi);		
-			informe.addAll(informeBackoffices);
-		}
-		
-		// Consulta als enrutadors
-		if (tipusPeticio == null || !tipusPeticio.equals(ServeiTipusEnumDto.BACKOFFICE)) {
-			List<InformeGeneralEstatDto> informeEnrutadors = 
-					redireccioPeticioRepository.informeGeneralEstat(
-							dataInici,
-							dataFi);		
-			informe.addAll(informeEnrutadors);
-		}
-		
-		return informe;
-	}
-
 
 
 	private ServeiEntity comprovarServei(

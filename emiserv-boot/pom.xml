@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>es.caib.emiserv</groupId>
 		<artifactId>emiserv</artifactId>
-		<version>2.0.3</version>
+		<version>2.0.4</version>
 	</parent>
 	<artifactId>emiserv-boot</artifactId>
 	<dependencies>
 		<dependency>
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-spring-boot-starter</artifactId>
-			<version>11.0.1</version>
+			<version>17.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

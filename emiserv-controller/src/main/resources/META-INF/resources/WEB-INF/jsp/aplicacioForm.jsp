@@ -23,6 +23,7 @@ pageContext.setAttribute(
 	<link href="<c:url value="/css/datepicker.css"/>" rel="stylesheet"/>
 	<script src="<c:url value="/js/bootstrap-datepicker.js"/>"></script>
 	<script src="<c:url value="/js/datepicker-locales/bootstrap-datepicker.${idioma}.js"/>"></script>
+	<script src="<c:url value="/js/webutil.common.js"/>"></script>
 	<emi:modalHead/>
 </head>
 <body>
@@ -31,9 +32,7 @@ pageContext.setAttribute(
 		<form:hidden path="id"/>
 		<emi:inputText name="certificatNif" textKey="aplicacio.form.camp.cif" required="true"/>
 		<emi:inputText name="cn" textKey="aplicacio.form.camp.nom" required="true"/>
-		<emi:inputSelect name="autoridadCertifId" textKey="aplicacio.form.camp.ca"
-						 required="true" optionItems="${autoritatsCertificacio}"
-						 optionValueAttribute="id" optionTextAttribute="formatName" />
+		<emi:inputSelect name="autoridadCertificacio.id" textKey="aplicacio.form.camp.ca" required="true" optionMinimumResultsForSearch="4" optionItems="${autoritatsCertificacio}" optionValueAttribute="id" optionTextAttribute="formatName" />
 		<emi:inputText name="numeroSerie" textKey="aplicacio.form.camp.num.serie" required="true"/>
 		<emi:inputDate name="dataAlta" textKey="organisme.form.camp.data.alta"/>
 		<emi:inputDate name="dataBaixa" textKey="organisme.form.camp.data.baixa"/>

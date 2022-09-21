@@ -3,14 +3,14 @@
  */
 package es.caib.emiserv.back.controller;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Controlador amb utilitats per a l'aplicació EMISERV.
@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class ErrorController implements org.springframework.boot.web.servlet.error.ErrorController {
 
-	@Override
 	public String getErrorPath() {
-		return "/error";
+//		return "/error";
+		return null;
 	}
 
 	@RequestMapping(value = "/error")

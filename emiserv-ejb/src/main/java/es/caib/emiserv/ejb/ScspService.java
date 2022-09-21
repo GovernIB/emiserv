@@ -93,14 +93,14 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	}
 
 	@Override
-	public OrganismeDto organismeCessionariCreate(
-			OrganismeDto organismo) throws NotFoundException {
+	public OrganismeCessionariDto organismeCessionariCreate(
+			OrganismeCessionariDto organismo) throws NotFoundException {
 		return getDelegateService().organismeCessionariCreate(organismo);
 	}
 
 	@Override
 	public void organismeCessionariUpdate(
-			OrganismeDto organismo) throws NotFoundException {
+			OrganismeCessionariDto organismo) throws NotFoundException {
 		getDelegateService().organismeCessionariUpdate(organismo);
 	}
 
@@ -111,19 +111,19 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	}
 
 	@Override
-	public OrganismeDto organismeCessionariFindById(
+	public OrganismeCessionariDto organismeCessionariFindById(
 			Long id) throws NotFoundException {
 		return getDelegateService().organismeCessionariFindById(id);
 	}
 
 	@Override
-	public OrganismeDto organismeCessionariFindByCif(
+	public OrganismeCessionariDto organismeCessionariFindByCif(
 			String cif) {
 		return getDelegateService().organismeCessionariFindByCif(cif);
 	}
 
 	@Override
-	public PaginaDto<OrganismeDto> organismeCessionariFindByFiltrePaginat(
+	public PaginaDto<OrganismeCessionariDto> organismeCessionariFindByFiltrePaginat(
 			OrganismeFiltreDto filtre,
 			PaginacioParamsDto paginacioParams) {
 		return getDelegateService().organismeCessionariFindByFiltrePaginat(
@@ -162,6 +162,36 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 		return getDelegateService().autoritzacioFindByFiltrePaginat(
 				filtre,
 				paginacioParams);
+	}
+
+    @Override
+    public EmisorDto emisorCreate(EmisorDto emisor) throws NotFoundException {
+        return getDelegateService().emisorCreate(emisor);
+    }
+
+	@Override
+	public void emisorUpdate(EmisorDto emisor) throws NotFoundException {
+		getDelegateService().emisorUpdate(emisor);
+	}
+
+	@Override
+	public void emisorDelete(Long id) throws NotFoundException {
+		getDelegateService().emisorDelete(id);
+	}
+
+	@Override
+	public EmisorDto emisorFindById(Long id) throws NotFoundException {
+		return getDelegateService().emisorFindById(id);
+	}
+
+    @Override
+    public EmisorDto emisorFindByCif(String cif) throws NotFoundException {
+        return getDelegateService().emisorFindByCif(cif);
+    }
+
+    @Override
+	public PaginaDto<EmisorDto> emisorFindByFiltrePaginat(EmisorFiltreDto filtre, PaginacioParamsDto paginacioParams) {
+		return getDelegateService().emisorFindByFiltrePaginat(filtre, paginacioParams);
 	}
 
 	@Override

@@ -35,7 +35,8 @@ import org.springframework.context.annotation.FilterType;
 				pattern = {
 						"es\\.caib\\.emiserv\\.logic\\..*",
 						"es\\.caib\\.emiserv\\.persist\\..*",
-						"es\\.caib\\.emiserv\\.ejb\\..*"}))
+						"es\\.caib\\.emiserv\\.ejb\\..*",
+						"es\\.caib\\.emiserv\\.api\\..*"}))
 public class EmiservEjbApp extends EmiservApp {
 
 	public static void main(String[] args) {

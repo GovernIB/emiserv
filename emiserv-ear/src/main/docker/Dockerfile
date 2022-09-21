@@ -14,12 +14,16 @@ ENV KEYCLOAK_REALM GOIB
 #ENV KEYCLOAK_URL https://dev.caib.es/auth
 #ENV KEYCLOAK_REALM webdes
 ENV KEYCLOAK_RESOURCE goib-default
-#ENV DATABASE_URL jdbc:oracle:thin:@10.35.3.242:1521:orcl
-#ENV DATABASE_DRIVER oracle
+ENV KEYCLOAK_RESOURCE_REST goib-ws
+ENV KEYCLOAK_SECRET XXXXX-XXXXXX-XXXXX-XXXX
+ENV DATABASE_URL jdbc:oracle:thin:@10.35.3.242:1521:orcl
+#ENV DATABASE_URL jdbc:oracle:thin:@host.docker.internal:49161:xe
+ENV DATABASE_DRIVER oracle
 #ENV DATABASE_USER emiservnew
 #ENV DATABASE_PASSWD emiservnew
-ENV DATABASE_URL jdbc:postgresql://10.35.3.242:5432/emiserv
-ENV DATABASE_DRIVER postgresql
+#ENV DATABASE_URL jdbc:postgresql://10.35.3.242:5432/emiserv
+#ENV DATABASE_URL jdbc:postgresql://host.docker.internal:5432/emiserv
+#ENV DATABASE_DRIVER postgresql
 ENV DATABASE_USER emiserv
 ENV DATABASE_PASSWD emiserv
 

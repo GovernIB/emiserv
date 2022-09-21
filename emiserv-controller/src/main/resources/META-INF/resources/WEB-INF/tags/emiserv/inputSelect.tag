@@ -101,18 +101,19 @@
 </c:choose>
 <script>
 $(document).ready(function() {
-	$("#${campPath}").select2({
+	let campIdf = "${campPath}".replaceAll('.','\\.');
+	$("#"+campIdf).select2({
 		<c:if test="${not empty campPlaceholder}">placeholder: "${campPlaceholder}",</c:if>
 	    theme: "bootstrap",
 	    allowClear: <c:if test="${emptyOption == 'true'}">true</c:if><c:if test="${emptyOption != 'true'}">false</c:if>,
 	    minimumResultsForSearch: ${minimumResultsForSearch}
 	});
-	$("#${campPath}").on('select2-open', function() {
+	$("#"+campIdf).on('select2-open', function() {
 		var iframe = $('.modal-body iframe', window.parent.document);
 		var height = $('html').height() + 30;
 		iframe.height(height + 'px');
 	});
-	$("#${campPath}").on('select2-close', function() {
+	$("#"+campIdf).on('select2-close', function() {
 		var iframe = $('.modal-body iframe', window.parent.document);
 		var height = $('html').height();
 		iframe.height(height + 'px');

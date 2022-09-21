@@ -10,7 +10,7 @@ pageContext.setAttribute(
 		org.springframework.web.servlet.support.RequestContextUtils.getLocale(request).getLanguage());
 %>
 <c:choose>
-	<c:when test="${empty serveiCommand.id}"><c:set var="titol"><spring:message code="autoritzacio.form.titol.crear"/></c:set></c:when>
+	<c:when test="${empty autoritzacioCommand.id}"><c:set var="titol"><spring:message code="autoritzacio.form.titol.crear"/></c:set></c:when>
 	<c:otherwise><c:set var="titol"><spring:message code="autoritzacio.form.titol.modificar"/></c:set></c:otherwise>
 </c:choose>
 <html>
