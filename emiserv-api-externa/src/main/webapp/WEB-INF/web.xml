@@ -27,6 +27,7 @@
             <url-pattern>/api-docs/*</url-pattern>
             <url-pattern>/webjars/*</url-pattern>
             <url-pattern>/opendata</url-pattern>
+            <url-pattern>/v2/opendata</url-pattern>
         </web-resource-collection>
     </security-constraint>
     <security-constraint>

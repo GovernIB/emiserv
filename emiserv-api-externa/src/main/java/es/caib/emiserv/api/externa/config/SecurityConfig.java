@@ -59,7 +59,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			"/rest",
 			"/api-docs",
 			"/api-docs/**",
-			"/opendata"
+			"/opendata",
+			"/v2/opendata"
 //			"/webjars/**"
 	};
 
