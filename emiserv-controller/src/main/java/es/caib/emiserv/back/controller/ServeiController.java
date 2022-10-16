@@ -3,19 +3,6 @@
  */
 package es.caib.emiserv.back.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.Validator;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import es.caib.emiserv.back.command.ServeiCommand;
 import es.caib.emiserv.back.command.ServeiCommand.TipusBackoffice;
 import es.caib.emiserv.back.command.ServeiCommand.TipusEnrutador;
@@ -23,13 +10,31 @@ import es.caib.emiserv.back.command.ServeiCommand.TipusEnrutadorMultiple;
 import es.caib.emiserv.back.helper.DatatablesHelper;
 import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
 import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
+import es.caib.emiserv.back.helper.RequestSessionHelper;
 import es.caib.emiserv.back.validation.AditionalGroupValidator;
 import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.CodiValorDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiFiltreDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.BackofficeService;
 import es.caib.emiserv.logic.intf.service.ServeiService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.Validator;
+import java.util.List;
 
 /**
  * Controlador per al manteniment de serveis.
@@ -40,6 +45,8 @@ import es.caib.emiserv.logic.intf.service.ServeiService;
 @RequestMapping("/servei")
 public class ServeiController extends BaseController {
 
+	private static final String SESSION_ATTRIBUTE_FILTRE = "ServeiController.session.filtre";
+
 	@Autowired
 	private ServeiService serveiService;
 	@Autowired
@@ -49,16 +56,45 @@ public class ServeiController extends BaseController {
 	private Validator validator;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public String get() {
+	public String get(HttpServletRequest request, Model model) {
+		model.addAttribute(getFiltreCommand(request));
+		getActius(model);
 		return "serveiList";
 	}
+	private void getActius(Model model) {
+		List<CodiValorDto> actius = List.of(
+				CodiValorDto.builder().codi("true").valor("comu.actiu").build(),
+				CodiValorDto.builder().codi("false").valor("comu.inactiu").build()
+		);
+		model.addAttribute("actius", actius);
+	}
+
+	@PostMapping
+	public String post(
+			HttpServletRequest request,
+			@RequestParam("accio") String accio,
+			@Valid ServeiFiltreDto filtre,
+			BindingResult bindingResult,
+			Model model) {
+		if ("netejar".equals(accio)) {
+			RequestSessionHelper.esborrarObjecteSessio(request, SESSION_ATTRIBUTE_FILTRE);
+		} else if (!bindingResult.hasErrors()) {
+			RequestSessionHelper.actualitzarObjecteSessio(request, SESSION_ATTRIBUTE_FILTRE, filtre);
+		}
+		return "redirect:servei";
+	}
+
 	@RequestMapping(value = "/datatable", method = RequestMethod.GET)
 	@ResponseBody
 	public DatatablesResponse datatable(
 			HttpServletRequest request) {
+		ServeiFiltreDto filtre = (ServeiFiltreDto)RequestSessionHelper.obtenirObjecteSessio(
+				request,
+				SESSION_ATTRIBUTE_FILTRE);
 		DatatablesResponse dtr = DatatablesHelper.getDatatableResponse(
 				request,
 				serveiService.findAllPaginat(
+						filtre,
 						DatatablesHelper.getPaginacioDtoFromRequest(request)));
 		return dtr;
 	}
@@ -89,7 +125,7 @@ public class ServeiController extends BaseController {
 		}
 		return "serveiForm";
 	}
-	@RequestMapping(method = RequestMethod.POST)
+	@PostMapping(value = "/save")
 	public String save(
 			HttpServletRequest request,
 			@Valid ServeiCommand command,
@@ -194,6 +230,21 @@ public class ServeiController extends BaseController {
 		model.addAttribute(
 				"classesResponseResolver",
 				serveiService.responseResolverClassesFindAll());
+	}
+
+	private ServeiFiltreDto getFiltreCommand(
+			HttpServletRequest request) {
+		ServeiFiltreDto filtreCommand = (ServeiFiltreDto)RequestSessionHelper.obtenirObjecteSessio(
+				request,
+				SESSION_ATTRIBUTE_FILTRE);
+		if (filtreCommand == null) {
+			filtreCommand = new ServeiFiltreDto();
+			RequestSessionHelper.actualitzarObjecteSessio(
+					request,
+					SESSION_ATTRIBUTE_FILTRE,
+					filtreCommand);
+		}
+		return filtreCommand;
 	}
 
 }

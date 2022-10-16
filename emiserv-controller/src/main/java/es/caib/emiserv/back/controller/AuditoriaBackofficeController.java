@@ -3,15 +3,16 @@
  */
 package es.caib.emiserv.back.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-
+import es.caib.emiserv.back.command.AuditoriaFiltreCommand;
+import es.caib.emiserv.back.helper.DatatablesHelper;
+import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
+import es.caib.emiserv.back.helper.RequestSessionHelper;
+import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
+import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
+import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto.OrdreDireccioDto;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.logic.intf.service.BackofficeService;
+import es.caib.emiserv.logic.intf.service.ServeiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -25,16 +26,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import es.caib.emiserv.back.command.AuditoriaFiltreCommand;
-import es.caib.emiserv.back.helper.DatatablesHelper;
-import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
-import es.caib.emiserv.back.helper.RequestSessionHelper;
-import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto.OrdreDireccioDto;
-import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
-import es.caib.emiserv.logic.intf.service.BackofficeService;
-import es.caib.emiserv.logic.intf.service.ServeiService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Controlador per a l'auditoria de peticions realitzades als serveis
@@ -66,7 +64,7 @@ public class AuditoriaBackofficeController extends BaseController {
 				serveiService.procedimentFindAll());
 		model.addAttribute(
 				"serveis",
-				serveiService.findAllPaginat(paginacioParams).getContingut().stream().
+				serveiService.findAllPaginat(null, paginacioParams).getContingut().stream().
 				filter(s -> s.getTipus() == ServeiTipusEnumDto.BACKOFFICE).
 				collect(Collectors.toList()));
 		model.addAttribute(

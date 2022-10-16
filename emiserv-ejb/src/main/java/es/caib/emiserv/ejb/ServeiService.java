@@ -59,8 +59,8 @@ public class ServeiService extends AbstractService<es.caib.emiserv.logic.intf.se
 	@Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public PaginaDto<ServeiDto> findAllPaginat(
-			PaginacioParamsDto paginacioParams) {
-		return getDelegateService().findAllPaginat(paginacioParams);
+            ServeiFiltreDto filtre, PaginacioParamsDto paginacioParams) {
+		return getDelegateService().findAllPaginat(filtre, paginacioParams);
 	}
 
 	@Override
