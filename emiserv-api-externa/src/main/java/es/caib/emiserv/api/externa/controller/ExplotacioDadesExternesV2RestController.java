@@ -106,13 +106,6 @@ public class ExplotacioDadesExternesV2RestController {
             @RequestParam(required = false) @Parameter(description = "Mida de la pàgina a retornar. Si no s'informa s'agafarà el valor 50")
             Integer mida) {
 
-
-        String myHostName = request.getServerName();
-        if (request.getServerPort() != 80) {
-            myHostName += ":" + request.getServerPort();
-        }
-        myHostName += request.getContextPath();
-
         var consultaOpenDataDto = ConsultaOpenDataDto.builder()
                 .entitatNif(entitatNif)
                 .dataInici(dataInici)
