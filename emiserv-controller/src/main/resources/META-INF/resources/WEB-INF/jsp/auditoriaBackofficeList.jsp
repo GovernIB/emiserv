@@ -153,12 +153,12 @@ function formatState(estat) {
 					</script>
 					<spring:message code="auditoria.list.columna.num.peticio"/>
 				</th>
-				<th data-col-name="procedimentCodiNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
+				<th data-col-name="procedimentCodiNom" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
 					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiCodiNom}}</script>
 				</th>
-				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%" data-orderable="false">
+				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%">
 					<spring:message code="auditoria.list.columna.estat"/>
 					<script id="cellEstatTemplate" type="text/x-jsrender">
 						{{if estat == 'PENDENT'}}

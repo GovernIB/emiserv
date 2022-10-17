@@ -3,12 +3,22 @@
  */
 package es.caib.emiserv.logic.service;
 
-import es.caib.emiserv.logic.helper.*;
+import es.caib.emiserv.logic.helper.BackofficeClassloader;
+import es.caib.emiserv.logic.helper.BackofficeHelper;
 import es.caib.emiserv.logic.helper.BackofficeHelper.ConfirmacionPeticionAmbException;
 import es.caib.emiserv.logic.helper.BackofficeHelper.RespuestaAmbException;
-import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
+import es.caib.emiserv.logic.helper.ConversioTipusHelper;
+import es.caib.emiserv.logic.helper.PaginacioHelper;
+import es.caib.emiserv.logic.helper.PermisosHelper;
 import es.caib.emiserv.logic.helper.PermisosHelper.ObjectIdentifierExtractor;
-import es.caib.emiserv.logic.intf.dto.*;
+import es.caib.emiserv.logic.helper.SecurityHelper;
+import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
+import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
+import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
+import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.PaginaDto;
+import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
+import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
 import es.caib.emiserv.logic.intf.exception.BackofficeException;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
@@ -17,6 +27,7 @@ import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
+import es.caib.emiserv.persist.entity.BackofficeListEntity;
 import es.caib.emiserv.persist.entity.BackofficePeticioEntity;
 import es.caib.emiserv.persist.entity.BackofficeSolicitudEntity;
 import es.caib.emiserv.persist.entity.ServeiEntity;
@@ -24,6 +35,7 @@ import es.caib.emiserv.persist.entity.scsp.ScspCorePeticionRespuestaEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreTokenDataEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreTransmisionEntity;
+import es.caib.emiserv.persist.repository.BackofficeListRepository;
 import es.caib.emiserv.persist.repository.BackofficePeticioRepository;
 import es.caib.emiserv.persist.repository.BackofficeSolicitudRepository;
 import es.caib.emiserv.persist.repository.ServeiRepository;
@@ -49,7 +61,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -75,6 +91,8 @@ public class BackofficeServiceImpl implements BackofficeService {
 	private BackofficePeticioRepository backofficePeticioRepository;
 	@Autowired
 	private BackofficeSolicitudRepository backofficeSolicitudRepository;
+	@Autowired
+	private BackofficeListRepository backofficeListRepository;
 
 	@Autowired
 	private ConversioTipusHelper conversioTipusHelper;
@@ -120,11 +138,8 @@ public class BackofficeServiceImpl implements BackofficeService {
 				codisServeisPermesos.add(serveiPermes.getCodi());
 			}
 		}
-		Map<String, String> mapeigOrdenacio = new HashMap<String, String>();
-		mapeigOrdenacio.put("peticioId", "peticionId");
-		mapeigOrdenacio.put("dataPeticio", "fechaPeticion");
-		mapeigOrdenacio.put("serveiCodi", "certificado");
-		mapeigOrdenacio.put("estatCodi", "estado");
+		Map<String, String> mapeigOrdenacio = new HashMap<>();
+		mapeigOrdenacio.put("procedimentCodiNom", "procedimentCodi");
 		Long scspServicioId = null;
 		boolean esNullServei = filtre.getServei() == null;
 		if (!esNullServei) {
@@ -136,7 +151,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 			}
 		}
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
-				scspCorePeticionRespuestaRepository.findByFiltrePaginat(
+				backofficeListRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
 						esNullServei,
@@ -156,13 +171,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 								paginacioParams,
 								mapeigOrdenacio)),
 				AuditoriaPeticioDto.class,
-				new Converter<ScspCorePeticionRespuestaEntity, AuditoriaPeticioDto>() {
-					@Override
-					public AuditoriaPeticioDto convert(
-							ScspCorePeticionRespuestaEntity source) {
-						return toAuditoriaPeticioDto(source);
-					}
-				});
+				this::toAuditoriaPeticioDto);
 		for (AuditoriaPeticioDto peticio: resposta.getContingut()) {
 			String serveiCodi = peticio.getServeiCodi();
 			for (ServeiEntity serveiPermes: serveiRepository.findAll()) {
@@ -595,6 +604,25 @@ public class BackofficeServiceImpl implements BackofficeService {
 		peticio.setProcedimentNom(transmissions.stream().map(t -> t.getProcedimientoNombre()).distinct().collect(Collectors.joining(", ")));
 		peticio.setProcedimentCodiNom(transmissions.stream().map(t -> getCodiNom(t.getProcedimientoCodigo(),  t.getProcedimientoNombre())).distinct().collect(Collectors.joining(", ")));
 		return peticio;
+	}
+
+	private AuditoriaPeticioDto toAuditoriaPeticioDto(
+			BackofficeListEntity peticioRespuesta) {
+		return AuditoriaPeticioDto.builder()
+				.peticioId(peticioRespuesta.getPeticioId())
+				.serveiCodi(peticioRespuesta.getServeiCodi())
+				.serveiDescripcio(peticioRespuesta.getServeiDescripcio())
+				.dataPeticio(peticioRespuesta.getDataPeticio())
+				.sincrona(peticioRespuesta.isSincrona())
+				.numTransmissions(peticioRespuesta.getNumTransmissions())
+				.estat(peticioRespuesta.getEstat())
+				.estatScsp(peticioRespuesta.getEstatScsp())
+				.error(peticioRespuesta.getError())
+				.processadesTotal(peticioRespuesta.getProcessadesTotal())
+				.procedimentCodi(peticioRespuesta.getProcedimentCodi())
+				.procedimentNom(peticioRespuesta.getProcedimentNom())
+				.procedimentCodiNom(peticioRespuesta.getPRocedimentCodiNom())
+				.build();
 	}
 
 	private String getCodiNom(String codi, String nom) {

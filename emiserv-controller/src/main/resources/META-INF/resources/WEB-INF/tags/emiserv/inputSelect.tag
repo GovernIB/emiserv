@@ -109,8 +109,8 @@ $(document).ready(function() {
 	    theme: "bootstrap",
 	    allowClear: <c:if test="${emptyOption == 'true'}">true</c:if><c:if test="${emptyOption != 'true'}">false</c:if>,
 	    minimumResultsForSearch: ${minimumResultsForSearch},
-		templateResult: ${formatResult} ? eval(${formatResult}) : undefined,
-		templateSelection: ${formatSelection} ? eval(${formatSelection}) : undefined
+		templateResult: <c:choose><c:when test="${not empty formatResult}">eval(${formatResult})</c:when><c:otherwise>undefined</c:otherwise></c:choose>,
+		templateSelection: <c:choose><c:when test="${not empty formatSelection}">eval(${formatSelection})</c:when><c:otherwise>undefined</c:otherwise></c:choose>
 	});
 	$("#"+campIdf).on('select2-open', function() {
 		var iframe = $('.modal-body iframe', window.parent.document);

@@ -3,7 +3,10 @@
  */
 package es.caib.emiserv.logic.intf.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -14,6 +17,9 @@ import java.util.Date;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AuditoriaPeticioDto implements Serializable {
 
 	private Long id;
