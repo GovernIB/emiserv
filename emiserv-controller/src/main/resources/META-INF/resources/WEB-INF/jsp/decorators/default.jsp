@@ -158,6 +158,22 @@ body {
 										<spring:message code="decorator.menu.configuracio.user"/>
 									</a>
 								</li>
+								<c:choose>
+									<c:when test="${isRolActualAdministrador}">
+										<li>
+											<a href="https://github.com/GovernIB/emiserv/raw/emiserv-2.0/doc/pdf/02_emiserv_usuari_admin.pdf" target="_blank">
+												<span class="fa fa-file"></span> <spring:message code="decorator.menu.manual.admin"/>
+											</a>
+										</li>
+									</c:when>
+									<c:when test="${isRolActualResponsable}">
+										<li>
+											<a href="https://github.com/GovernIB/emiserv/raw/emiserv-2.0/doc/pdf/03_emiserv_usuari_resp.pdf" target="_blank">
+												<span class="fa fa-file"></span> <spring:message code="decorator.menu.manual.resp"/>
+											</a>
+										</li>
+									</c:when>
+								</c:choose>
 								<li>
 									<a href="<c:url value="/logout"/>" id="logout">
 										<spring:message code="decorator.menu.logout"/>
