@@ -168,7 +168,7 @@ body {
 									</c:when>
 									<c:when test="${isRolActualResponsable}">
 										<li>
-											<a href="https://github.com/GovernIB/emiserv/raw/emiserv-2.0/doc/pdf/03_emiserv_usuari_resp.pdf" target="_blank">
+											<a href="https://github.com/GovernIB/emiserv/raw/emiserv-2.0/doc/pdf/04_emiserv_usuari_resp.pdf" target="_blank">
 												<span class="fa fa-file"></span> <spring:message code="decorator.menu.manual.resp"/>
 											</a>
 										</li>
