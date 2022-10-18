@@ -5,15 +5,33 @@ package es.caib.emiserv.logic.service;
 
 import es.caib.emiserv.logic.helper.ConversioTipusHelper;
 import es.caib.emiserv.logic.helper.PaginacioHelper;
-import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
 import es.caib.emiserv.logic.helper.XmlHelper;
-import es.caib.emiserv.logic.intf.dto.*;
+import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
+import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
+import es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto;
+import es.caib.emiserv.logic.intf.dto.PaginaDto;
+import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
+import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
+import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
+import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
+import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.service.RedireccioService;
 import es.caib.emiserv.logic.resolver.EntitatResolver;
 import es.caib.emiserv.logic.resolver.ResponseResolver;
-import es.caib.emiserv.persist.entity.*;
-import es.caib.emiserv.persist.repository.*;
+import es.caib.emiserv.persist.entity.RedireccioListEntity;
+import es.caib.emiserv.persist.entity.RedireccioMissatgeEntity;
+import es.caib.emiserv.persist.entity.RedireccioPeticioEntity;
+import es.caib.emiserv.persist.entity.RedireccioSolicitudEntity;
+import es.caib.emiserv.persist.entity.ServeiEntity;
+import es.caib.emiserv.persist.entity.ServeiRutaDestiEntity;
+import es.caib.emiserv.persist.repository.RedireccioListRepository;
+import es.caib.emiserv.persist.repository.RedireccioMissatgeRepository;
+import es.caib.emiserv.persist.repository.RedireccioPeticioRepository;
+import es.caib.emiserv.persist.repository.RedireccioSolicitudRepository;
+import es.caib.emiserv.persist.repository.ServeiRepository;
+import es.caib.emiserv.persist.repository.ServeiRutaDestiRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +47,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +76,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 	private RedireccioSolicitudRepository redireccioSolicitudRepository;
 	@Autowired
 	private RedireccioMissatgeRepository redireccioMissatgeRepository;
+	@Autowired
+	private RedireccioListRepository redireccioListRepository;
 
 	@Autowired
 	private XmlHelper xmlHelper;
@@ -556,8 +581,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 			PaginacioParamsDto paginacioParams) {
 		log.debug("Consulta amb filtre de peticions per a les auditories ("
 				+ "filtre=" + filtre + ")");
+		Map<String, String> mapeigOrdenacio = new HashMap<>();
+		mapeigOrdenacio.put("procedimentCodiNom", "procedimentCodi");
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
-				redireccioPeticioRepository.findByFiltrePaginat(
+				redireccioListRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
 						filtre.getServeiCodi() == null || filtre.getServeiCodi().isEmpty(),
@@ -571,15 +598,9 @@ public class RedireccioServiceImpl implements RedireccioService {
 						filtre.getDataFi(),
 						filtre.getNumeroPeticio() == null || filtre.getNumeroPeticio().isEmpty(),
 						filtre.getNumeroPeticio() != null ? filtre.getNumeroPeticio() : "",
-						paginacioHelper.toSpringDataPageable(paginacioParams)),
+						paginacioHelper.toSpringDataPageable(paginacioParams, mapeigOrdenacio)),
 				AuditoriaPeticioDto.class,
-				new Converter<RedireccioPeticioEntity, AuditoriaPeticioDto>() {
-					@Override
-					public AuditoriaPeticioDto convert(
-							RedireccioPeticioEntity source) {
-						return toAuditoriaPeticioDto(source);
-					}
-				});
+				this::toAuditoriaPeticioDto);
 		for (AuditoriaPeticioDto peticio: resposta.getContingut()) {
 			String serveiCodi = peticio.getServeiCodi();
 			peticio.setServeiDescripcio(serveiCodi);
@@ -762,6 +783,24 @@ public class RedireccioServiceImpl implements RedireccioService {
 		peticio.setProcedimentNom(solicituds.stream().map(s -> s.getProcedimentNom()).distinct().collect(Collectors.joining(", ")));
 		peticio.setProcedimentCodiNom(solicituds.stream().map(s -> getCodiNom(s.getProcedimentCodi(),  s.getProcedimentNom())).distinct().collect(Collectors.joining(", ")));
 		return peticio;
+	}
+
+	private AuditoriaPeticioDto toAuditoriaPeticioDto(
+			RedireccioListEntity peticioRespuesta) {
+		return AuditoriaPeticioDto.builder()
+				.peticioId(peticioRespuesta.getPeticioId())
+				.serveiCodi(peticioRespuesta.getServeiCodi())
+				.serveiDescripcio(peticioRespuesta.getServeiDescripcio())
+				.dataPeticio(peticioRespuesta.getDataPeticio())
+				.sincrona(peticioRespuesta.isSincrona())
+				.numTransmissions(peticioRespuesta.getNumTransmissions())
+				.estat(peticioRespuesta.getEstat())
+				.estatScsp(peticioRespuesta.getEstatScsp())
+				.error(peticioRespuesta.getError())
+				.procedimentCodi(peticioRespuesta.getProcedimentCodi())
+				.procedimentNom(peticioRespuesta.getProcedimentNom())
+				.procedimentCodiNom(peticioRespuesta.getPRocedimentCodiNom())
+				.build();
 	}
 
 	private String getCodiNom(String codi, String nom) {

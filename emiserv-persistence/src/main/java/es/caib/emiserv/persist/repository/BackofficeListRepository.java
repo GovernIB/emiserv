@@ -26,7 +26,7 @@ public interface BackofficeListRepository extends JpaRepository<BackofficeListEn
 			@Param("esNullProcediment") boolean esNullProcediment,
 			@Param("procediment") String procediment,
 			@Param("esNullServei") boolean esNullServei,
-			@Param("servei") Long servei,
+			@Param("servei") String servei,
 			@Param("esNullEstat") boolean esNullEstat,
 			@Param("esError") boolean esError,
 			@Param("estat") String estat,

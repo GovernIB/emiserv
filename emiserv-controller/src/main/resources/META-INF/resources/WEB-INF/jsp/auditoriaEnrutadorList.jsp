@@ -138,7 +138,7 @@ function formatState(estat) {
 				<th data-col-name="serveiCodiNom" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="dataPeticio" data-converter="datetime" width="15%"><spring:message code="auditoria.list.columna.data"/></th>
 				<th data-col-name="peticioId" width="15%"><spring:message code="auditoria.list.columna.num.peticio"/></th>
-				<th data-col-name="procedimentCodiNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
+				<th data-col-name="procedimentCodiNom" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
 					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiCodiNom}}</script>

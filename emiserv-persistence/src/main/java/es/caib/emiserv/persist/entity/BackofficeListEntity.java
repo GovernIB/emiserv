@@ -14,31 +14,35 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-@Subselect( "select cpr.idpeticion         as peticioid, " +
-            "        cs.codcertificado      as serveicodi, " +
-            "        cs.descripcion         as serveidescripcio, " +
-            "        cpr.estado             as estatscsp, " +
-            "        cpr.fechapeticion      as datapeticio, " +
-            "        cpr.transmisionsincrona as sincrona, " +
-            "        cpr.numerotransmisiones as numtransmissions, " +
-            "        cpr.error              as error, " +
-            "        bp.estat               as backofficeestat, " +
-            "        bp.processades_total   as processadestotal, " +
-            "        ct.codigoprocedimiento as procedimentcodi, " +
-            "        ct.nombreprocedimiento as procedimentnom, " +
+@Subselect( "select distinct cpr.idpeticion     as peticioid, " +
+            "        cs.codcertificado          as serveicodi, " +
+            "        cs.descripcion             as serveidescripcio, " +
+            "        cpr.estado                 as estatscsp, " +
+            "        cpr.fechapeticion          as datapeticio, " +
+            "        cpr.transmisionsincrona    as sincrona, " +
+            "        cpr.numerotransmisiones    as numtransmissions, " +
+            "        cpr.error                  as error, " +
+            "        bp.estat                   as backofficeestat, " +
+            "        bp.processades_total       as processadestotal, " +
+            "        ct.codigoprocedimiento     as procedimentcodi, " +
+            "        ct.nombreprocedimiento     as procedimentnom, " +
             "        case " +
             "            when (bp.id is not null and cpr.estado like '00%') then bp.estat " +
-            "            when cpr.estado = '0001' then 0 " +
-            "            when cpr.estado = '0002' then 1 " +
-            "            when cpr.estado = '0003' then 2 " +
-            "            when cpr.estado = '0004' then 3 " +
+            "            when cpr.estado like '00%' then " +
+            "                case " +
+            "                    when cpr.estado = '0001' then 0 " +
+            "                    when cpr.estado = '0002' then 1 " +
+            "                    when cpr.estado = '0003' then 2 " +
+            "                    when cpr.estado = '0004' then 3 " +
+            "                end " +
             "            else 4 " +
-            "        end as estat " +
+            "        end                        as estat " +
             "       from core_peticion_respuesta cpr " +
             "            left outer join core_transmision ct on ct.idpeticion = cpr.idpeticion " +
             "            left outer join core_servicio cs on cpr.certificado = cs.id " +
             "            left outer join core_emisor_certificado ec on cs.emisor = ec.id " +
-            "            left outer join ems_backoffice_pet bp on bp.peticio_id = cpr.idpeticion")
+            "            left outer join ems_backoffice_pet bp on bp.peticio_id = cpr.idpeticion " +
+            "       where 0 = (select count(idsolicitud) from core_transmision where idpeticion=cpr.idpeticion) or ct.idsolicitud = (select max(idsolicitud) from core_transmision where idpeticion=cpr.idpeticion)")
 @Immutable
 public class BackofficeListEntity {
     @Id

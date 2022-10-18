@@ -140,14 +140,14 @@ public class BackofficeServiceImpl implements BackofficeService {
 		}
 		Map<String, String> mapeigOrdenacio = new HashMap<>();
 		mapeigOrdenacio.put("procedimentCodiNom", "procedimentCodi");
-		Long scspServicioId = null;
+		String scspServicioCodigo = null;
 		boolean esNullServei = filtre.getServei() == null;
 		if (!esNullServei) {
 			ServeiEntity servei = serveiRepository.getOne(filtre.getServei());
 			ScspCoreServicioEntity servicio = scspCoreServicioRepository.findByCodigoCertificado(
 					servei.getCodi());
 			if (servicio != null) {
-				scspServicioId = servicio.getId();
+				scspServicioCodigo = servicio.getCodigoCertificado();
 			}
 		}
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
@@ -155,7 +155,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
 						esNullServei,
-						scspServicioId,
+						scspServicioCodigo,
 						filtre.getEstat() == null,
 						PeticioEstatEnumDto.ERROR.equals(filtre.getEstat()),
 						toEstatScsp(filtre.getEstat()),
