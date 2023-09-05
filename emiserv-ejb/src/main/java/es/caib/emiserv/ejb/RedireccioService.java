@@ -99,19 +99,19 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public String peticioXmlPeticio(Long peticionId) {
 		return getDelegateService().peticioXmlPeticio(peticionId);
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public String peticioXmlResposta(Long peticionId) {
 		return getDelegateService().peticioXmlResposta(peticionId);
 	}
 
     @Override
-	@RolesAllowed("EMS_ADMIN")
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
     public List<RedireccioRespostaDto> peticioXmlRespostes(Long peticioId) {
         return getDelegateService().peticioXmlRespostes(peticioId);
     }

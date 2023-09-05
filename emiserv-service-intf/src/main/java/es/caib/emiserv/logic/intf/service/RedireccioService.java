@@ -124,7 +124,7 @@ public interface RedireccioService {
 	 *            Atribut peticionId per a identificar la petició.
 	 * @return El missatge XML.
 	 */
-	@PreAuthorize("hasRole('EMS_ADMIN')")
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public String peticioXmlPeticio(
 			Long peticioId);
 
@@ -135,7 +135,7 @@ public interface RedireccioService {
 	 *            Atribut peticionId per a identificar la petició.
 	 * @return El missatge XML.
 	 */
-	@PreAuthorize("hasRole('EMS_ADMIN')")
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public String peticioXmlResposta(
 			Long peticioId);
 
@@ -146,7 +146,7 @@ public interface RedireccioService {
 	 *            Atribut peticionId per a identificar la petició.
 	 * @return El missatge XML.
 	 */
-	@PreAuthorize("hasRole('EMS_ADMIN')")
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public List<RedireccioRespostaDto> peticioXmlRespostes(
 			Long peticioId);
 
