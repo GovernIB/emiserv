@@ -1,6 +1,7 @@
 package es.caib.emiserv.persist.entity;
 
 import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Immutable;
@@ -18,6 +19,7 @@ import java.util.Date;
         "        rp.peticio_id          as peticioid, " +
         "        rp.servei_codi         as serveicodi, " +
         "        s.nom                  as serveidescripcio, " +
+        "        s.tipus                as serveitipus, " +
         "        rp.data_peticio        as datapeticio, " +
         "        rp.sincrona            as sincrona, " +
         "        rp.num_transmissions   as numtransmissions, " +
@@ -25,6 +27,7 @@ import java.util.Date;
         "        to_char(rp.error)      as error, " +
         "        rs.procediment_codi    as procedimentcodi, " +
         "        rs.procediment_nom     as procedimentnom, " +
+        "        rp.entitat_codi        as entitatCodi, " +
         "        case " +
         "            when rp.estat like '00%' then " +
         "                case " +
@@ -50,6 +53,8 @@ public class RedireccioListEntity {
     private String serveiCodi;
     @Column(name = "serveidescripcio")
     private String serveiDescripcio;
+    @Column(name = "serveitipus")
+    private ServeiTipusEnumDto serveiTipus;
     @Column(name = "estatscsp")
     private String estatScsp;
     @Column(name = "estat")
@@ -67,6 +72,8 @@ public class RedireccioListEntity {
     private String procedimentCodi;
     @Column(name = "procedimentnom")
     private String procedimentNom;
+    @Column(name = "entitatcodi")
+    private String entitatCodi;
 
 //    public PeticioEstatEnumDto getEstat() {
 //        PeticioEstatEnumDto estat = PeticioEstatEnumDto.ERROR;

@@ -128,7 +128,7 @@ function formatState(estat) {
 			</div>
 		</div>
 	</form:form>
-	<table id="peticions" data-toggle="datatable" data-url="auditoriaEnrutador/datatable" data-search-enabled="false" data-default-order="5" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
+	<table id="peticions" data-toggle="datatable" data-url="auditoriaEnrutador/datatable" data-search-enabled="false" data-default-order="6" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
 				<th data-col-name="id" data-visible="false" data-orderable="false">#</th>
@@ -136,13 +136,24 @@ function formatState(estat) {
 				<th data-col-name="error" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiDescripcio" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiCodiNom" data-visible="false" data-orderable="false">#</th>
+				<th data-col-name="serveiTipus" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="dataPeticio" data-converter="datetime" width="15%"><spring:message code="auditoria.list.columna.data"/></th>
 				<th data-col-name="peticioId" width="15%"><spring:message code="auditoria.list.columna.num.peticio"/></th>
 				<th data-col-name="procedimentCodiNom" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
-					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiCodiNom}}</script>
+					<script id="cellCertificadoTemplate" type="text/x-jsrender">
+						{{:serveiCodiNom}}
+						{{if serveiTipus == 'BACKOFFICE'}}
+							<span class="label label-default pull-right" title="Backoffice">B</span>
+						{{else serveiTipus == 'ENRUTADOR'}}
+							<span class="label label-info pull-right" title="Enrutador">E</span>
+						{{else serveiTipus == 'ENRUTADOR_MULTIPLE'}}
+							<span class="label label-warning pull-right" title="Enrutador múltiple">M</span>
+						{{/if}}
+					</script>
 				</th>
+				<th data-col-name="entitatCodi" width="10%"><spring:message code="auditoria.list.columna.emissor"/></th>
 				<th data-col-name="estat" data-template="#cellEstadoTemplate">
 					<spring:message code="auditoria.list.columna.estat"/>
 					<script id="cellEstadoTemplate" type="text/x-jsrender">
@@ -161,7 +172,7 @@ function formatState(estat) {
 						{{/if}}
 					</script>
 				</th>
-				<th data-template="#cellAccionsTemplate" data-orderable="false" width="10%">
+				<th data-template="#cellAccionsTemplate" data-orderable="false" width="1%">
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="dropdown">
 							<button class="btn btn-primary" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.boto.accions"/>&nbsp;<span class="caret"></span></button>
@@ -169,6 +180,9 @@ function formatState(estat) {
 								<li><a href="auditoriaEnrutador/xmlPeticio/{{:id}}" data-toggle="modal"><span class="fa fa-arrow-circle-o-down"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlpeticio"/></a></li>
 								{{if estat == 'TRAMITADA' || estat == 'ERROR_EMISOR'}}
 									<li><a href="auditoriaEnrutador/xmlResposta/{{:id}}" data-toggle="modal"><span class="fa fa-arrow-circle-o-up"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlresposta"/></a></li>
+									{{if serveiTipus == 'ENRUTADOR_MULTIPLE'}}
+										<li><a href="auditoriaEnrutador/xmlRespostes/{{:id}}" data-toggle="modal"><span class="fa fa-arrow-circle-o-up"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlrespostes"/></a></li>
+									{{/if}}
 								{{/if}}
 							</ul>
 						</div>

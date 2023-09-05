@@ -43,7 +43,7 @@ $(document).ready(function() {
 </script>
 </head>
 <body>
-	<c:set var="formAction"><emi:modalUrl value="/servei"/></c:set>
+	<c:set var="formAction"><emi:modalUrl value="/servei/save"/></c:set>
 	<form:form action="${formAction}" method="post" cssClass="form-horizontal" modelAttribute="serveiCommand" role="form" style="height:400px;">
 		<form:hidden path="id"/>
 		<c:choose>

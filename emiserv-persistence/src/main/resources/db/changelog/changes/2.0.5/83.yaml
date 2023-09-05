@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - changeSet:
+      id: 1693570839415-1
+      author: limit
+      changes:
+        - addColumn:
+            tableName: ems_redir_missatge
+            columns:
+              - column:
+                  name: entitat_codi
+                  type: varchar(64 ${varcharUnit})
+        - addColumn:
+            tableName: ems_redir_peticio
+            columns:
+              - column:
+                  name: entitat_codi
+                  type: varchar(64 ${varcharUnit})

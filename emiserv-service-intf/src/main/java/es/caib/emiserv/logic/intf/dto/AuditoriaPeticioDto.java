@@ -26,6 +26,7 @@ public class AuditoriaPeticioDto implements Serializable {
 	private String peticioId;
 	private String serveiCodi;
 	private String serveiDescripcio;
+	private ServeiTipusEnumDto serveiTipus;
 	private PeticioEstatEnumDto estat;
 	private String estatScsp;
 	private Date dataPeticio;
@@ -40,6 +41,7 @@ public class AuditoriaPeticioDto implements Serializable {
 	private boolean comunicacioBackofficeError;
 	private int processadesTotal;
 	private int processadesError;
+	private String entitatCodi; // Entitat que ha retornat la resposta
 
 	// Alerta --> Aquests camps poden ser múltiple en cas de peticions múltiples
 	private String procedimentCodi;

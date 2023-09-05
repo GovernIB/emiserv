@@ -3,6 +3,9 @@
  */
 package es.caib.emiserv.persist.entity;
 
+import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -13,9 +16,6 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Version;
-
-import org.springframework.data.jpa.domain.AbstractPersistable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Classe del model de dades que representa un missatge d'una
@@ -34,12 +34,15 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 	public static final int TIPUS_RESPUESTA = 3;
 	public static final int TIPUS_FAULT = 4;
 	public static final int TIPUS_FAULT_LOCAL = 5;
+	public static final int TIPUS_RESPOSTA_ENTITAT = 6;
 
 	@Column(name = "tipus", nullable = false)
 	private int tipus;
 	@Lob
 	@Column(name = "xml")
 	private String xml;
+	@Column(name = "entitat_codi",  length = 64)
+	private String entitatCodi;
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinColumn(
 			name = "peticio_id",
@@ -59,6 +62,9 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 	public RedireccioPeticioEntity getPeticio() {
 		return peticio;
 	}
+	public String getEntitatCodi() {
+		return entitatCodi;
+	}
 
 	public static Builder getBuilder(
 			RedireccioPeticioEntity peticio,
@@ -67,7 +73,20 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 		return new Builder(
 				peticio,
 				tipus,
-				xml);
+				xml,
+				null);
+	}
+
+	public static Builder getBuilder(
+			RedireccioPeticioEntity peticio,
+			int tipus,
+			String xml,
+			String entitatCodi) {
+		return new Builder(
+				peticio,
+				tipus,
+				xml,
+				entitatCodi);
 	}
 
 	public static class Builder {
@@ -75,11 +94,13 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 		Builder(
 				RedireccioPeticioEntity peticio,
 				int tipus,
-				String xml) {
+				String xml,
+				String entitatCodi) {
 			built = new RedireccioMissatgeEntity();
 			built.peticio = peticio;
 			built.tipus = tipus;
 			built.xml = xml;
+			built.entitatCodi = entitatCodi;
 		}
 		public RedireccioMissatgeEntity build() {
 			return built;
