@@ -633,6 +633,12 @@ public class ScspRoutingController extends BaseController {
 												new ByteArrayInputStream(
 														method.getResponseBody())))
 								: method.getResponseBody());
+				logger.info("Resposta rebuda en enrutador múltiple (codiCertificat=" + resultat.getAtributCodigoCertificado() + ", codiEntitat=" + codiEntitat + "): ");
+				if (ret.getXml() != null && ret.getXml().length > 0) {
+					logger.info(new String(ret.getXml()));
+				} else {
+					logger.info("SENSE CONTINGUT");
+				}
 			} catch (Exception ex) {
 				logger.error(
 						"Error fent la petició al emisor SCSP destí " +
