@@ -211,6 +211,7 @@ body {
 									<li><a href="<c:url value="/scsp/autoritatca"/>"><spring:message code="decorator.menu.config.autoritatca"/></a></li>
 									<li><a href="<c:url value="/scsp/modul"/>"><spring:message code="decorator.menu.config.modul"/></a></li>
 									<li><a href="<c:url value="/scsp/parametres"/>"><spring:message code="decorator.menu.config.parametres"/></a></li>
+									<li><a href="<c:url value="/entitat"/>"><spring:message code="decorator.menu.config.entitats"/></a></li>
 									<li><a href="<c:url value="/config"/>"><spring:message code="decorator.menu.config.properties"/></a></li>
 								</ul>
 							</div>
