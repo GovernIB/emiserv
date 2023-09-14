@@ -18,6 +18,7 @@ import java.util.Date;
 @Entity
 @Subselect(
         "select rownum as id, " +
+        "       solicitantCodi, " +
         "       solicitantNom, " +
         "       solicitantId, " +
         "       unitatTramitadora, " +
@@ -29,11 +30,13 @@ import java.util.Date;
         "       emissorCodi, " +
         "       consentiment, " +
         "       finalitat, " +
+        "       titularTipusDoc, " +
         "       solicitudId, " +
         "       dataPeticio, " +
         "       tipus, " +
         "       estat " +
-        "from (select rs.solicitant_nom     as solicitantNom, " +
+        "from (select rs.solicitant_codi    as solicitantCodi, " +
+        "             rs.solicitant_nom     as solicitantNom, " +
         "             rs.solicitant_id      as solicitantId, " +
         "             rs.unitat_tramitadora as unitatTramitadora, " +
         "             rs.procediment_codi   as procedimentCodi, " +
@@ -44,6 +47,7 @@ import java.util.Date;
         "             rp.emissor_codi       as emissorCodi, " +
         "             rs.consentiment       as consentiment, " +
         "             rs.finalitat          as finalitat, " +
+        "             rs.titular_tipus_doc  as titularTipusDoc, " +
         "             rs.solicitud_id       as solicitudId, " +
         "             rp.data_peticio       as dataPeticio, " +
         "             s.tipus               as tipus, " +
@@ -52,7 +56,8 @@ import java.util.Date;
         "               inner join ems_redir_peticio rp on rs.peticio_id = rp.id " +
         "               left outer join ems_servei s on rp.servei_codi = s.codi " +
         "      union " +
-        "      select ct.nombresolicitante   as solicitantNom, " +
+        "      select ct.codigosolicitante   as solicitantCodi, " +
+        "             ct.nombresolicitante   as solicitantNom, " +
         "             ct.idsolicitante       as solicitantId, " +
         "             ct.unidadtramitadora   as unitatTramitadora, " +
         "             ct.codigoprocedimiento as procedimentCodi, " +
@@ -63,6 +68,7 @@ import java.util.Date;
         "             ec.cif                 as emissorCodi, " +
         "             ct.consentimiento      as consentiment, " +
         "             ct.finalidad           as finalitat, " +
+        "             ct.tipodoctitular      as titularTipusDoc, " +
         "             ct.idsolicitud         as solicitudId, " +
         "             cpr.fechapeticion      as dataPeticio, " +
         "             0                      as tipus, " +
@@ -77,6 +83,8 @@ public class OpenDataEntity {
     @Id
     @Column
     private Long id;
+    @Column
+    private String solicitantCodi;
     @Column
     private String solicitantNom;
     @Column
@@ -99,6 +107,8 @@ public class OpenDataEntity {
     private String consentiment;
     @Column
     private String finalitat;
+    @Column
+    private String titularTipusDoc;
     @Column
     private String solicitudId;
     @Column

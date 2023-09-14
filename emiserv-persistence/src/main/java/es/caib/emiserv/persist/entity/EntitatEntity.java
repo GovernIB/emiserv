@@ -30,7 +30,7 @@ public class EntitatEntity extends AbstractPersistable<Long> {
 	private String codi;
 	@Column(name = "nom", length = 255, nullable = false)
 	private String nom;
-	@Column(name = "cif", length = 9, nullable = false)
+	@Column(name = "cif", length = 9, nullable = false, unique = true)
 	private String cif;
 
 	public void update(String codi, String nom, String cif) {

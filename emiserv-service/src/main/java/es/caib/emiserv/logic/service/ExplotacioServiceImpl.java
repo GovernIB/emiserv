@@ -204,6 +204,7 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 			return null;
 
 		return new DadesObertesRespostaConsulta(
+				openData.getSolicitantCodi(),
 				openData.getSolicitantNom(),
 				openData.getSolicitantId(),
 				openData.getUnitatTramitadora(),
@@ -215,6 +216,7 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 				openData.getEmissorCodi(),
 				openData.getConsentiment(),
 				openData.getFinalitat(),
+				openData.getTitularTipusDoc(),
 				openData.getSolicitudId(),
 				openData.getDataPeticio(),
 				openData.getTipus().name(),

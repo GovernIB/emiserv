@@ -92,6 +92,14 @@ public class EntitatServiceImpl implements EntitatService {
 
     @Override
     @Transactional(readOnly = true)
+    public EntitatDto findByCif(String cif) {
+        log.debug("Consulta entitat amb cif (cif=" + cif + ")");
+        EntitatEntity entity = entitatRepository.findByCif(cif).orElse(null);
+        return conversioTipusHelper.convertir(entity, EntitatDto.class);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public PaginaDto<EntitatDto> findAllPaginat(EntitatFiltreDto filtre, PaginacioParamsDto paginacioParams) {
         log.debug("Consulta de les entitats paginades (paginacioParams=" + paginacioParams + ")");
         return paginacioHelper.toPaginaDto(

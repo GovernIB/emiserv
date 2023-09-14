@@ -134,6 +134,9 @@ public class RedireccioPeticioEntity extends AbstractPersistable<Long> {
 		this.error = error;
 		this.entitatCodiRedireccio = entitatCodiRedireccio;
 	}
+	public void updateEntitatCodiRedireccio(String entitatCodiRedireccio) {
+		this.entitatCodiRedireccio = entitatCodiRedireccio;
+	}
 
 	public static Builder getBuilder(
 			String peticioId,

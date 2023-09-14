@@ -7,6 +7,7 @@ import es.caib.emiserv.back.command.EntitatCommand;
 import es.caib.emiserv.back.helper.MessageHelper;
 import es.caib.emiserv.logic.intf.dto.EntitatDto;
 import es.caib.emiserv.logic.intf.service.EntitatService;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,18 +47,39 @@ public class CodiEntitatNoRepetitValidator implements ConstraintValidator<CodiEn
 		try {
 			final Long id = command.getId();
 			final String codi = command.getCodi();
-			EntitatDto entitat = entitatService.findByCodi(codi);
-			if (entitat != null) {
-				valid = id != null && id.equals(entitat.getId());
-				if (!valid) {
-					context.buildConstraintViolationWithTemplate(
-									MessageHelper.getInstance().getMessage(
-											"entitat.codi.repetit",
-											null,
-											new RequestContext(request).getLocale()))
-							.addPropertyNode("codi")
-							.addConstraintViolation();
-					context.disableDefaultConstraintViolation();
+			final String cif = command.getCif();
+
+			if (Strings.isBlank(codi)) {
+				EntitatDto entitat = entitatService.findByCodi(codi);
+				if (entitat != null) {
+					valid = id != null && id.equals(entitat.getId());
+					if (!valid) {
+						context.buildConstraintViolationWithTemplate(
+										MessageHelper.getInstance().getMessage(
+												"entitat.codi.repetit",
+												null,
+												new RequestContext(request).getLocale()))
+								.addPropertyNode("codi")
+								.addConstraintViolation();
+						context.disableDefaultConstraintViolation();
+					}
+				}
+			}
+
+			if (Strings.isBlank(cif)) {
+				EntitatDto entitat = entitatService.findByCif(cif);
+				if (entitat != null) {
+					valid = id != null && id.equals(entitat.getId());
+					if (!valid) {
+						context.buildConstraintViolationWithTemplate(
+										MessageHelper.getInstance().getMessage(
+												"entitat.cif.repetit",
+												null,
+												new RequestContext(request).getLocale()))
+								.addPropertyNode("cif")
+								.addConstraintViolation();
+						context.disableDefaultConstraintViolation();
+					}
 				}
 			}
 		} catch (final Exception ex) {

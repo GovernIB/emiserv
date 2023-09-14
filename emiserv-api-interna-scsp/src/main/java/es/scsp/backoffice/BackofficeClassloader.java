@@ -3,9 +3,13 @@ package es.scsp.backoffice;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.LoaderClassPath;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -16,8 +20,9 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-@Slf4j
 public class BackofficeClassloader extends ClassLoader {
+
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BackofficeClassloader.class);
 
     private String backofficeJarPath;
 

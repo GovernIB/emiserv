@@ -1,0 +1,8 @@
+<aspectj>
+    <aspects>
+        <aspect name="es.caib.emiserv.api.interna.scsp.aspect.TransmissionAspect"/>
+        <weaver options="-verbose -showWeaveInfo">
+            <include within="es.caib.emiserv.api.interna.scsp.aspect.*"/>
+        </weaver>
+    </aspects>
+</aspectj>

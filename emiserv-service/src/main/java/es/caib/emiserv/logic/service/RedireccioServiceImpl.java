@@ -27,6 +27,7 @@ import es.caib.emiserv.persist.entity.RedireccioPeticioEntity;
 import es.caib.emiserv.persist.entity.RedireccioSolicitudEntity;
 import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.ServeiRutaDestiEntity;
+import es.caib.emiserv.persist.repository.EntitatRepository;
 import es.caib.emiserv.persist.repository.RedireccioListRepository;
 import es.caib.emiserv.persist.repository.RedireccioMissatgeRepository;
 import es.caib.emiserv.persist.repository.RedireccioPeticioRepository;
@@ -79,6 +80,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 	private RedireccioMissatgeRepository redireccioMissatgeRepository;
 	@Autowired
 	private RedireccioListRepository redireccioListRepository;
+	@Autowired
+	private EntitatRepository entitatRepository;
 
 	@Autowired
 	private XmlHelper xmlHelper;
@@ -130,6 +133,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 				String solicitantNom = xmlHelper.getTextFromFirstNode(
 						document,
 						"//" + nsprefix + ":Peticion/" + nsprefix + ":Solicitudes/" + nsprefix + ":SolicitudTransmision/" + nsprefix + ":DatosGenericos/" + nsprefix + ":Solicitante/" + nsprefix + ":NombreSolicitante",
+						true);
+				String titularTipusDoc = xmlHelper.getTextFromFirstNode(
+						document,
+						"//" + nsprefix + ":Peticion/" + nsprefix + ":Solicitudes/" + nsprefix + ":SolicitudTransmision/" + nsprefix + ":DatosGenericos/" + nsprefix + ":Titular/" + nsprefix + ":TipoDocumentacion",
 						true);
 				String titularDocument = xmlHelper.getTextFromFirstNode(
 						document,
@@ -187,6 +194,14 @@ public class RedireccioServiceImpl implements RedireccioService {
 						document,
 						"//" + nsprefix + ":Peticion/" + nsprefix + ":Solicitudes/" + nsprefix + ":SolicitudTransmision/" + nsprefix + ":DatosGenericos/" + nsprefix + ":Solicitante/" + nsprefix + ":Consentimiento",
 						true);
+				String solicitantCodi = null;
+				String entitatDesti = null;
+				if (solicitantId != null) {
+					var entitat = entitatRepository.findByCif(solicitantId);
+					if (entitat.isPresent()) {
+						solicitantCodi = entitat.get().getCodi();
+					}
+				}
 				int numElementos = (numElementosStr != null) ? Integer.parseInt(numElementosStr) : 0;
 				if (numElementos != numSolicituds) {
 					resposta = new RedireccioProcessarResultatDto(
@@ -244,6 +259,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 								EntitatResolver entitatResolver = entitatResolverClass.getDeclaredConstructor().newInstance();
 								Document doc = getDocumentXml(xml);
 								String entitatCodi = entitatResolver.resolve(doc.getDocumentElement());
+								entitatDesti = entitatCodi;
 								ServeiRutaDestiEntity serveiRutaDesti = serveiRutaDestiRepository.findByServeiAndEntitatCodi(
 										servei,
 										entitatCodi);
@@ -337,6 +353,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 						0,
 						numSolicituds,
 						emissorNif).build();
+				redireccioPeticio.updateEntitatCodiRedireccio(entitatDesti);
 				redireccioPeticioRepository.save(redireccioPeticio);
 				Date dataGeneracioParsed = null;
 				if (dataGeneracio != null) {
@@ -350,7 +367,9 @@ public class RedireccioServiceImpl implements RedireccioService {
 						redireccioPeticio,
 						idSolicitud,
 						solicitantId).
+						solicitantCodi(solicitantCodi).
 						solicitantNom(solicitantNom).
+						titularTipusDoc(titularTipusDoc).
 						titularDocument(titularDocument).
 						titularNom(titularNom).
 						titularLlinatge1(titularLlinatge1).

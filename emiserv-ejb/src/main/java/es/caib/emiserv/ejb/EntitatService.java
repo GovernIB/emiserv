@@ -47,7 +47,12 @@ public class EntitatService extends AbstractService<es.caib.emiserv.logic.intf.s
 		return getDelegateService().findByCodi(codi);
 	}
 
-	@Override
+    @Override
+    public EntitatDto findByCif(String cif) {
+        return getDelegateService().findByCif(cif);
+    }
+
+    @Override
 	public PaginaDto<EntitatDto> findAllPaginat(EntitatFiltreDto filtre, PaginacioParamsDto paginacioParams) {
 		return getDelegateService().findAllPaginat(filtre, paginacioParams);
 	}

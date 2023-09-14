@@ -22,6 +22,8 @@ public interface EntitatRepository extends JpaRepository<EntitatEntity, Long> {
 
 	public Optional<EntitatEntity> findByCodi(String codi);
 
+	public Optional<EntitatEntity> findByCif(String cif);
+
 	@Query(	"select " +
 			"    en " +
 			"from " +
@@ -38,5 +40,4 @@ public interface EntitatRepository extends JpaRepository<EntitatEntity, Long> {
 			@Param("esNullCif") boolean esNullCif,
 			@Param("cif") String cif,
 			Pageable pageable);
-
 }

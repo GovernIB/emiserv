@@ -78,6 +78,16 @@ public interface EntitatService {
 	public EntitatDto findByCodi(String codi);
 
 	/**
+	 * Consulta una entitat donat el seu codi.
+	 *
+	 * @param cif
+	 *            Atribut codi de l'entitat a trobar.
+	 * @return L'entitat amb el codi especificat o null si no s'ha trobat.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN')")
+	public EntitatDto findByCif(String cif);
+
+	/**
 	 * Llistat amb totes les entitats accessibles.
 	 *
 	 * @param filtre

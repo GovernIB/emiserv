@@ -1,7 +1,7 @@
 package es.scsp.backoffice;
 
 import es.caib.emiserv.logic.intf.service.ScspService;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -31,10 +31,11 @@ import java.util.Set;
  *
  * @author Limit Tecnologies <limit@limit.es>
  */
-@Slf4j
 @Component
 @PropertySource(ignoreResourceNotFound = true, value = {"file://${" + ScspService.APP_SYSTEM_PROPERTIES + "}"})
 public class BackofficeInitialization {
+
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(BackofficeInitialization.class);
 
     @Autowired
     private Environment env;

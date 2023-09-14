@@ -3,7 +3,8 @@
  */
 package es.caib.emiserv.persist.entity;
 
-import java.util.Date;
+import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,9 +18,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
-
-import org.springframework.data.jpa.domain.AbstractPersistable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.util.Date;
 
 /**
  * Classe del model de dades que representa una sol·licitud d'una
@@ -38,8 +37,12 @@ public class RedireccioSolicitudEntity extends AbstractPersistable<Long> {
 	private String transmisioId;
 	@Column(name = "solicitant_id", length = 40, nullable = false)
 	private String solicitantId;
+	@Column(name = "solicitant_codi", length = 64)
+	private String solicitantCodi;
 	@Column(name = "solicitant_nom", length = 256)
 	private String solicitantNom;
+	@Column(name = "titular_tipus_doc", length = 16)
+	private String titularTipusDoc;
 	@Column(name = "titular_doc", length = 16)
 	private String titularDocument;
 	@Column(name = "titular_nom", length = 160)
@@ -91,8 +94,14 @@ public class RedireccioSolicitudEntity extends AbstractPersistable<Long> {
 	public String getSolicitantId() {
 		return solicitantId;
 	}
+	public String getSolicitantCodi() {
+		return solicitantCodi;
+	}
 	public String getSolicitantNom() {
 		return solicitantNom;
+	}
+	public String getTitularTipusDoc() {
+		return titularTipusDoc;
 	}
 	public String getTitularDocument() {
 		return titularDocument;
@@ -168,8 +177,16 @@ public class RedireccioSolicitudEntity extends AbstractPersistable<Long> {
 			built.transmisioId = transmisioId;
 			return this;
 		}
+		public Builder solicitantCodi(String solicitantCodi) {
+			built.solicitantCodi = solicitantCodi;
+			return this;
+		}
 		public Builder solicitantNom(String solicitantNom) {
 			built.solicitantNom = solicitantNom;
+			return this;
+		}
+		public Builder titularTipusDoc(String titularTipusDoc) {
+			built.titularTipusDoc = titularTipusDoc;
 			return this;
 		}
 		public Builder titularDocument(String titularDocument) {

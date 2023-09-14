@@ -26,7 +26,7 @@ import java.util.Date;
 @XmlRootElement
 public class DadesObertesRespostaConsulta {
 
-//	private String entitatCodi;
+	private String entitatCodi;
 	private String entitatNom;
 	private String entitatNif;
 //	private String entitatTipus;
@@ -40,13 +40,14 @@ public class DadesObertesRespostaConsulta {
 	private String emissorNif;
 	private String consentiment;
 	private String finalitat;
-//	private String titularTipusDoc;
+	private String titularTipusDoc;
 	private String solicitudId;
 	private Date data;
 	private ServeiTipus tipus;
 	private DadesObertesConsultaResultat resultat;
 
 	public DadesObertesRespostaConsulta(
+			String entitatCodi,
 			String entitatNom,
 			String entitatNif,
 			String departamentNom,
@@ -58,11 +59,13 @@ public class DadesObertesRespostaConsulta {
 			String emissorNif,
 			String consentiment,
 			String finalitat,
+			String titularTipusDoc,
 			String solicitudId,
 			Date data,
 			Enum tipus,
 			String estat) {
 		this(
+				entitatCodi,
 				entitatNom,
 				entitatNif,
 				departamentNom,
@@ -74,6 +77,7 @@ public class DadesObertesRespostaConsulta {
 				emissorNif,
 				consentiment,
 				finalitat,
+				titularTipusDoc,
 				solicitudId,
 				data,
 				"ENRUTADOR_MULTIPLE".equals(tipus.name()) ? "ENRUTADOR" : tipus.name(),
@@ -81,6 +85,7 @@ public class DadesObertesRespostaConsulta {
 	}
 
 	public DadesObertesRespostaConsulta(
+			String entitatCodi,
 			String entitatNom,
 			String entitatNif,
 			String departamentNom,
@@ -92,12 +97,13 @@ public class DadesObertesRespostaConsulta {
 			String emissorNif,
 			String consentiment,
 			String finalitat,
-//			String titularTipusDoc,
+			String titularTipusDoc,
 			String solicitudId,
 			Date data,
 			String tipus,
 			String estat) {
 		super();
+		this.entitatCodi = entitatCodi;
 		this.entitatNom = entitatNom;
 		this.entitatNif = entitatNif;
 		this.departamentNom = departamentNom;
@@ -116,7 +122,7 @@ public class DadesObertesRespostaConsulta {
 				this.finalitat = finalitat;
 			}
 		}
-//		this.titularTipusDoc = titularTipusDoc;
+		this.titularTipusDoc = titularTipusDoc;
 		this.solicitudId = solicitudId;
 		this.data = data;
 		this.tipus = ServeiTipus.valueOf(tipus);
