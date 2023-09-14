@@ -289,8 +289,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 											idPeticion,
 											timestamp,
 											codigoCertificado);
-									resposta.setEntitatCodiRedireccio(entitatCodi);
 								}
+								resposta.setEntitatCodiRedireccio(entitatCodi);
 							} else {
 								if (servei.getUrlPerDefecte() != null) {
 									resposta = new RedireccioProcessarResultatDto(
