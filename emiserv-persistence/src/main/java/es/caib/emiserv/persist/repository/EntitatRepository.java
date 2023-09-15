@@ -31,7 +31,8 @@ public interface EntitatRepository extends JpaRepository<EntitatEntity, Long> {
 			"where " +
 			"    (:esNullCodi = true or lower(en.codi) like lower('%'||:codi||'%')) " +
 			"and (:esNullNom = true or lower(en.nom) like lower('%'||:nom||'%')) " +
-			"and (:esNullCif = true or lower(en.cif) like lower('%'||:cif||'%')) ")
+			"and (:esNullCif = true or lower(en.cif) like lower('%'||:cif||'%')) " +
+			"and (:esNullUnitatArrel = true or lower(en.unitatArrel) like lower('%'||:unitatArrel||'%')) ")
 	public Page<EntitatEntity> findPermesosPaginat(
 			@Param("esNullCodi") boolean esNullCodi,
 			@Param("codi") String codi,
@@ -39,5 +40,7 @@ public interface EntitatRepository extends JpaRepository<EntitatEntity, Long> {
 			@Param("nom") String nom,
 			@Param("esNullCif") boolean esNullCif,
 			@Param("cif") String cif,
+			@Param("esNullUnitatArrel") boolean esNullUnitatArrel,
+			@Param("unitatArrel") String unitatArrel,
 			Pageable pageable);
 }

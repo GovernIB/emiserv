@@ -143,10 +143,11 @@ public class EntitatController extends BaseController {
 			entitatService.sincronitzar();
 		} catch (Exception ex) {
 			log.error("Error actualitzant les entitats.", ex);
+			String msg = "EJBException".equals(ex.getClass().getSimpleName()) ? ex.getCause().getMessage() : ex.getMessage();
 			return getAjaxControllerReturnValueError(
 					request,
 					"redirect:../entitat",
-					ex.getMessage());
+					msg);
 		}
 		return getAjaxControllerReturnValueSuccess(
 				request,

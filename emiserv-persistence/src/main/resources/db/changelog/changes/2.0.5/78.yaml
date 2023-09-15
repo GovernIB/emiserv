@@ -36,6 +36,11 @@ databaseChangeLog:
                     nullable: false
                   name: cif
                   type: VARCHAR(9 ${varcharUnit})
+              - column:
+                  constraints:
+                    nullable: false
+                  name: unitat_arrel
+                  type: VARCHAR(9 ${varcharUnit})
             tableName: ems_entitat
         - addColumn:
             columns:

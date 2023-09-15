@@ -26,14 +26,17 @@
 <body>
 	<form:form action="" method="post" cssClass="well" modelAttribute="entitatFiltreDto">
 		<div class="row">
-			<div class="col-md-4">
+			<div class="col-md-3">
 				<emi:inputText name="codi" placeholderKey="entitat.list.filtre.codi" inline="true"/>
 			</div>
-			<div class="col-md-4">
+			<div class="col-md-3">
 				<emi:inputText name="nom" placeholderKey="entitat.list.filtre.nom" inline="true"/>
 			</div>
-			<div class="col-md-4">
+			<div class="col-md-3">
 				<emi:inputText name="cif" placeholderKey="entitat.list.filtre.cif" inline="true"/>
+			</div>
+			<div class="col-md-3">
+				<emi:inputText name="unitatArrel" placeholderKey="entitat.list.filtre.unitatArrel" inline="true"/>
 			</div>
 		</div>
 		<div class="row">
@@ -51,6 +54,7 @@
 				<th data-col-name="codi"><spring:message code="entitat.list.columna.codi"/></th>
 				<th data-col-name="nom"><spring:message code="entitat.list.columna.nom"/></th>
 				<th data-col-name="cif"><spring:message code="entitat.list.columna.cif"/></th>
+				<th data-col-name="unitatArrel"><spring:message code="entitat.list.columna.unitatArrel"/></th>
 				<th data-col-name="id" data-orderable="false" data-template="#cellAccionsTemplate" width="1%">
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="dropdown">

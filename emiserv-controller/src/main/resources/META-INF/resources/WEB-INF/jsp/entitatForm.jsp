@@ -27,6 +27,7 @@ pageContext.setAttribute("idioma", org.springframework.web.servlet.support.Reque
 		<emi:inputText name="codi" textKey="entitat.form.camp.codi" labelSize="2" required="true"/>
 		<emi:inputText name="nom" textKey="entitat.form.camp.nom" labelSize="2" required="true"/>
 		<emi:inputText name="cif" textKey="entitat.form.camp.cif" labelSize="2" required="true"/>
+		<emi:inputText name="unitatArrel" textKey="entitat.form.camp.unitatArrel" labelSize="2" required="false"/>
 		<div id="modal-botons" class="well">
 			<button type="submit" class="btn btn-success"><span class="fa fa-save"></span> <spring:message code="comu.boto.guardar"/></button>
 			<a href="<c:url value="/entitat"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.cancelar"/></a>

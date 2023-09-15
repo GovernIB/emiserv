@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.springframework.core.env.Environment;
@@ -25,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
@@ -49,6 +49,7 @@ public class EntitatServiceImpl implements EntitatService {
                 .codi(entitat.getCodi())
                 .nom(entitat.getNom())
                 .cif(entitat.getCif())
+                .unitatArrel(entitat.getUnitatArrel())
                 .build();
         return conversioTipusHelper.convertir(
                 entitatRepository.save(entity),
@@ -60,7 +61,7 @@ public class EntitatServiceImpl implements EntitatService {
     public EntitatDto update(EntitatDto entitat) throws NotFoundException {
         log.debug("Modificant nova entitat (entitat=" + entitat + ")");
         EntitatEntity entity = entitatRepository.findById(entitat.getId()).orElseThrow(() -> new NotFoundException(entitat.getId(), EntitatEntity.class));
-        entity.update(entitat.getCodi(), entitat.getNom(), entitat.getCif());
+        entity.update(entitat.getCodi(), entitat.getNom(), entitat.getCif(), entitat.getUnitatArrel());
         return conversioTipusHelper.convertir(
                 entitatRepository.save(entity),
                 EntitatDto.class);
@@ -110,6 +111,8 @@ public class EntitatServiceImpl implements EntitatService {
                         filtre != null && filtre.getNom() != null ? filtre.getNom() : "",
                         (filtre == null || Strings.isBlank(filtre.getCif())),
                         filtre != null && filtre.getCif() != null ? filtre.getCif() : "",
+                        (filtre == null || Strings.isBlank(filtre.getUnitatArrel())),
+                        filtre != null && filtre.getUnitatArrel() != null ? filtre.getUnitatArrel() : "",
                         paginacioHelper.toSpringDataPageable(paginacioParams)),
                 EntitatDto.class);
     }
@@ -133,6 +136,9 @@ public class EntitatServiceImpl implements EntitatService {
             String json = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
 
             entitats = getMapper().readValue(json, new TypeReference<List<EntitatDto>>() {});
+
+//            Object response = webTarget.request(MediaType.APPLICATION_JSON).get(Object.class);
+//            entitats = new ArrayList<>();
         } catch (Exception e) {
            log.error("No s'han pogut obtenir les entitats de Pinbal", e);
             throw new SistemaExternException("entitat.controller.sincronitzar.error", e);
@@ -141,14 +147,15 @@ public class EntitatServiceImpl implements EntitatService {
         entitats.forEach(e -> {
             entitatRepository.findByCodi(e.getCodi()).ifPresentOrElse(
                     (entitat) -> {
-                        entitat.update(e.getCodi(), e.getNom(), e.getCif());
+                        entitat.update(e.getCodi(), e.getNom(), e.getCif(), e.getUnitatArrel());
                         entitatRepository.save(entitat);
                     },
                     () -> {
                         entitatRepository.save(EntitatEntity.builder()
                             .codi(e.getCodi())
                             .nom(e.getNom())
-                            .cif(e.getCif()).build());
+                            .cif(e.getCif())
+                            .unitatArrel(e.getUnitatArrel()).build());
                     }
             );
         });
@@ -160,7 +167,7 @@ public class EntitatServiceImpl implements EntitatService {
         clientConfig.register(JacksonFeature.class);
         clientConfig.register(HttpAuthenticationFeature.basic(usuari, contrasenya));
 
-        ClientBuilder clientBuilder = ClientBuilder.newBuilder().withConfig(clientConfig);
+        JerseyClientBuilder clientBuilder = new JerseyClientBuilder().withConfig(clientConfig);
         clientBuilder.connectTimeout(5000, TimeUnit.MILLISECONDS);
         clientBuilder.readTimeout(10000, TimeUnit.MILLISECONDS);
 

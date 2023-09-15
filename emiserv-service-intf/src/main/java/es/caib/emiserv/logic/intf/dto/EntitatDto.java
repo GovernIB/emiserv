@@ -15,5 +15,6 @@ public class EntitatDto {
     private String codi;
     private String nom;
     private String cif;
+    private String unitatArrel;
 
 }

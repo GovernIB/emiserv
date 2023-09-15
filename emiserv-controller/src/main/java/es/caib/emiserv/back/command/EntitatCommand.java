@@ -34,6 +34,8 @@ public class EntitatCommand {
 	private String nom;
 	@NotEmpty @Size(max=9)
 	private String cif;
+	@Size(max=9)
+	private String unitatArrel;
 
 	public static EntitatCommand toCommand(EntitatDto dto) {
 		return ConversioTipusHelper.convertir(

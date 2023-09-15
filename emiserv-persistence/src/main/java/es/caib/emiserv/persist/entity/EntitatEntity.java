@@ -32,11 +32,14 @@ public class EntitatEntity extends AbstractPersistable<Long> {
 	private String nom;
 	@Column(name = "cif", length = 9, nullable = false, unique = true)
 	private String cif;
+	@Column(name = "unitat_arrel", length = 9, nullable = false)
+	private String unitatArrel;
 
-	public void update(String codi, String nom, String cif) {
+	public void update(String codi, String nom, String cif, String unitatArrel) {
 		this.codi = codi;
 		this.nom = nom;
 		this.cif = cif;
+		this.unitatArrel = unitatArrel;
 	}
 
 }
