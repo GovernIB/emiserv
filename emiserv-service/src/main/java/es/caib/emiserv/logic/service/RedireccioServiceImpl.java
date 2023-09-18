@@ -629,6 +629,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 				+ "filtre=" + filtre + ")");
 		Map<String, String> mapeigOrdenacio = new HashMap<>();
 		mapeigOrdenacio.put("procedimentCodiNom", "procedimentCodi");
+		// Evitar problema quan s'ordena per estat
+		if (paginacioParams.getOrdres().size() == 1 && "estat".equals(paginacioParams.getOrdres().get(0).getCamp())) {
+			paginacioParams.getOrdres().add(new PaginacioParamsDto.OrdreDto("id", PaginacioParamsDto.OrdreDireccioDto.DESCENDENT));
+		}
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
 				redireccioListRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),

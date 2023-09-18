@@ -150,6 +150,11 @@ public class BackofficeServiceImpl implements BackofficeService {
 				scspServicioCodigo = servicio.getCodigoCertificado();
 			}
 		}
+
+		// Evitar problema quan s'ordena per estat
+		if (paginacioParams.getOrdres().size() == 1 && "estat".equals(paginacioParams.getOrdres().get(0).getCamp())) {
+			paginacioParams.getOrdres().add(new PaginacioParamsDto.OrdreDto("id", PaginacioParamsDto.OrdreDireccioDto.DESCENDENT));
+		}
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
 				backofficeListRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
@@ -167,9 +172,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 						codisServeisPermesos,
 						filtre.getNumeroPeticio() == null || filtre.getNumeroPeticio().isEmpty(),
 						filtre.getNumeroPeticio() != null ? filtre.getNumeroPeticio() : "",
-						paginacioHelper.toSpringDataPageable(
-								paginacioParams,
-								mapeigOrdenacio)),
+						paginacioHelper.toSpringDataPageable(paginacioParams, mapeigOrdenacio)),
 				AuditoriaPeticioDto.class,
 				this::toAuditoriaPeticioDto);
 		for (AuditoriaPeticioDto peticio: resposta.getContingut()) {
