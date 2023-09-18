@@ -1,3 +1,3 @@
-es.caib.pinbal.url=https://proves.caib.es/pinbalapi
-es.caib.pinbal.username=$ripea_pinbal
-es.caib.pinbal.password=ripea_pinbal
+es.caib.emiserv.pinbal.url=https://proves.caib.es/pinbalapi
+es.caib.emiserv.pinbal.username=$ripea_pinbal
+es.caib.emiserv.pinbal.password=ripea_pinbal
