@@ -3,14 +3,13 @@
  */
 package es.caib.emiserv.back.helper;
 
+import es.caib.emiserv.logic.intf.keycloak.KeycloakHelper;
+
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-
-import javax.servlet.http.HttpServletRequest;
-
-import es.caib.emiserv.logic.intf.keycloak.KeycloakHelper;
 
 /**
  * Helper per a obtenir informació des de les pàgines JSP.
@@ -25,6 +24,10 @@ public class JspHelper {
 
 	public static String getBuildTimestamp(HttpServletRequest request) throws IOException {
 		return getManifestAttribute(request, "Build-Timestamp");
+	}
+
+	public static String getCommitId(HttpServletRequest request) throws IOException {
+		return getManifestAttribute(request, "Implementation-SCM-Revision");
 	}
 
 	public static String getCurrentUserName() {
