@@ -70,6 +70,32 @@ $(document).ready(function() {
 		});
 	});
 });
+
+function formatState(estat) {
+
+	const msgError = '<spring:message code="peticio.estat.enum.ERROR"/>';
+	const msgPendent = '<spring:message code="peticio.estat.enum.PENDENT"/>';
+	const msgProcessant = '<spring:message code="peticio.estat.enum.EN_PROCES"/>';
+	const msgTramitada = '<spring:message code="peticio.estat.enum.TRAMITADA"/>';
+	const msgPolling = '<spring:message code="peticio.estat.enum.POLLING"/>';
+	const msgDesconegut = '<spring:message code="peticio.estat.enum.DESCONEGUT"/>';
+
+	if (estat.id=='ERROR') {
+		return $('<div><span class="fa fa-warning"></span> <span>' + msgError + '</span></div>');
+	} else if(estat.id=='PENDENT') {
+		return $('<div><span class="fa fa-clock-o"></span>  <span>' + msgPendent + '</span></div>');
+	} else if(estat.id=='EN_PROCES') {
+		return $('<div><span class="fa fa-cogs"></span>  <span>' + msgProcessant + '</span></div>');
+	} else if(estat.id=='TRAMITADA') {
+		return $('<div><span class="fa fa-check"></span>  <span>' + msgTramitada + '</span></div>');
+	} else if(estat.id=='DESCONEGUT') {
+		return $('<div><span class="fa fa-question"></span>  <span>' + msgDesconegut + '</span></div>');
+	} else if(estat.id=='POLLING') {
+		return $('<div><span class="fa fa-exchange-alt"></span>  <span>' + msgPolling + '</span></div>');
+	} else {
+		return estat.text;
+	}
+}
 </script>
 </head>
 <body>
@@ -84,7 +110,7 @@ $(document).ready(function() {
 		</div>
 		<div class="row">
 			<div class="col-md-4">
-				<emi:inputSelect name="estat" optionItems="${peticioEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true"/>
+				<emi:inputSelect name="estat" optionItems="${peticioEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true" formatResult="formatState" formatSelection="formatState"/>
 			</div>
 			<div class="col-md-2">
 				<emi:inputDate name="dataInici" inline="true" placeholderKey="auditoria.list.filtre.data.inici"/>
@@ -127,12 +153,12 @@ $(document).ready(function() {
 					</script>
 					<spring:message code="auditoria.list.columna.num.peticio"/>
 				</th>
-				<th data-col-name="procedimentCodiNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
+				<th data-col-name="procedimentCodiNom" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
 					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiCodiNom}}</script>
 				</th>
-				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%" data-orderable="false">
+				<th data-col-name="estat" data-template="#cellEstatTemplate" width="10%">
 					<spring:message code="auditoria.list.columna.estat"/>
 					<script id="cellEstatTemplate" type="text/x-jsrender">
 						{{if estat == 'PENDENT'}}
@@ -142,7 +168,7 @@ $(document).ready(function() {
 						{{else estat == 'TRAMITADA'}}
 							<span class="fa fa-check"></span>&nbsp;<spring:message code="peticio.estat.enum.TRAMITADA"/>
 						{{else estat == 'POLLING'}}
-							<span class="fa fa-cogs"></span>&nbsp;<spring:message code="peticio.estat.enum.POLLING"/>
+							<span class="fa fa-exchange-alt"></span>&nbsp;<spring:message code="peticio.estat.enum.POLLING"/>
 						{{else estat == 'ERROR'}}
 							<span title="{{>error}}"><span class="fa fa-warning"></span>&nbsp;<spring:message code="peticio.estat.enum.ERROR"/></span>
 							{{if estatScspError}}<spring:message code="auditoria.list.error.scsp"/>{{else}}<spring:message code="auditoria.list.error.backoffice"/>{{/if}}

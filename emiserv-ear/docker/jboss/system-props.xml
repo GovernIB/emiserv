@@ -1,0 +1,4 @@
+<system-properties>
+    <property name="es.caib.emiserv.properties" value="/home/jboss/apps/emiserv/jboss.properties"/>
+    <property name="es.caib.emiserv.system.properties" value="/home/jboss/apps/emiserv/jboss_system.properties"/>
+</system-properties>

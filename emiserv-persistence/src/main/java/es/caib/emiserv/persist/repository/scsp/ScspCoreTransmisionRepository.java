@@ -99,6 +99,7 @@ public interface ScspCoreTransmisionRepository extends JpaRepository<ScspCoreTra
 	 * @return
 	 */
 	@Query( "select new es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta( " +
+			"		ct.solicitanteCodigo, " +
 			"		ct.solicitanteNombre, " +
 			"		ct.solicitanteId, " +
 			"		ct.unidadTramitadora, " +
@@ -110,6 +111,7 @@ public interface ScspCoreTransmisionRepository extends JpaRepository<ScspCoreTra
 			"		cs.emisor.cif, " +
 			"		ct.consentimiento, " +
 			"		ct.finalidad, " +
+			"		ct.titularTipoDoc, " +
 			"		ct.solicitudId, " +
 			"		cpr.fechaPeticion, " +
 			"		'BACKOFFICE', " +

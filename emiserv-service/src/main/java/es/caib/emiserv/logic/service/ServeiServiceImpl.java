@@ -29,6 +29,7 @@ import es.caib.emiserv.persist.repository.scsp.ScspCorePeticionRespuestaReposito
 import es.caib.emiserv.persist.repository.scsp.ScspCoreServicioRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -247,7 +248,7 @@ public class ServeiServiceImpl implements ServeiService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public PaginaDto<ServeiDto> findAllPaginat(PaginacioParamsDto paginacioParams) {
+	public PaginaDto<ServeiDto> findAllPaginat(ServeiFiltreDto filtre, PaginacioParamsDto paginacioParams) {
 		log.debug("Consulta de tots els serveis paginats (" +
 				"paginacioParams=" + paginacioParams + ")");
 		List<ServeiEntity> serveisPermesos = serveiRepository.findAll();
@@ -271,12 +272,28 @@ public class ServeiServiceImpl implements ServeiService {
 				resposta = paginacioHelper.toPaginaDto(
 						serveiRepository.findPermesosPaginat(
 								serveisPermesos,
+								(filtre == null || Strings.isBlank(filtre.getCodi())) ,
+								filtre != null && filtre.getCodi() != null ? filtre.getCodi() : "",
+								(filtre == null || Strings.isBlank(filtre.getNom())),
+								filtre != null && filtre.getNom() != null ? filtre.getNom() : "",
+								(filtre == null || filtre.getTipus() == null),
+								filtre != null ? filtre.getTipus() : null,
+								(filtre == null || filtre.getActiu() == null),
+								filtre != null ? filtre.getActiu() : null,
 								paginacioHelper.toSpringDataPageable(paginacioParams)),
 						ServeiDto.class);
 			} else {
 				resposta = paginacioHelper.toPaginaDto(
 						serveiRepository.findPermesosOrdenat(
 								serveisPermesos,
+								(filtre == null || Strings.isBlank(filtre.getCodi())) ,
+								filtre != null && filtre.getCodi() != null ? filtre.getCodi() : "",
+								(filtre == null || Strings.isBlank(filtre.getNom())),
+								filtre != null && filtre.getNom() != null ? filtre.getNom() : "",
+								(filtre == null || filtre.getTipus() == null),
+								filtre != null ? filtre.getTipus() : null,
+								(filtre == null || filtre.getActiu() == null),
+								filtre != null ? filtre.getActiu() : null,
 								paginacioHelper.toSpringDataSort(paginacioParams)),
 						ServeiDto.class);
 			}

@@ -3,9 +3,8 @@
  */
 package es.caib.emiserv.persist.entity;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -18,9 +17,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
-
-import org.springframework.data.jpa.domain.AbstractPersistable;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Classe del model de dades que representa una petició d'una
@@ -70,6 +69,8 @@ public class RedireccioPeticioEntity extends AbstractPersistable<Long> {
 	private long version = 0;
 	@Column(name = "emissor_codi", length = 10, nullable = true)
 	private String emissorCodi;
+	@Column(name = "entitat_codi", length = 64)
+	private String entitatCodiRedireccio;
 
 
 
@@ -112,13 +113,29 @@ public class RedireccioPeticioEntity extends AbstractPersistable<Long> {
 	public String getEmissorCodi() {
 		return emissorCodi;
 	}
-	
+	public String getEntitatCodiRedireccio() {
+		return entitatCodiRedireccio;
+	}
+
 	public void updateResposta(
 			String estat,
 			String error) {
 		this.dataResposta = new Date();
 		this.estat = estat;
 		this.error = error;
+	}
+
+	public void updateResposta(
+			String estat,
+			String error,
+			String entitatCodiRedireccio) {
+		this.dataResposta = new Date();
+		this.estat = estat;
+		this.error = error;
+		this.entitatCodiRedireccio = entitatCodiRedireccio;
+	}
+	public void updateEntitatCodiRedireccio(String entitatCodiRedireccio) {
+		this.entitatCodiRedireccio = entitatCodiRedireccio;
 	}
 
 	public static Builder getBuilder(

@@ -3,15 +3,6 @@
  */
 package es.caib.emiserv.ejb;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ejb.Stateless;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto;
@@ -19,8 +10,16 @@ import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
+import es.caib.emiserv.logic.intf.dto.RedireccioRespostaDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.exception.ScspParseException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.ejb.Stateless;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementació de RedireccioService com a EJB que empra una clase
@@ -46,11 +45,13 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 	public void processarResposta(
 			String peticioId,
 			String serveiCodi,
-			byte[] xml) throws Exception {
+			byte[] xml,
+			String entitatCodiRedireccio) throws Exception {
 		getDelegateService().processarResposta(
 				peticioId,
 				serveiCodi,
-				xml);
+				xml,
+				entitatCodiRedireccio);
 	}
 	
 	@Override
@@ -98,15 +99,21 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public String peticioXmlPeticio(Long peticionId) {
 		return getDelegateService().peticioXmlPeticio(peticionId);
 	}
 
 	@Override
-	@RolesAllowed("EMS_ADMIN")
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public String peticioXmlResposta(Long peticionId) {
 		return getDelegateService().peticioXmlResposta(peticionId);
 	}
+
+    @Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+    public List<RedireccioRespostaDto> peticioXmlRespostes(Long peticioId) {
+        return getDelegateService().peticioXmlRespostes(peticioId);
+    }
 
 }

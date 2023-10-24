@@ -3,8 +3,10 @@
  */
 package es.caib.emiserv.logic.intf.service;
 
+import es.caib.emiserv.client.dadesobertes.DadesObertesResposta;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
+import es.caib.emiserv.logic.intf.dto.ConsultaOpenDataDto;
 import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
 import es.caib.emiserv.logic.intf.dto.EstadistiquesFiltreDto;
 import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
@@ -38,7 +40,7 @@ public interface ExplotacioService {
 	 * Retorna una llista de les consultes realitzades donada una entitat
 	 * i el filtre.
 	 *
-	 * @param entitatCodi
+	 * @param entitatNif
 	 *            Atribut id de l'entitat.
 	 * @param dataInici
 	 * @param dataFi
@@ -53,6 +55,17 @@ public interface ExplotacioService {
 			Date dataFi,
 			String procedimentCodi,
 			String serveiCodi);
+
+	/**
+	 * Retorna una llista de les consultes realitzades donada una entitat
+	 * i el filtre.
+	 *
+	 * @param consultaOpenDataDto
+	 *            Paràmetres de la consulta.
+	 * @return la llista de consultes.
+	 */
+	@PreAuthorize("permitAll()")
+	DadesObertesResposta findOpenDataV2(ConsultaOpenDataDto consultaOpenDataDto);
 
 	/**
 	 * Retorna informació sobre la càrrega del sistema.

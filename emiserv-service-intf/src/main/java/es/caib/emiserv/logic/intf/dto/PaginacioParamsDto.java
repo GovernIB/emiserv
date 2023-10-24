@@ -3,11 +3,11 @@
  */
 package es.caib.emiserv.logic.intf.dto;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
  * Dto amb els paràmetres per a paginar i ordenar els
@@ -104,7 +104,7 @@ public class PaginacioParamsDto implements Serializable {
 		ASCENDENT,
 		DESCENDENT
 	}
-	public class OrdreDto implements Serializable {
+	public static class OrdreDto implements Serializable {
 		private String camp;
 		private OrdreDireccioDto direccio;
 		public OrdreDto(

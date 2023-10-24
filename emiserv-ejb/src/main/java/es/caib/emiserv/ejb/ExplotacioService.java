@@ -3,8 +3,10 @@
  */
 package es.caib.emiserv.ejb;
 
+import es.caib.emiserv.client.dadesobertes.DadesObertesResposta;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
+import es.caib.emiserv.logic.intf.dto.ConsultaOpenDataDto;
 import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
 import es.caib.emiserv.logic.intf.dto.EstadistiquesFiltreDto;
 import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
@@ -45,7 +47,13 @@ public class ExplotacioService extends AbstractService<es.caib.emiserv.logic.int
         return getDelegateService().findOpenData(entitatNif, dataInici, dataFi, procedimentCodi, serveiCodi);
     }
 
-	@Override
+	@PermitAll
+    @Override
+    public DadesObertesResposta findOpenDataV2(ConsultaOpenDataDto consultaOpenDataDto) {
+		return getDelegateService().findOpenDataV2(consultaOpenDataDto);
+    }
+
+    @Override
 	public List<CarregaDto> findEstadistiquesCarrega() {
 		return getDelegateService().findEstadistiquesCarrega();
 	}

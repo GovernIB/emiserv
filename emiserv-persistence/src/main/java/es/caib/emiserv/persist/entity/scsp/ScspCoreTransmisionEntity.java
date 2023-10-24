@@ -3,10 +3,18 @@
  */
 package es.caib.emiserv.persist.entity.scsp;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
-
-import javax.persistence.*;
 
 /**
  *  Classe de model de dades per a la taula CORE_TRANSMISION.
@@ -26,8 +34,12 @@ public class ScspCoreTransmisionEntity {
 	private String transmisionId;
 	@Column(name = "idsolicitante", length = 10, nullable = false)
 	private String solicitanteId;
+	@Column(name = "codigosolicitante", length = 64)
+	private String solicitanteCodigo;
 	@Column(name = "nombresolicitante", length = 256)
 	private String solicitanteNombre;
+	@Column(name = "tipodoctitular", length = 16)
+	private String titularTipoDoc;
 	@Column(name = "doctitular", length = 16)
 	private String titularDocumento;
 	@Column(name = "nombretitular", length = 40)
@@ -84,8 +96,14 @@ public class ScspCoreTransmisionEntity {
 	public String getSolicitanteId() {
 		return solicitanteId;
 	}
+	public String getSolicitanteCodigo() {
+		return solicitanteCodigo;
+	}
 	public String getSolicitanteNombre() {
 		return solicitanteNombre;
+	}
+	public String getTitularTipoDoc() {
+		return titularTipoDoc;
 	}
 	public String getTitularDocumento() {
 		return titularDocumento;
@@ -168,8 +186,16 @@ public class ScspCoreTransmisionEntity {
 			built.solicitanteId = solicitanteId;
 			return this;
 		}
+		public Builder solicitanteCodigo(String solicitanteCodigo) {
+			built.solicitanteCodigo = solicitanteCodigo;
+			return this;
+		}
 		public Builder solicitanteNombre(String solicitanteNombre) {
 			built.solicitanteNombre = solicitanteNombre;
+			return this;
+		}
+		public Builder titularTipoDoc(String titularTipoDoc) {
+			built.titularTipoDoc = titularTipoDoc;
 			return this;
 		}
 		public Builder titularDocumento(String titularDocumento) {

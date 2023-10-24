@@ -45,6 +45,7 @@ public class ExplotacioDadesExternesRestController {
                                     description = "Llista de consultes realitzades a Emiserv")),
                             examples = {
                                     @ExampleObject(value = "[{ \"entitatNom\": \"Entitat de test\"," +
+                                            "        \"entitatCodi\": \"CODI\"," +
                                             "        \"entitatNif\": \"12345678Z\"," +
                                             "        \"departamentCodi\": null," +
                                             "        \"departamentNom\": \"Programari\"," +
@@ -56,6 +57,7 @@ public class ExplotacioDadesExternesRestController {
                                             "        \"emissorNif\": \"12345678A\"," +
                                             "        \"consentiment\": \"Si\"," +
                                             "        \"finalitat\": \"test\"," +
+                                            "        \"titularTipusDoc\": \"NIF\"," +
                                             "        \"solicitudId\": \"PBL00000000000000000000011\"," +
                                             "        \"data\": 1621854187759," +
                                             "        \"tipus\": \"BACKOFFICE\"," +

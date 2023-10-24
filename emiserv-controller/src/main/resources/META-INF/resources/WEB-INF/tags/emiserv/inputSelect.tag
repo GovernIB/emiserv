@@ -21,6 +21,8 @@
 <%@ attribute name="disabled" required="false" rtexprvalue="true"%>
 <%@ attribute name="optionMinimumResultsForSearch" required="false" rtexprvalue="true"%>
 <%@ attribute name="hideLabel" required="false" rtexprvalue="true"%>
+<%@ attribute name="formatResult" required="false" rtexprvalue="true"%>
+<%@ attribute name="formatSelection" required="false" rtexprvalue="true"%>
 <c:set var="campPath" value="${name}"/>
 <c:set var="campErrors"><form:errors path="${campPath}"/></c:set>
 <c:set var="campLabelText"><c:choose><c:when test="${not empty textKey}"><spring:message code="${textKey}"/></c:when><c:when test="${not empty text}">${text}</c:when><c:otherwise>${campPath}</c:otherwise></c:choose><c:if test="${required}">*</c:if></c:set>
@@ -106,7 +108,9 @@ $(document).ready(function() {
 		<c:if test="${not empty campPlaceholder}">placeholder: "${campPlaceholder}",</c:if>
 	    theme: "bootstrap",
 	    allowClear: <c:if test="${emptyOption == 'true'}">true</c:if><c:if test="${emptyOption != 'true'}">false</c:if>,
-	    minimumResultsForSearch: ${minimumResultsForSearch}
+	    minimumResultsForSearch: ${minimumResultsForSearch},
+		templateResult: <c:choose><c:when test="${not empty formatResult}">eval(${formatResult})</c:when><c:otherwise>undefined</c:otherwise></c:choose>,
+		templateSelection: <c:choose><c:when test="${not empty formatSelection}">eval(${formatSelection})</c:when><c:otherwise>undefined</c:otherwise></c:choose>
 	});
 	$("#"+campIdf).on('select2-open', function() {
 		var iframe = $('.modal-body iframe', window.parent.document);

@@ -83,6 +83,91 @@ public class EmiservScSpBackofficeTest {
 		emplenarCampsBuits(respuesta);
 	}
 
+	@Test
+	public void backofficePeticioSincronaSenseDatosEspecificos() throws Exception {
+		ByteArrayOutputStream xmlPeticio = new ByteArrayOutputStream();
+		ByteArrayOutputStream xmlResposta = new ByteArrayOutputStream();
+		PeticioRespostaHandler peticioRespostaHandler = new PeticioRespostaHandler(
+				xmlPeticio,
+				xmlResposta);
+		DatosEspecificosHandler datosEspecificosHandler = new DatosEspecificosHandler();
+		var respuesta = getEmiservBackoffice(
+				SERVICE_URL,
+				USERNAME,
+				PASSWORD,
+				peticioRespostaHandler,
+				datosEspecificosHandler).peticionSincrona(getPeticionSenseDatosEspecificos());
+		System.out.println(">>> PETICIO: " + xmlPeticio.toString());
+		System.out.println(">>> RESPOSTA: " + xmlResposta.toString());
+
+		if (respuesta.getTransmisiones() != null && respuesta.getTransmisiones().getTransmisionDatos() != null) {
+			for (TransmisionDatos transmisionDatos: respuesta.getTransmisiones().getTransmisionDatos()) {
+				if (transmisionDatos != null && transmisionDatos.getDatosGenericos() != null && transmisionDatos.getDatosGenericos().getTransmision() != null) {
+					String idSolicitud = transmisionDatos.getDatosGenericos().getTransmision().getIdSolicitud();
+					Element datosEspecificos = datosEspecificosHandler.getDatosEspecificosRespostaComElement(
+							idSolicitud);
+					if (datosEspecificos != null) {
+						transmisionDatos.setDatosEspecificos(datosEspecificos);
+					}
+					Assertions.assertNotNull(transmisionDatos.getDatosEspecificos());
+				}
+			}
+		}
+		modificarDatosEspecificosTransmisionResposta(
+				respuesta,
+				CODI_CERTIFICAT);
+		emplenarCampsBuits(respuesta);
+	}
+
+	private Peticion getPeticionSenseDatosEspecificos() throws ParserConfigurationException {
+		Peticion peticion = new Peticion();
+		Atributos atributos = new Atributos();
+		atributos.setCodigoCertificado("SVDCCAACPCWS01");
+		atributos.setIdPeticion("PRECIB0000732152");
+		atributos.setNumElementos("1");
+		atributos.setTimeStamp("2023-07-19T14:26:05.458+02:00");
+		peticion.setAtributos(atributos);
+		Solicitudes solicitudes = new Solicitudes();
+		SolicitudTransmision solicitudTransmision = new SolicitudTransmision();
+		DatosGenericos datosGenericos = new DatosGenericos();
+		Emisor emisor = new Emisor();
+		emisor.setNombreEmisor("Baleares");
+		emisor.setNifEmisor("S0711001H");
+		datosGenericos.setEmisor(emisor);
+		Solicitante solicitante = new Solicitante();
+		solicitante.setConsentimiento(Consentimiento.Si);
+		solicitante.setFinalidad("prueba del servicio");
+		Funcionario funcionario = new Funcionario();
+		funcionario.setNombreCompletoFuncionario("Adrián Menéndez Simarro");
+		funcionario.setNifFuncionario("03914307Y");
+		solicitante.setFuncionario(funcionario);
+		solicitante.setIdentificadorSolicitante("S2800568D");
+		solicitante.setNombreSolicitante("Ministerio Asuntos Económ. y Transf. Digital");
+		Procedimiento procedimiento = new Procedimiento();
+		procedimiento.setCodProcedimiento("S2800568D_TEST_00001");
+		procedimiento.setNombreProcedimiento("Procedimiento de pruebas 00001");
+		solicitante.setProcedimiento(procedimiento);
+		solicitante.setUnidadTramitadora("Centro de Atención a Integradores Desarrolladores");
+		solicitante.setConsentimiento(Consentimiento.Si);
+		datosGenericos.setSolicitante(solicitante);
+		Transmision transmision = new Transmision();
+		transmision.setCodigoCertificado("SVDCCAACPCWS01");
+		transmision.setIdSolicitud("PRECIB0000732152");
+		transmision.setFechaGeneracion("2023-07-19T14:26:02.812+02:00");
+		datosGenericos.setTransmision(transmision);
+		Titular titular = new Titular();
+		titular.setTipoDocumentacion(TipoDocumentacion.NIF);
+		titular.setDocumentacion("41462511C");
+		datosGenericos.setTitular(titular);
+		solicitudTransmision.setDatosGenericos(datosGenericos);
+		solicitudTransmision.setDatosEspecificos(null);
+		ArrayList<SolicitudTransmision> solicitudesTransmision = new ArrayList<SolicitudTransmision>();
+		solicitudesTransmision.add(solicitudTransmision);
+		solicitudes.setSolicitudTransmision(solicitudesTransmision);
+		peticion.setSolicitudes(solicitudes);
+		return peticion;
+	}
+
 	private Peticion getPeticion() throws ParserConfigurationException {
 		Peticion peticion = new Peticion();
 		Atributos atributos = new Atributos();

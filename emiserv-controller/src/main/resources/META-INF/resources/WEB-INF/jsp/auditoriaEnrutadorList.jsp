@@ -61,6 +61,32 @@ $(document).ready(function() {
 		});
 	});
 });
+
+function formatState(estat) {
+
+	const msgError = '<spring:message code="peticio.estat.enum.ERROR"/>';
+	const msgPendent = '<spring:message code="peticio.estat.enum.PENDENT"/>';
+	const msgProcessant = '<spring:message code="peticio.estat.enum.EN_PROCES"/>';
+	const msgTramitada = '<spring:message code="peticio.estat.enum.TRAMITADA"/>';
+	const msgPolling = '<spring:message code="peticio.estat.enum.POLLING"/>';
+	const msgDesconegut = '<spring:message code="peticio.estat.enum.DESCONEGUT"/>';
+
+	if (estat.id=='ERROR') {
+		return $('<div><span class="fa fa-warning"></span> <span>' + msgError + '</span></div>');
+	} else if(estat.id=='PENDENT') {
+		return $('<div><span class="fa fa-clock-o"></span>  <span>' + msgPendent + '</span></div>');
+	} else if(estat.id=='EN_PROCES') {
+		return $('<div><span class="fa fa-cogs"></span>  <span>' + msgProcessant + '</span></div>');
+	} else if(estat.id=='TRAMITADA') {
+		return $('<div><span class="fa fa-check"></span>  <span>' + msgTramitada + '</span></div>');
+	} else if(estat.id=='DESCONEGUT') {
+		return $('<div><span class="fa fa-question"></span>  <span>' + msgDesconegut + '</span></div>');
+	} else if(estat.id=='POLLING') {
+		return $('<div><span class="fa fa-exchange-alt"></span>  <span>' + msgPolling + '</span></div>');
+	} else {
+		return estat.text;
+	}
+}
 </script>
 </head>
 <body>
@@ -75,7 +101,7 @@ $(document).ready(function() {
 		</div>
 		<div class="row">
 			<div class="col-md-4">
-				<emi:inputSelect name="estat" optionItems="${auditoriaEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true"/>
+				<emi:inputSelect name="estat" optionItems="${auditoriaEstatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" placeholderKey="auditoria.list.filtre.estat" inline="true" formatResult="formatState" formatSelection="formatState"/>
 			</div>
 			<div class="col-md-2">
 				<emi:inputDate name="dataInici" inline="true" placeholderKey="auditoria.list.filtre.data.inici"/>
@@ -102,7 +128,7 @@ $(document).ready(function() {
 			</div>
 		</div>
 	</form:form>
-	<table id="peticions" data-toggle="datatable" data-url="auditoriaEnrutador/datatable" data-search-enabled="false" data-default-order="5" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
+	<table id="peticions" data-toggle="datatable" data-url="auditoriaEnrutador/datatable" data-search-enabled="false" data-default-order="6" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
 				<th data-col-name="id" data-visible="false" data-orderable="false">#</th>
@@ -110,13 +136,24 @@ $(document).ready(function() {
 				<th data-col-name="error" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiDescripcio" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiCodiNom" data-visible="false" data-orderable="false">#</th>
+				<th data-col-name="serveiTipus" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="dataPeticio" data-converter="datetime" width="15%"><spring:message code="auditoria.list.columna.data"/></th>
 				<th data-col-name="peticioId" width="15%"><spring:message code="auditoria.list.columna.num.peticio"/></th>
-				<th data-col-name="procedimentCodiNom" data-orderable="false" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
+				<th data-col-name="procedimentCodiNom" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
 				<th data-col-name="serveiCodi" data-template="#cellCertificadoTemplate">
 					<spring:message code="auditoria.list.columna.servei"/>
-					<script id="cellCertificadoTemplate" type="text/x-jsrender">{{:serveiCodiNom}}</script>
+					<script id="cellCertificadoTemplate" type="text/x-jsrender">
+						{{:serveiCodiNom}}
+						{{if serveiTipus == 'BACKOFFICE'}}
+							<span class="label label-default pull-right" title="Backoffice">B</span>
+						{{else serveiTipus == 'ENRUTADOR'}}
+							<span class="label label-info pull-right" title="Enrutador">E</span>
+						{{else serveiTipus == 'ENRUTADOR_MULTIPLE'}}
+							<span class="label label-warning pull-right" title="Enrutador múltiple">M</span>
+						{{/if}}
+					</script>
 				</th>
+				<th data-col-name="entitatCodi" width="10%"><spring:message code="auditoria.list.columna.emissor"/></th>
 				<th data-col-name="estat" data-template="#cellEstadoTemplate">
 					<spring:message code="auditoria.list.columna.estat"/>
 					<script id="cellEstadoTemplate" type="text/x-jsrender">
@@ -126,6 +163,8 @@ $(document).ready(function() {
 							<span class="fa fa-cogs"></span>&nbsp;<spring:message code="peticio.estat.enum.EN_PROCES"/>
 						{{else estat == 'TRAMITADA'}}
 							<span class="fa fa-check"></span>&nbsp;<spring:message code="peticio.estat.enum.TRAMITADA"/>
+						{{else estat == 'POLLING'}}
+							<span class="fa fa-exchange-alt"></span>&nbsp;<spring:message code="peticio.estat.enum.POLLING"/>
 						{{else estat == 'ERROR'}}
 							<span title="{{:error}}"><span class="fa fa-warning"></span>&nbsp;<spring:message code="peticio.estat.enum.ERROR"/></span>
 						{{else}}
@@ -133,7 +172,7 @@ $(document).ready(function() {
 						{{/if}}
 					</script>
 				</th>
-				<th data-template="#cellAccionsTemplate" data-orderable="false" width="10%">
+				<th data-template="#cellAccionsTemplate" data-orderable="false" width="1%">
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="dropdown">
 							<button class="btn btn-primary" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.boto.accions"/>&nbsp;<span class="caret"></span></button>
@@ -141,6 +180,9 @@ $(document).ready(function() {
 								<li><a href="auditoriaEnrutador/xmlPeticio/{{:id}}" data-toggle="modal"><span class="fa fa-arrow-circle-o-down"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlpeticio"/></a></li>
 								{{if estat == 'TRAMITADA' || estat == 'ERROR_EMISOR'}}
 									<li><a href="auditoriaEnrutador/xmlResposta/{{:id}}" data-toggle="modal"><span class="fa fa-arrow-circle-o-up"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlresposta"/></a></li>
+									{{if serveiTipus == 'ENRUTADOR_MULTIPLE'}}
+										<li><a href="auditoriaEnrutador/xmlRespostes/{{:id}}" data-toggle="modal"><span class="fa fa-arrow-circle-o-up"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlrespostes"/></a></li>
+									{{/if}}
 								{{/if}}
 							</ul>
 						</div>

@@ -3,26 +3,34 @@
  */
 package es.caib.emiserv.logic.service;
 
+import es.caib.emiserv.client.comu.ServeiTipus;
+import es.caib.emiserv.client.dadesobertes.DadesObertesResposta;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
 import es.caib.emiserv.logic.intf.dto.CarregaDto.CarregaDetailedCountDto;
+import es.caib.emiserv.logic.intf.dto.ConsultaOpenDataDto;
 import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
 import es.caib.emiserv.logic.intf.dto.EstadistiquesFiltreDto;
 import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.ExplotacioService;
+import es.caib.emiserv.persist.entity.OpenDataEntity;
+import es.caib.emiserv.persist.repository.OpenDataRepository;
 import es.caib.emiserv.persist.repository.RedireccioPeticioRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 
@@ -39,6 +47,8 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 	private ScspCoreTransmisionRepository scspCoreTransmisionRepository;
 	@Autowired
 	private RedireccioPeticioRepository redireccioPeticioRepository;
+	@Autowired
+	private OpenDataRepository openDataRepository;
 
 //	private List<CarregaDto> carreguesAny;
 //	private List<CarregaDto> carreguesMes;
@@ -134,6 +144,85 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 		return openData;
 	}
 
+    @Override
+    public DadesObertesResposta findOpenDataV2(ConsultaOpenDataDto consultaOpenDataDto) {
+		var sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+		var numElements = openDataRepository.countByFiltre(
+				isBlank(consultaOpenDataDto.getEntitatNif()),
+				!isBlank(consultaOpenDataDto.getEntitatNif()) ? consultaOpenDataDto.getEntitatNif() : null,
+				isBlank(consultaOpenDataDto.getProcedimentCodi()),
+				!isBlank(consultaOpenDataDto.getProcedimentCodi()) ? consultaOpenDataDto.getProcedimentCodi() : null,
+				isBlank(consultaOpenDataDto.getServeiCodi()),
+				!isBlank(consultaOpenDataDto.getServeiCodi()) ? consultaOpenDataDto.getServeiCodi() : null,
+				consultaOpenDataDto.getTipus() == null,
+				consultaOpenDataDto.getTipus() != null && ServeiTipus.BACKOFFICE.equals(consultaOpenDataDto.getTipus()),
+				consultaOpenDataDto.getDataInici() == null,
+				consultaOpenDataDto.getDataInici(),
+				consultaOpenDataDto.getDataFi() == null,
+				consultaOpenDataDto.getDataFi());
+		var dades = openDataRepository.findByFiltre(
+				isBlank(consultaOpenDataDto.getEntitatNif()),
+				!isBlank(consultaOpenDataDto.getEntitatNif()) ? consultaOpenDataDto.getEntitatNif() : null,
+				isBlank(consultaOpenDataDto.getProcedimentCodi()),
+				!isBlank(consultaOpenDataDto.getProcedimentCodi()) ? consultaOpenDataDto.getProcedimentCodi() : null,
+				isBlank(consultaOpenDataDto.getServeiCodi()),
+				!isBlank(consultaOpenDataDto.getServeiCodi()) ? consultaOpenDataDto.getServeiCodi() : null,
+				consultaOpenDataDto.getTipus() == null,
+				consultaOpenDataDto.getTipus() != null && ServeiTipus.BACKOFFICE.equals(consultaOpenDataDto.getTipus()),
+				consultaOpenDataDto.getDataInici() == null,
+				consultaOpenDataDto.getDataInici(),
+				consultaOpenDataDto.getDataFi() == null,
+				consultaOpenDataDto.getDataFi(),
+				PageRequest.of(consultaOpenDataDto.getPagina(), consultaOpenDataDto.getMida()));
+
+		Integer totalPagines = (numElements.intValue() + consultaOpenDataDto.getMida() - 1)/consultaOpenDataDto.getMida();
+		String nextUrl = null;
+		if (totalPagines.intValue() > consultaOpenDataDto.getPagina().intValue() + 1) {
+			nextUrl = consultaOpenDataDto.getAppPath();
+			nextUrl += "?dataInici=" + sdf.format(consultaOpenDataDto.getDataInici());
+			nextUrl += "&dataFi=" + sdf.format(consultaOpenDataDto.getDataFi());
+			nextUrl += !isBlank(consultaOpenDataDto.getEntitatNif()) ? "&entitatNif=" + consultaOpenDataDto.getEntitatNif() : "";
+			nextUrl += !isBlank(consultaOpenDataDto.getProcedimentCodi()) ? "&procedimentCodi=" + consultaOpenDataDto.getProcedimentCodi() : "";
+			nextUrl += !isBlank(consultaOpenDataDto.getServeiCodi()) ? "&serveiCodi=" + consultaOpenDataDto.getServeiCodi() : "";
+			nextUrl += consultaOpenDataDto.getTipus() != null ? "&tipus=" + (ServeiTipus.BACKOFFICE.equals(consultaOpenDataDto.getTipus()) ? ServeiTipus.BACKOFFICE.name() : ServeiTipus.ENRUTADOR.name()) : "";
+			nextUrl += "&pagina=" + (consultaOpenDataDto.getPagina() + 1);
+			nextUrl += "&mida=" + consultaOpenDataDto.getMida();
+		}
+
+		return DadesObertesResposta.builder()
+				.totalElements(numElements)
+				.paginaActual(consultaOpenDataDto.getPagina() + 1)
+				.totalPagines(totalPagines)
+				.properaPagina(nextUrl)
+				.dades(dades != null ? dades.stream().map(this::toDadesObertes).collect(Collectors.toList()) : null)
+				.build();
+	}
+
+	private DadesObertesRespostaConsulta toDadesObertes(OpenDataEntity openData) {
+		if (openData == null)
+			return null;
+
+		return new DadesObertesRespostaConsulta(
+				openData.getSolicitantCodi(),
+				openData.getSolicitantNom(),
+				openData.getSolicitantId(),
+				openData.getUnitatTramitadora(),
+				openData.getProcedimentCodi(),
+				openData.getProcedimentNom(),
+				openData.getServeiCodi(),
+				openData.getServeiNom(),
+				openData.getEmissorNom(),
+				openData.getEmissorCodi(),
+				openData.getConsentiment(),
+				openData.getFinalitat(),
+				openData.getTitularTipusDoc(),
+				openData.getSolicitudId(),
+				openData.getDataPeticio(),
+				openData.getTipus().name(),
+				openData.getEstat());
+	}
+
 	@Override
 	@Transactional(readOnly = true)
 	public List<CarregaDto> findEstadistiquesCarrega() {
@@ -212,6 +301,7 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 				filtre.getDataFi()));
 		return estadistiques;
 	}
+
 
 //	public void actualitzarEstadistiquesPeticio(
 //			Long entitatCif,

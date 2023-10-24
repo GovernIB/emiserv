@@ -3,14 +3,14 @@
  */
 package es.caib.emiserv.back.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-
+import es.caib.emiserv.back.command.AuditoriaFiltreCommand;
+import es.caib.emiserv.back.helper.DatatablesHelper;
+import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
+import es.caib.emiserv.back.helper.RequestSessionHelper;
+import es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto;
+import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
+import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto.OrdreDireccioDto;
+import es.caib.emiserv.logic.intf.service.RedireccioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.stereotype.Controller;
@@ -24,14 +24,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import es.caib.emiserv.back.command.AuditoriaFiltreCommand;
-import es.caib.emiserv.back.helper.DatatablesHelper;
-import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
-import es.caib.emiserv.back.helper.RequestSessionHelper;
-import es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
-import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto.OrdreDireccioDto;
-import es.caib.emiserv.logic.intf.service.RedireccioService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Controlador per a l'auditoria de peticions realitzades als serveis
@@ -127,6 +125,16 @@ public class AuditoriaEnrutadorController extends BaseController {
 				"missatgeXml",
 				redireccioService.peticioXmlResposta(peticioId));
 		return "missatgeXml";
+	}
+	@RequestMapping(value = "/xmlRespostes/{peticioId}", method = RequestMethod.GET)
+	public String xmlRespostes(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			@PathVariable Long peticioId,
+			Model model) {
+		var missatges = redireccioService.peticioXmlRespostes(peticioId);
+		model.addAttribute("missatgesXml", missatges);
+		return "missatgesXml";
 	}
 
 	@InitBinder

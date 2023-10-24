@@ -5,15 +5,35 @@ package es.caib.emiserv.logic.service;
 
 import es.caib.emiserv.logic.helper.ConversioTipusHelper;
 import es.caib.emiserv.logic.helper.PaginacioHelper;
-import es.caib.emiserv.logic.helper.PaginacioHelper.Converter;
 import es.caib.emiserv.logic.helper.XmlHelper;
-import es.caib.emiserv.logic.intf.dto.*;
+import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
+import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
+import es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto;
+import es.caib.emiserv.logic.intf.dto.PaginaDto;
+import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
+import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
+import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
+import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
+import es.caib.emiserv.logic.intf.dto.RedireccioRespostaDto;
+import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.service.RedireccioService;
 import es.caib.emiserv.logic.resolver.EntitatResolver;
 import es.caib.emiserv.logic.resolver.ResponseResolver;
-import es.caib.emiserv.persist.entity.*;
-import es.caib.emiserv.persist.repository.*;
+import es.caib.emiserv.persist.entity.RedireccioListEntity;
+import es.caib.emiserv.persist.entity.RedireccioMissatgeEntity;
+import es.caib.emiserv.persist.entity.RedireccioPeticioEntity;
+import es.caib.emiserv.persist.entity.RedireccioSolicitudEntity;
+import es.caib.emiserv.persist.entity.ServeiEntity;
+import es.caib.emiserv.persist.entity.ServeiRutaDestiEntity;
+import es.caib.emiserv.persist.repository.EntitatRepository;
+import es.caib.emiserv.persist.repository.RedireccioListRepository;
+import es.caib.emiserv.persist.repository.RedireccioMissatgeRepository;
+import es.caib.emiserv.persist.repository.RedireccioPeticioRepository;
+import es.caib.emiserv.persist.repository.RedireccioSolicitudRepository;
+import es.caib.emiserv.persist.repository.ServeiRepository;
+import es.caib.emiserv.persist.repository.ServeiRutaDestiRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +49,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +78,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 	private RedireccioSolicitudRepository redireccioSolicitudRepository;
 	@Autowired
 	private RedireccioMissatgeRepository redireccioMissatgeRepository;
+	@Autowired
+	private RedireccioListRepository redireccioListRepository;
+	@Autowired
+	private EntitatRepository entitatRepository;
 
 	@Autowired
 	private XmlHelper xmlHelper;
@@ -104,6 +133,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 				String solicitantNom = xmlHelper.getTextFromFirstNode(
 						document,
 						"//" + nsprefix + ":Peticion/" + nsprefix + ":Solicitudes/" + nsprefix + ":SolicitudTransmision/" + nsprefix + ":DatosGenericos/" + nsprefix + ":Solicitante/" + nsprefix + ":NombreSolicitante",
+						true);
+				String titularTipusDoc = xmlHelper.getTextFromFirstNode(
+						document,
+						"//" + nsprefix + ":Peticion/" + nsprefix + ":Solicitudes/" + nsprefix + ":SolicitudTransmision/" + nsprefix + ":DatosGenericos/" + nsprefix + ":Titular/" + nsprefix + ":TipoDocumentacion",
 						true);
 				String titularDocument = xmlHelper.getTextFromFirstNode(
 						document,
@@ -161,6 +194,14 @@ public class RedireccioServiceImpl implements RedireccioService {
 						document,
 						"//" + nsprefix + ":Peticion/" + nsprefix + ":Solicitudes/" + nsprefix + ":SolicitudTransmision/" + nsprefix + ":DatosGenericos/" + nsprefix + ":Solicitante/" + nsprefix + ":Consentimiento",
 						true);
+				String solicitantCodi = null;
+				String entitatDesti = null;
+				if (solicitantId != null) {
+					var entitat = entitatRepository.findByCif(solicitantId);
+					if (entitat.isPresent()) {
+						solicitantCodi = entitat.get().getCodi();
+					}
+				}
 				int numElementos = (numElementosStr != null) ? Integer.parseInt(numElementosStr) : 0;
 				if (numElementos != numSolicituds) {
 					resposta = new RedireccioProcessarResultatDto(
@@ -218,6 +259,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 								EntitatResolver entitatResolver = entitatResolverClass.getDeclaredConstructor().newInstance();
 								Document doc = getDocumentXml(xml);
 								String entitatCodi = entitatResolver.resolve(doc.getDocumentElement());
+								entitatDesti = entitatCodi;
 								ServeiRutaDestiEntity serveiRutaDesti = serveiRutaDestiRepository.findByServeiAndEntitatCodi(
 										servei,
 										entitatCodi);
@@ -248,6 +290,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 											timestamp,
 											codigoCertificado);
 								}
+								resposta.setEntitatCodiRedireccio(entitatCodi);
 							} else {
 								if (servei.getUrlPerDefecte() != null) {
 									resposta = new RedireccioProcessarResultatDto(
@@ -310,6 +353,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 						0,
 						numSolicituds,
 						emissorNif).build();
+				redireccioPeticio.updateEntitatCodiRedireccio(entitatDesti);
 				redireccioPeticioRepository.save(redireccioPeticio);
 				Date dataGeneracioParsed = null;
 				if (dataGeneracio != null) {
@@ -323,7 +367,9 @@ public class RedireccioServiceImpl implements RedireccioService {
 						redireccioPeticio,
 						idSolicitud,
 						solicitantId).
+						solicitantCodi(solicitantCodi).
 						solicitantNom(solicitantNom).
+						titularTipusDoc(titularTipusDoc).
 						titularDocument(titularDocument).
 						titularNom(titularNom).
 						titularLlinatge1(titularLlinatge1).
@@ -378,7 +424,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 	public void processarResposta(
 			String peticioId,
 			String serveiCodi,
-			byte[] xml) throws Exception {
+			byte[] xml,
+			String entitatCodiRedireccio) throws Exception {
 		String xmlstr = xml != null ? new String(xml) : null;
 		log.debug(
 				"Obtenint URL servei SCSP per missatge XML (" +
@@ -433,12 +480,15 @@ public class RedireccioServiceImpl implements RedireccioService {
 			if (isV2 || isV3) {
 				redireccioPeticio.updateResposta(
 						codigoEstado,
-						estadoError);
+						estadoError,
+						entitatCodiRedireccio);
+
 				int missatgeTipus = (numFaults == 0) ? RedireccioMissatgeEntity.TIPUS_RESPUESTA : RedireccioMissatgeEntity.TIPUS_FAULT;
 				RedireccioMissatgeEntity redireccioMissatge = RedireccioMissatgeEntity.getBuilder(
 						redireccioPeticio,
 						missatgeTipus,
-						xmlstr).build();
+						xmlstr,
+						entitatCodiRedireccio).build();
 				redireccioMissatgeRepository.save(redireccioMissatge);
 			} else {
 				log.error(
@@ -506,6 +556,27 @@ public class RedireccioServiceImpl implements RedireccioService {
 							ex);
 				}
 			}
+
+			// Desam tots els missatges rebuts
+			if (xmls != null) {
+				int missatgeTipus = RedireccioMissatgeEntity.TIPUS_RESPOSTA_ENTITAT;
+				RedireccioPeticioEntity redireccioPeticio = null;
+				List<RedireccioPeticioEntity> redireccioPeticions = redireccioPeticioRepository.findByPeticioIdAndServeiCodi(peticioId, serveiCodi);
+				if (!redireccioPeticions.isEmpty()) {
+					redireccioPeticio = redireccioPeticions.get(0);
+					for (var msgResposta : xmls.entrySet()) {
+						var xmlBytes = msgResposta.getValue();
+						if (xmlBytes != null && xmlBytes.length > 0) {
+							RedireccioMissatgeEntity redireccioMissatge = RedireccioMissatgeEntity.getBuilder(
+									redireccioPeticio,
+									missatgeTipus,
+									new String(xmlBytes),
+									msgResposta.getKey()).build();
+							redireccioMissatgeRepository.save(redireccioMissatge);
+						}
+					}
+				}
+			}
 		}
 		if (entitatCodi == null) {
 			resultat.setError(true);
@@ -556,8 +627,14 @@ public class RedireccioServiceImpl implements RedireccioService {
 			PaginacioParamsDto paginacioParams) {
 		log.debug("Consulta amb filtre de peticions per a les auditories ("
 				+ "filtre=" + filtre + ")");
+		Map<String, String> mapeigOrdenacio = new HashMap<>();
+		mapeigOrdenacio.put("procedimentCodiNom", "procedimentCodi");
+		// Evitar problema quan s'ordena per estat
+		if (paginacioParams.getOrdres().size() == 1 && "estat".equals(paginacioParams.getOrdres().get(0).getCamp())) {
+			paginacioParams.getOrdres().add(new PaginacioParamsDto.OrdreDto("id", PaginacioParamsDto.OrdreDireccioDto.DESCENDENT));
+		}
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
-				redireccioPeticioRepository.findByFiltrePaginat(
+				redireccioListRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
 						filtre.getServeiCodi() == null || filtre.getServeiCodi().isEmpty(),
@@ -571,15 +648,9 @@ public class RedireccioServiceImpl implements RedireccioService {
 						filtre.getDataFi(),
 						filtre.getNumeroPeticio() == null || filtre.getNumeroPeticio().isEmpty(),
 						filtre.getNumeroPeticio() != null ? filtre.getNumeroPeticio() : "",
-						paginacioHelper.toSpringDataPageable(paginacioParams)),
+						paginacioHelper.toSpringDataPageable(paginacioParams, mapeigOrdenacio)),
 				AuditoriaPeticioDto.class,
-				new Converter<RedireccioPeticioEntity, AuditoriaPeticioDto>() {
-					@Override
-					public AuditoriaPeticioDto convert(
-							RedireccioPeticioEntity source) {
-						return toAuditoriaPeticioDto(source);
-					}
-				});
+				this::toAuditoriaPeticioDto);
 		for (AuditoriaPeticioDto peticio: resposta.getContingut()) {
 			String serveiCodi = peticio.getServeiCodi();
 			peticio.setServeiDescripcio(serveiCodi);
@@ -616,15 +687,15 @@ public class RedireccioServiceImpl implements RedireccioService {
 		log.debug("Consulta del missatge XML de petició (" +
 				"peticioId=" + peticioId + ")");
 		RedireccioPeticioEntity redireccioPeticio = comprovarRedireccioPeticio(peticioId);
-		RedireccioMissatgeEntity redireccioMissatge = redireccioMissatgeRepository.findByPeticioAndTipus(
+		List<RedireccioMissatgeEntity> redireccioMissatge = redireccioMissatgeRepository.findByPeticioAndTipus(
 				redireccioPeticio,
 				RedireccioMissatgeEntity.TIPUS_PETICION);
-		if (redireccioMissatge == null) {
+		if (redireccioMissatge == null || redireccioMissatge.isEmpty()) {
 			throw new NotFoundException(
 					"[peticioId=" + peticioId + ", tipus=" + RedireccioMissatgeEntity.TIPUS_PETICION + "]",
 					RedireccioMissatgeEntity.class);
 		}
-		return redireccioMissatge.getXml();
+		return redireccioMissatge.get(0).getXml();
 	}
 
 	@Transactional(readOnly = true)
@@ -634,12 +705,12 @@ public class RedireccioServiceImpl implements RedireccioService {
 		log.debug("Consulta del missatge XML de resposta (" +
 				"peticioId=" + peticioId + ")");
 		RedireccioPeticioEntity redireccioPeticio = comprovarRedireccioPeticio(peticioId);
-		RedireccioMissatgeEntity redireccioMissatge;
+		List<RedireccioMissatgeEntity> redireccioMissatge;
 		if ("0003".equals(redireccioPeticio.getEstat())) {
 			redireccioMissatge = redireccioMissatgeRepository.findByPeticioAndTipus(
 					redireccioPeticio,
 					RedireccioMissatgeEntity.TIPUS_RESPUESTA);
-			if (redireccioMissatge == null) {
+			if (redireccioMissatge == null || redireccioMissatge.isEmpty()) {
 				throw new NotFoundException(
 						"[peticioId=" + peticioId + ", tipus=" + RedireccioMissatgeEntity.TIPUS_RESPUESTA + "]",
 						RedireccioMissatgeEntity.class);
@@ -648,18 +719,40 @@ public class RedireccioServiceImpl implements RedireccioService {
 			redireccioMissatge = redireccioMissatgeRepository.findByPeticioAndTipus(
 					redireccioPeticio,
 					RedireccioMissatgeEntity.TIPUS_FAULT);
-			if (redireccioMissatge == null) {
+			if (redireccioMissatge == null || redireccioMissatge.isEmpty()) {
 				redireccioMissatge = redireccioMissatgeRepository.findByPeticioAndTipus(
 						redireccioPeticio,
 						RedireccioMissatgeEntity.TIPUS_FAULT_LOCAL);
 			}
-			if (redireccioMissatge == null) {
+			if (redireccioMissatge == null || redireccioMissatge.isEmpty()) {
 				throw new NotFoundException(
 						"[peticioId=" + peticioId + ", tipus=" + RedireccioMissatgeEntity.TIPUS_FAULT + "]",
 						RedireccioMissatgeEntity.class);
 			}
 		}
-		return redireccioMissatge.getXml();
+		return redireccioMissatge.get(0).getXml();
+	}
+
+	@Transactional(readOnly = true)
+	@Override
+	public List<RedireccioRespostaDto> peticioXmlRespostes(Long peticioId) {
+		log.debug("Consulta dels missatge XML de resposta rebuts (peticioId=" + peticioId + ")");
+		RedireccioPeticioEntity redireccioPeticio = comprovarRedireccioPeticio(peticioId);
+		List<RedireccioMissatgeEntity> redireccioMissatges = redireccioMissatgeRepository.findByPeticioAndTipus(
+				redireccioPeticio,
+				RedireccioMissatgeEntity.TIPUS_RESPOSTA_ENTITAT);
+		if (redireccioMissatges == null || redireccioMissatges.isEmpty()) {
+			throw new NotFoundException(
+					"[peticioId=" + peticioId + ", tipus=" + RedireccioMissatgeEntity.TIPUS_RESPOSTA_ENTITAT + "]",
+					RedireccioMissatgeEntity.class);
+		}
+		return redireccioMissatges.stream().map(
+				m -> RedireccioRespostaDto.builder()
+						.entitat(m.getEntitatCodi())
+						.xmlResposta(m.getXml())
+						.respostaEscollida(m.getEntitatCodi().equals(redireccioPeticio.getEntitatCodiRedireccio()))
+						.build())
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -762,6 +855,27 @@ public class RedireccioServiceImpl implements RedireccioService {
 		peticio.setProcedimentNom(solicituds.stream().map(s -> s.getProcedimentNom()).distinct().collect(Collectors.joining(", ")));
 		peticio.setProcedimentCodiNom(solicituds.stream().map(s -> getCodiNom(s.getProcedimentCodi(),  s.getProcedimentNom())).distinct().collect(Collectors.joining(", ")));
 		return peticio;
+	}
+
+	private AuditoriaPeticioDto toAuditoriaPeticioDto(
+			RedireccioListEntity peticioRespuesta) {
+		return AuditoriaPeticioDto.builder()
+				.id(peticioRespuesta.getId())
+				.peticioId(peticioRespuesta.getPeticioId())
+				.serveiCodi(peticioRespuesta.getServeiCodi())
+				.serveiDescripcio(peticioRespuesta.getServeiDescripcio())
+				.serveiTipus(peticioRespuesta.getServeiTipus())
+				.dataPeticio(peticioRespuesta.getDataPeticio())
+				.sincrona(peticioRespuesta.isSincrona())
+				.numTransmissions(peticioRespuesta.getNumTransmissions())
+				.estat(peticioRespuesta.getEstat())
+				.estatScsp(peticioRespuesta.getEstatScsp())
+				.error(peticioRespuesta.getError())
+				.procedimentCodi(peticioRespuesta.getProcedimentCodi())
+				.procedimentNom(peticioRespuesta.getProcedimentNom())
+				.procedimentCodiNom(peticioRespuesta.getPRocedimentCodiNom())
+				.entitatCodi(peticioRespuesta.getEntitatCodi())
+				.build();
 	}
 
 	private String getCodiNom(String codi, String nom) {

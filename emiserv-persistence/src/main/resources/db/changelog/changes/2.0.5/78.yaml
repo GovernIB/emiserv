@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - changeSet:
+      id: 1693570839415-1
+      author: limit
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: ems_entitat_pk
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    unique: true
+                  name: codi
+                  type: VARCHAR(64 ${varcharUnit})
+              - column:
+                  constraints:
+                    nullable: false
+                  name: nom
+                  type: VARCHAR(255 ${varcharUnit})
+              - column:
+                  constraints:
+                    nullable: false
+                  name: cif
+                  type: VARCHAR(9 ${varcharUnit})
+              - column:
+                  constraints:
+                    nullable: false
+                  name: unitat_arrel
+                  type: VARCHAR(9 ${varcharUnit})
+            tableName: ems_entitat
+        - addColumn:
+            columns:
+              - column:
+                  name: solicitant_codi
+                  type: VARCHAR(64 ${varcharUnit})
+              - column:
+                  name: titular_tipus_doc
+                  type: VARCHAR(16 ${varcharUnit})
+            tableName: ems_redir_solicitud
+        - addColumn:
+            columns:
+              - column:
+                  name: codigosolicitante
+                  type: VARCHAR(64 ${varcharUnit})
+              - column:
+                  name: tipodoctitular
+                  type: VARCHAR(16 ${varcharUnit})
+            tableName: core_transmision
+        - sql:
+            dbms: oracle
+            sql: "
+            INSERT INTO ems_config_group (code, parent_code, position, description_key) VALUES ('PINBAL', 'GENERAL', '0', 'propietat.grup.pinbal');
+            INSERT INTO ems_config (key, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.pinbal.url', 'propietat.pinbal.url', 'PINBAL', '0', 'FILE', 'TEXT');
+            INSERT INTO ems_config (key, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.pinbal.username', 'propietat.pinbal.username', 'PINBAL', '1', 'FILE', 'TEXT');
+            INSERT INTO ems_config (key, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.pinbal.password', 'propietat.pinbal.password', 'PINBAL', '2', 'FILE', 'PASS');
+            GRANT SELECT, UPDATE, INSERT, DELETE ON ems_entitat TO www_emiserv;
+            "

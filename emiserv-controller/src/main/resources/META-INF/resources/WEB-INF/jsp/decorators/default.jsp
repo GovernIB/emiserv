@@ -155,12 +155,28 @@ body {
 							<ul class="dropdown-menu">
 								<li>
 									<a href="<c:url value="/usuari/configuracio"/>" data-toggle="modal" data-reload-on-close="true">
-										<spring:message code="decorator.menu.configuracio.user"/>
+										<span class="fa fa-cog"></span> <spring:message code="decorator.menu.configuracio.user"/>
 									</a>
 								</li>
+								<c:choose>
+									<c:when test="${isRolActualAdministrador}">
+										<li>
+											<a href="https://github.com/GovernIB/emiserv/raw/emiserv-2.0/doc/pdf/02_emiserv_usuari_admin.pdf" target="_blank">
+												</span> <span class="fas fa-download"></span> <spring:message code="decorator.menu.manual.admin"/>
+											</a>
+										</li>
+									</c:when>
+									<c:when test="${isRolActualResponsable}">
+										<li>
+											<a href="https://github.com/GovernIB/emiserv/raw/emiserv-2.0/doc/pdf/04_emiserv_usuari_resp.pdf" target="_blank">
+												<span class="fas fa-download"></span> <spring:message code="decorator.menu.manual.resp"/>
+											</a>
+										</li>
+									</c:when>
+								</c:choose>
 								<li>
 									<a href="<c:url value="/logout"/>" id="logout">
-										<spring:message code="decorator.menu.logout"/>
+										<span class="fas fa-power-off"></span> <spring:message code="decorator.menu.logout"/>
 									</a>
 								</li>
 							</ul>
@@ -195,6 +211,7 @@ body {
 									<li><a href="<c:url value="/scsp/autoritatca"/>"><spring:message code="decorator.menu.config.autoritatca"/></a></li>
 									<li><a href="<c:url value="/scsp/modul"/>"><spring:message code="decorator.menu.config.modul"/></a></li>
 									<li><a href="<c:url value="/scsp/parametres"/>"><spring:message code="decorator.menu.config.parametres"/></a></li>
+									<li><a href="<c:url value="/entitat"/>"><spring:message code="decorator.menu.config.entitats"/></a></li>
 									<li><a href="<c:url value="/config"/>"><spring:message code="decorator.menu.config.properties"/></a></li>
 								</ul>
 							</div>

@@ -3,10 +3,10 @@
  */
 package es.caib.emiserv.logic.intf.dto;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
  * Resultat de processar la petició de redirecció SCSP.
@@ -19,6 +19,9 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 	private String urlDesti;
 	/** Mapeig entre el codi de la entitat i el llistat de destins. */
 	private Map<String, String> urlDestins = new HashMap<String, String>();
+	/** Per indicar la entitat amb la resposta seleccionada */
+	private String entitatCodiRedireccio;
+
 	private int scspVersio;
 	private boolean error = false;
 	private String errorCodi;
@@ -103,6 +106,12 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 	}
 	public void addUrlDesti(String codiEntitat, String urlDesti) {
 		this.urlDestins.put(codiEntitat, urlDesti);
+	}
+	public String getEntitatCodiRedireccio() {
+		return entitatCodiRedireccio;
+	}
+	public void setEntitatCodiRedireccio(String entitatCodiRedireccio) {
+		this.entitatCodiRedireccio = entitatCodiRedireccio;
 	}
 	public int getScspVersio() {
 		return scspVersio;

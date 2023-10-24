@@ -3,11 +3,6 @@
  */
 package es.caib.emiserv.logic.intf.service;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.security.access.prepost.PreAuthorize;
-
 import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto;
@@ -15,8 +10,13 @@ import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
+import es.caib.emiserv.logic.intf.dto.RedireccioRespostaDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.exception.ScspParseException;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Declaració dels mètodes per a la gestió de serveis.
@@ -51,16 +51,15 @@ public interface RedireccioService {
 	public void processarResposta(
 			String peticioId,
 			String serveiCodi,
-			byte[] xml) throws Exception;
+			byte[] xml,
+			String entitatCodiRedireccio) throws Exception;
 
 	/** 
 	 * Analitza diferents missatges XML de resposta arribats del servei de redirecció múltiple i retorna la clau
 	 * del missatge escollit pel ResponseResolver.
 	 * 
-	 * @param atributPeticioId
-	 * @param atributCodigoCertificado
-	 * @param respostesAProcessar
-	 * @see ResponseResolver
+	 * @param resultat
+	 * @param xmls
 	 * @return
 	 */
 	public String escollirResposta(
@@ -110,7 +109,7 @@ public interface RedireccioService {
 	/**
 	 * Consulta el llistat de transmissions associades a una petició.
 	 * 
-	 * @param peticionId
+	 * @param peticioId
 	 *            L'atribut id de la petició.
 	 * @return La llista de transmissions.
 	 */
@@ -121,23 +120,34 @@ public interface RedireccioService {
 	/**
 	 * Retorna el missatge XML rebut associat a la petició.
 	 * 
-	 * @param peticionId
+	 * @param peticioId
 	 *            Atribut peticionId per a identificar la petició.
 	 * @return El missatge XML.
 	 */
-	@PreAuthorize("hasRole('EMS_ADMIN')")
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public String peticioXmlPeticio(
 			Long peticioId);
 
 	/**
 	 * Retorna el missatge XML retornat associat a la petició.
 	 * 
-	 * @param peticionId
+	 * @param peticioId
 	 *            Atribut peticionId per a identificar la petició.
 	 * @return El missatge XML.
 	 */
-	@PreAuthorize("hasRole('EMS_ADMIN')")
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public String peticioXmlResposta(
+			Long peticioId);
+
+	/**
+	 * Retorna el missatge XML retornat associat a la petició.
+	 *
+	 * @param peticioId
+	 *            Atribut peticionId per a identificar la petició.
+	 * @return El missatge XML.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public List<RedireccioRespostaDto> peticioXmlRespostes(
 			Long peticioId);
 
 }

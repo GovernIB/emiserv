@@ -3,7 +3,10 @@
  */
 package es.caib.emiserv.logic.intf.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -14,12 +17,16 @@ import java.util.Date;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AuditoriaPeticioDto implements Serializable {
 
 	private Long id;
 	private String peticioId;
 	private String serveiCodi;
 	private String serveiDescripcio;
+	private ServeiTipusEnumDto serveiTipus;
 	private PeticioEstatEnumDto estat;
 	private String estatScsp;
 	private Date dataPeticio;
@@ -34,6 +41,7 @@ public class AuditoriaPeticioDto implements Serializable {
 	private boolean comunicacioBackofficeError;
 	private int processadesTotal;
 	private int processadesError;
+	private String entitatCodi; // Entitat que ha retornat la resposta
 
 	// Alerta --> Aquests camps poden ser múltiple en cas de peticions múltiples
 	private String procedimentCodi;

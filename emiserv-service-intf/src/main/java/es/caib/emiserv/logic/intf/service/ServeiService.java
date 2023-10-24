@@ -97,14 +97,14 @@ public interface ServeiService {
 
 	/**
 	 * Llistat amb tots els serveis accessibles.
-	 * 
-	 * @param paginacioParams
-	 *            Paràmetres per a paginar i ordenar el llistat.
+	 *
+	 * @param filtre
+	 * @param paginacioParams Paràmetres per a paginar i ordenar el llistat.
 	 * @return El llistat de serveis.
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public PaginaDto<ServeiDto> findAllPaginat(
-			PaginacioParamsDto paginacioParams);
+			ServeiFiltreDto filtre, PaginacioParamsDto paginacioParams);
 
 	/**
 	 * Consulta les classes dels resolvers disponibles.

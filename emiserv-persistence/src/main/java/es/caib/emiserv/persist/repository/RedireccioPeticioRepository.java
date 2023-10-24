@@ -123,6 +123,7 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 	 * @return
 	 */
 	@Query( "select new es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta( " +
+			"		rs.solicitantCodi, " +
 			"		rs.solicitantNom, " +
 			"		rs.solicitantId, " +
 			"		rs.unitatTramitadora, " +
@@ -134,6 +135,7 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			"		rp.emissorCodi, " +
 			"		rs.consentiment, " +
 			"		rs.finalitat, " +
+			"		rs.titularTipusDoc, " +
 			"		rs.solicitudId, " +
 			"		rp.dataPeticio, " +
 			"		s.tipus, " +
