@@ -3,20 +3,23 @@
  */
 package es.caib.emiserv.persist.entity.scsp;
 
+import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
 import org.hibernate.annotations.Type;
-
-import java.io.Serializable;
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  *  Classe de model de dades per a la taula CORE_PETICIONRESPUESTA.
@@ -40,7 +43,8 @@ public class ScspCorePeticionRespuestaEntity {
 	private Date fechaRespuesta;
 	@Column(name = "estado", length = 4)
 	private String estado;
-	@Column(name = "error", length = 256)
+	@Lob
+	@Column(name = "error")
 	private String error;
 	@Column(name = "numeroenvios")
 	private int numEnvios;
@@ -60,6 +64,21 @@ public class ScspCorePeticionRespuestaEntity {
 			fetch = FetchType.LAZY)
 	@JoinColumn(name = "certificado", insertable = false, updatable = false)
 	protected ScspCoreServicioEntity servicio;
+
+	// Dades afegides
+	@Column(name = "emscodiprocediment")
+	private String codiProcediment;
+	@Column(name = "emsnomprocediment")
+	private String nomProcediment;
+	@Column(name = "emscodiservei")
+	private String codiServei;
+	@Column(name = "emsnomservei")
+	private String nomServei;
+//	@Column(name = "emsprocessadestotal")
+//	private Integer processadesTotal;
+	@Column(name = "emsestat")
+	@Enumerated(EnumType.ORDINAL)
+	private PeticioEstatEnumDto estat;
 
 
 
@@ -99,6 +118,32 @@ public class ScspCorePeticionRespuestaEntity {
 	public ScspCoreServicioEntity getServicio() {
 		return servicio;
 	}
+	public String getCodiProcediment() {
+		return codiProcediment;
+	}
+	public String getNomProcediment() {
+		return nomProcediment;
+	}
+	public String getCodiServei() {
+		return codiServei;
+	}
+	public String getNomServei() {
+		return nomServei;
+	}
+	public PeticioEstatEnumDto getEstat() {
+		return estat;
+	}
+//	public Integer getProcessadesTotal() {
+//		return processadesTotal;
+//	}
+
+	public void updateEstat(PeticioEstatEnumDto estat) {
+		this.estat = estat;
+	}
+
+//	public void updateProcessadesTotal(Integer processadesTotal) {
+//		this.processadesTotal = processadesTotal;
+//	}
 
 	public static Builder getBuilder(
 			Long certificado,

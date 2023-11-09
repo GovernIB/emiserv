@@ -21,14 +21,12 @@ import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.service.RedireccioService;
 import es.caib.emiserv.logic.resolver.EntitatResolver;
 import es.caib.emiserv.logic.resolver.ResponseResolver;
-import es.caib.emiserv.persist.entity.RedireccioListEntity;
 import es.caib.emiserv.persist.entity.RedireccioMissatgeEntity;
 import es.caib.emiserv.persist.entity.RedireccioPeticioEntity;
 import es.caib.emiserv.persist.entity.RedireccioSolicitudEntity;
 import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.ServeiRutaDestiEntity;
 import es.caib.emiserv.persist.repository.EntitatRepository;
-import es.caib.emiserv.persist.repository.RedireccioListRepository;
 import es.caib.emiserv.persist.repository.RedireccioMissatgeRepository;
 import es.caib.emiserv.persist.repository.RedireccioPeticioRepository;
 import es.caib.emiserv.persist.repository.RedireccioSolicitudRepository;
@@ -78,8 +76,6 @@ public class RedireccioServiceImpl implements RedireccioService {
 	private RedireccioSolicitudRepository redireccioSolicitudRepository;
 	@Autowired
 	private RedireccioMissatgeRepository redireccioMissatgeRepository;
-	@Autowired
-	private RedireccioListRepository redireccioListRepository;
 	@Autowired
 	private EntitatRepository entitatRepository;
 
@@ -346,13 +342,17 @@ public class RedireccioServiceImpl implements RedireccioService {
 						resposta.setScspVersio((isV2) ? 2 : 3);
 					}
 				}
+				ServeiEntity servei = serveiRepository.findByCodi(codigoCertificado);
 				RedireccioPeticioEntity redireccioPeticio = RedireccioPeticioEntity.getBuilder(
 						idPeticion,
 						codigoCertificado,
 						"0001",
 						0,
 						numSolicituds,
-						emissorNif).build();
+						emissorNif).
+						procedimentCodi(procedimentCodi).
+						procedimentNom(procedimentNom).
+						build();
 				redireccioPeticio.updateEntitatCodiRedireccio(entitatDesti);
 				redireccioPeticioRepository.save(redireccioPeticio);
 				Date dataGeneracioParsed = null;
@@ -629,19 +629,19 @@ public class RedireccioServiceImpl implements RedireccioService {
 				+ "filtre=" + filtre + ")");
 		Map<String, String> mapeigOrdenacio = new HashMap<>();
 		mapeigOrdenacio.put("procedimentCodiNom", "procedimentCodi");
+		mapeigOrdenacio.put("entitatCodi", "entitatCodiRedireccio");
 		// Evitar problema quan s'ordena per estat
 		if (paginacioParams.getOrdres().size() == 1 && "estat".equals(paginacioParams.getOrdres().get(0).getCamp())) {
 			paginacioParams.getOrdres().add(new PaginacioParamsDto.OrdreDto("id", PaginacioParamsDto.OrdreDireccioDto.DESCENDENT));
 		}
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
-				redireccioListRepository.findByFiltrePaginat(
+				redireccioPeticioRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
 						filtre.getServeiCodi() == null || filtre.getServeiCodi().isEmpty(),
 						filtre.getServeiCodi(),
 						filtre.getEstat() == null,
-						PeticioEstatEnumDto.ERROR.equals(filtre.getEstat()),
-						toEstatScsp(filtre.getEstat()),
+						filtre.getEstat(),
 						filtre.getDataInici() == null,
 						filtre.getDataInici(),
 						filtre.getDataFi() == null,
@@ -821,7 +821,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 		return redireccioPeticio.get();
 	}
 
-	private AuditoriaPeticioDto toAuditoriaPeticioDto(
+	private AuditoriaPeticioDto toAuditoriaPeticioDto_(
 			RedireccioPeticioEntity redireccioPeticio) {
 		AuditoriaPeticioDto peticio = new AuditoriaPeticioDto();
 		peticio.setId(redireccioPeticio.getId());
@@ -858,23 +858,24 @@ public class RedireccioServiceImpl implements RedireccioService {
 	}
 
 	private AuditoriaPeticioDto toAuditoriaPeticioDto(
-			RedireccioListEntity peticioRespuesta) {
+			RedireccioPeticioEntity redireccioPeticio) {
+		ServeiEntity servei = serveiRepository.findByCodi(redireccioPeticio.getServeiCodi());
 		return AuditoriaPeticioDto.builder()
-				.id(peticioRespuesta.getId())
-				.peticioId(peticioRespuesta.getPeticioId())
-				.serveiCodi(peticioRespuesta.getServeiCodi())
-				.serveiDescripcio(peticioRespuesta.getServeiDescripcio())
-				.serveiTipus(peticioRespuesta.getServeiTipus())
-				.dataPeticio(peticioRespuesta.getDataPeticio())
-				.sincrona(peticioRespuesta.isSincrona())
-				.numTransmissions(peticioRespuesta.getNumTransmissions())
-				.estat(peticioRespuesta.getEstat())
-				.estatScsp(peticioRespuesta.getEstatScsp())
-				.error(peticioRespuesta.getError())
-				.procedimentCodi(peticioRespuesta.getProcedimentCodi())
-				.procedimentNom(peticioRespuesta.getProcedimentNom())
-				.procedimentCodiNom(peticioRespuesta.getPRocedimentCodiNom())
-				.entitatCodi(peticioRespuesta.getEntitatCodi())
+				.id(redireccioPeticio.getId())
+				.peticioId(redireccioPeticio.getPeticioId())
+				.serveiCodi(redireccioPeticio.getServeiCodi())
+				.serveiDescripcio(servei != null ? servei.getDescripcio() : null)
+				.serveiTipus(servei != null ? servei.getTipus() : null)
+				.dataPeticio(redireccioPeticio.getDataPeticio())
+				.sincrona(redireccioPeticio.isSincrona())
+				.numTransmissions(redireccioPeticio.getNumTransmissions())
+				.estat(redireccioPeticio.getEstatEnum())
+				.estatScsp(redireccioPeticio.getEstat())
+				.error(redireccioPeticio.getError())
+				.procedimentCodi(redireccioPeticio.getProcedimentCodi())
+				.procedimentNom(redireccioPeticio.getProcedimentNom())
+				.procedimentCodiNom(redireccioPeticio.getPRocedimentCodiNom())
+				.entitatCodi(redireccioPeticio.getEntitatCodiRedireccio())
 				.build();
 	}
 

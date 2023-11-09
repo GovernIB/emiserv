@@ -8,6 +8,7 @@ import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
 import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
 import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
+import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
 import es.caib.emiserv.persist.entity.RedireccioPeticioEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,8 +31,8 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			"    RedireccioPeticioEntity rp " +
 			"where " +
 			"    (:esNullServei = true or rp.serveiCodi = :servei) " +
-			"and (:esNullProcediment = true or exists (from RedireccioSolicitudEntity rs where rs.peticio.peticioId = rp.peticioId and rs.procedimentCodi = :procediment)) " +
-			"and (:esNullEstat = true or (:esError = true and substring(rp.estat, 1, 2) != '00') or (:esError = false and rp.estat = :estat)) " +
+			"and (:esNullProcediment = true or rp.procedimentCodi  = :procediment) " +
+			"and (:esNullEstat = true or rp.estatEnum = :estat) " +
 			"and (:esNullDataInici = true or rp.dataPeticio >= :dataInici) " +
 			"and (:esNullDataFi = true or rp.dataPeticio <= :dataFi)" +
 			"and (:esNullPeticioId = true or lower(rp.peticioId) like lower('%'||:peticioId||'%'))")
@@ -41,8 +42,7 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			@Param("esNullServei") boolean esNullServei,
 			@Param("servei") String servei,
 			@Param("esNullEstat") boolean esNullEstat,
-			@Param("esError") boolean esError,
-			@Param("estat") String estat,
+			@Param("estat") PeticioEstatEnumDto estat,
 			@Param("esNullDataInici") boolean esNullDataInici,
 			@Param("dataInici") Date dataInici,
 			@Param("esNullDataFi") boolean esNullDataFi,

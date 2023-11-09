@@ -220,6 +220,8 @@ public class BackofficeHelper {
 				peticionRespuesta,
 				cal.getTime()).
 				build();
+		// Update estat SCSP
+		updateScspEstat(peticionRespuesta, peticio);
 		BackofficePeticioEntity peticioSaved = backofficePeticioRepository.save(peticio);
 		for (String solicitudId: idSolicituds) {
 			BackofficeSolicitudEntity solicitud = BackofficeSolicitudEntity.getBuilder(
@@ -228,6 +230,30 @@ public class BackofficeHelper {
 			backofficeSolicitudRepository.save(solicitud);
 		}
 		return peticioSaved;
+	}
+
+	private void updateScspEstat(ScspCorePeticionRespuestaEntity scspPeticionRespuesta, BackofficePeticioEntity peticio) {
+		PeticioEstatEnumDto estat = peticio.getEstat();
+		if (estat == null) {
+			estat = getPeticioEstat(scspPeticionRespuesta.getEstado());
+		}
+		scspPeticionRespuesta.updateEstat(estat);
+	}
+
+	private PeticioEstatEnumDto getPeticioEstat(String estatTransmissio) {
+		if (estatTransmissio != null) {
+			switch (estatTransmissio) {
+				case "0001":
+					return PeticioEstatEnumDto.PENDENT;
+				case "0002":
+					return PeticioEstatEnumDto.EN_PROCES;
+				case "0003":
+					return PeticioEstatEnumDto.TRAMITADA;
+				case "0004":
+					return PeticioEstatEnumDto.POLLING;
+			}
+		}
+		return PeticioEstatEnumDto.ERROR;
 	}
 
 	private void peticioBackofficeEnviarNomesUna(
@@ -345,6 +371,7 @@ public class BackofficeHelper {
 					backofficePeticio.updateSolicitudProcessada(
 							backofficeSolicitud.getSolicitudId(),
 							false);
+//					scspPeticionRespuesta.updateProcessadesTotal(backofficePeticio.getProcessadesTotal());
 				} else {
 					excepcio = respuesta.getException();
 				}
@@ -362,6 +389,7 @@ public class BackofficeHelper {
 			backofficePeticio.updateSolicitudProcessada(
 					backofficeSolicitud.getSolicitudId(),
 					true);
+//			scspPeticionRespuesta.updateProcessadesTotal(backofficePeticio.getProcessadesTotal());
 		}
 		int numSolicituds = backofficeSolicitudRepository.countByPeticio(backofficePeticio);
 		if (numSolicituds == backofficePeticio.getProcessadesTotal()) {
@@ -370,6 +398,8 @@ public class BackofficeHelper {
 			} else {
 				backofficePeticio.updateEstat(PeticioEstatEnumDto.ERROR);
 			}
+			// Update estat SCSP
+			updateScspEstat(scspPeticionRespuesta, backofficePeticio);
 		}
 	}
 
@@ -712,6 +742,8 @@ public class BackofficeHelper {
 					peticio.updateEstat(PeticioEstatEnumDto.ERROR);
 				else
 					peticio.updateEstat(PeticioEstatEnumDto.TRAMITADA);
+				// Update estat SCSP
+				updateScspEstat(peticio.getScspPeticionRespuesta(), peticio);
 				List<BackofficeSolicitudEntity> solicituds = backofficeSolicitudRepository.findByPeticioOrderByIdAsc(peticio);
 				for (BackofficeSolicitudEntity sol: solicituds) {
 					sol.updateEstat(BackofficeSolicitudEstatEnumDto.TRAMITADA);

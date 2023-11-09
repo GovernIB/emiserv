@@ -27,15 +27,12 @@ import es.caib.emiserv.logic.intf.service.ws.backoffice.ConfirmacionPeticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.Respuesta;
 import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta;
-import es.caib.emiserv.persist.entity.BackofficeListEntity;
 import es.caib.emiserv.persist.entity.BackofficePeticioEntity;
 import es.caib.emiserv.persist.entity.BackofficeSolicitudEntity;
 import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCorePeticionRespuestaEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreTokenDataEntity;
-import es.caib.emiserv.persist.entity.scsp.ScspCoreTransmisionEntity;
-import es.caib.emiserv.persist.repository.BackofficeListRepository;
 import es.caib.emiserv.persist.repository.BackofficePeticioRepository;
 import es.caib.emiserv.persist.repository.BackofficeSolicitudRepository;
 import es.caib.emiserv.persist.repository.ServeiRepository;
@@ -66,7 +63,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Implementació del servei de backoffice.
@@ -91,8 +87,6 @@ public class BackofficeServiceImpl implements BackofficeService {
 	private BackofficePeticioRepository backofficePeticioRepository;
 	@Autowired
 	private BackofficeSolicitudRepository backofficeSolicitudRepository;
-	@Autowired
-	private BackofficeListRepository backofficeListRepository;
 
 	@Autowired
 	private ConversioTipusHelper conversioTipusHelper;
@@ -139,7 +133,10 @@ public class BackofficeServiceImpl implements BackofficeService {
 			}
 		}
 		Map<String, String> mapeigOrdenacio = new HashMap<>();
-		mapeigOrdenacio.put("procedimentCodiNom", "procedimentCodi");
+		mapeigOrdenacio.put("peticioId", "peticionId");
+		mapeigOrdenacio.put("procedimentCodiNom", "codiProcediment");
+		mapeigOrdenacio.put("dataPeticio", "fechaPeticion");
+		mapeigOrdenacio.put("serveiCodi", "codiServei");
 		String scspServicioCodigo = null;
 		boolean esNullServei = filtre.getServei() == null;
 		if (!esNullServei) {
@@ -155,15 +152,35 @@ public class BackofficeServiceImpl implements BackofficeService {
 		if (paginacioParams.getOrdres().size() == 1 && "estat".equals(paginacioParams.getOrdres().get(0).getCamp())) {
 			paginacioParams.getOrdres().add(new PaginacioParamsDto.OrdreDto("id", PaginacioParamsDto.OrdreDireccioDto.DESCENDENT));
 		}
+//		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
+//				backofficeListRepository.findByFiltrePaginat(
+//						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
+//						filtre.getProcediment(),
+//						esNullServei,
+//						scspServicioCodigo,
+//						filtre.getEstat() == null,
+//						PeticioEstatEnumDto.ERROR.equals(filtre.getEstat()),
+//						toEstatScsp(filtre.getEstat()),
+//						filtre.getDataInici() == null,
+//						filtre.getDataInici(),
+//						filtre.getDataFi() == null,
+//						filtre.getDataFi(),
+//						nomesServeisPermesos,
+//						codisServeisPermesos,
+//						filtre.getNumeroPeticio() == null || filtre.getNumeroPeticio().isEmpty(),
+//						filtre.getNumeroPeticio() != null ? filtre.getNumeroPeticio() : "",
+//						paginacioHelper.toSpringDataPageable(paginacioParams, mapeigOrdenacio)),
+//				AuditoriaPeticioDto.class,
+//				this::toAuditoriaPeticioDto);
 		PaginaDto<AuditoriaPeticioDto> resposta = paginacioHelper.toPaginaDto(
-				backofficeListRepository.findByFiltrePaginat(
+				scspCorePeticionRespuestaRepository.findByFiltrePaginat(
 						filtre.getProcediment() == null || filtre.getProcediment().isEmpty(),
 						filtre.getProcediment(),
 						esNullServei,
 						scspServicioCodigo,
 						filtre.getEstat() == null,
-						PeticioEstatEnumDto.ERROR.equals(filtre.getEstat()),
-						toEstatScsp(filtre.getEstat()),
+						PeticioEstatEnumDto.DESCONEGUT.equals(filtre.getEstat()),
+						filtre.getEstat(),
 						filtre.getDataInici() == null,
 						filtre.getDataInici(),
 						filtre.getDataFi() == null,
@@ -172,9 +189,12 @@ public class BackofficeServiceImpl implements BackofficeService {
 						codisServeisPermesos,
 						filtre.getNumeroPeticio() == null || filtre.getNumeroPeticio().isEmpty(),
 						filtre.getNumeroPeticio() != null ? filtre.getNumeroPeticio() : "",
-						paginacioHelper.toSpringDataPageable(paginacioParams, mapeigOrdenacio)),
+						paginacioHelper.toSpringDataPageable(
+								paginacioParams,
+								mapeigOrdenacio)),
 				AuditoriaPeticioDto.class,
 				this::toAuditoriaPeticioDto);
+
 		for (AuditoriaPeticioDto peticio: resposta.getContingut()) {
 			String serveiCodi = peticio.getServeiCodi();
 			for (ServeiEntity serveiPermes: serveiRepository.findAll()) {
@@ -557,74 +577,82 @@ public class BackofficeServiceImpl implements BackofficeService {
 		return null;
 	}
 
-	private AuditoriaPeticioDto toAuditoriaPeticioDto(
-			ScspCorePeticionRespuestaEntity peticionRespuesta) {
-		ScspCoreServicioEntity coreServicio = backofficeHelper.findCoreServicioPerPeticionRespuesta(peticionRespuesta);
-		AuditoriaPeticioDto peticio = new AuditoriaPeticioDto();
-		peticio.setPeticioId(peticionRespuesta.getPeticionId());
-		peticio.setServeiCodi(coreServicio.getCodigoCertificado());
-		peticio.setServeiDescripcio(coreServicio.getDescripcion());
-		peticio.setDataPeticio(peticionRespuesta.getFechaPeticion());
-		peticio.setDataResposta(peticionRespuesta.getFechaRespuesta());
-		peticio.setTer(peticionRespuesta.getFechaEstimadaRespuesta());
-		peticio.setDataDarreraComprovacio(peticionRespuesta.getFechaUltimoSondeo());
-		peticio.setSincrona(peticionRespuesta.isSincrona());
-		peticio.setNumEnviaments(peticionRespuesta.getNumEnvios());
-		peticio.setNumTransmissions(peticionRespuesta.getNumTransmisiones());
-		if (peticionRespuesta.getEstado() != null) {
-			peticio.setEstatScsp(peticionRespuesta.getEstado());
-			if (peticionRespuesta.getEstado().startsWith("00")) {
-				if (peticionRespuesta.getEstado().equals("0001"))
-					peticio.setEstat(PeticioEstatEnumDto.PENDENT);
-				else if (peticionRespuesta.getEstado().equals("0002"))
-					peticio.setEstat(PeticioEstatEnumDto.EN_PROCES);
-				else if (peticionRespuesta.getEstado().equals("0003"))
-					peticio.setEstat(PeticioEstatEnumDto.TRAMITADA);
-				else if (peticionRespuesta.getEstado().equals("0004"))
-					peticio.setEstat(PeticioEstatEnumDto.POLLING);
-			} else {
-				peticio.setEstat(PeticioEstatEnumDto.ERROR);
-			}
-		}
-		peticio.setError(peticionRespuesta.getError());
-		BackofficePeticioEntity backofficePeticio = backofficePeticioRepository.findByScspPeticionRespuesta(peticionRespuesta);
-		if (backofficePeticio != null) {
-			// Si l'estat SCSP és error no te sentit que revisem l'estat de la
-			// petició a EMISERV.
-			if (!PeticioEstatEnumDto.ERROR.equals(peticio.getEstat())) {
-				peticio.setEstat(backofficePeticio.getEstat());
-			}
-			peticio.setProcessadesTotal(backofficePeticio.getProcessadesTotal());
-			peticio.setProcessadesError(backofficePeticio.getProcessadesError());
-			if (backofficePeticio.getComunicacioDarrera() != null) {
-				peticio.setComunicacioBackofficeDisponible(true);
-				peticio.setComunicacioBackofficeError(
-						backofficePeticio.getComunicacioDarrera().getError() != null);
-			}
-		}
-		List<ScspCoreTransmisionEntity> transmissions = scspCoreTransmisionRepository.findByPeticionIdOrderBySolicitudIdAsc(peticionRespuesta.getPeticionId());
-		peticio.setProcedimentCodi(transmissions.stream().map(t -> t.getProcedimientoCodigo()).distinct().collect(Collectors.joining(", ")));
-		peticio.setProcedimentNom(transmissions.stream().map(t -> t.getProcedimientoNombre()).distinct().collect(Collectors.joining(", ")));
-		peticio.setProcedimentCodiNom(transmissions.stream().map(t -> getCodiNom(t.getProcedimientoCodigo(),  t.getProcedimientoNombre())).distinct().collect(Collectors.joining(", ")));
-		return peticio;
-	}
+//	private AuditoriaPeticioDto toAuditoriaPeticioDto(
+//			ScspCorePeticionRespuestaEntity peticionRespuesta) {
+//		ScspCoreServicioEntity coreServicio = backofficeHelper.findCoreServicioPerPeticionRespuesta(peticionRespuesta);
+//		AuditoriaPeticioDto peticio = new AuditoriaPeticioDto();
+//		peticio.setPeticioId(peticionRespuesta.getPeticionId());
+//		peticio.setServeiCodi(coreServicio.getCodigoCertificado());
+//		peticio.setServeiDescripcio(coreServicio.getDescripcion());
+//		peticio.setDataPeticio(peticionRespuesta.getFechaPeticion());
+//		peticio.setDataResposta(peticionRespuesta.getFechaRespuesta());
+//		peticio.setTer(peticionRespuesta.getFechaEstimadaRespuesta());
+//		peticio.setDataDarreraComprovacio(peticionRespuesta.getFechaUltimoSondeo());
+//		peticio.setSincrona(peticionRespuesta.isSincrona());
+//		peticio.setNumEnviaments(peticionRespuesta.getNumEnvios());
+//		peticio.setNumTransmissions(peticionRespuesta.getNumTransmisiones());
+//		if (peticionRespuesta.getEstado() != null) {
+//			peticio.setEstatScsp(peticionRespuesta.getEstado());
+//			if (peticionRespuesta.getEstado().startsWith("00")) {
+//				if (peticionRespuesta.getEstado().equals("0001"))
+//					peticio.setEstat(PeticioEstatEnumDto.PENDENT);
+//				else if (peticionRespuesta.getEstado().equals("0002"))
+//					peticio.setEstat(PeticioEstatEnumDto.EN_PROCES);
+//				else if (peticionRespuesta.getEstado().equals("0003"))
+//					peticio.setEstat(PeticioEstatEnumDto.TRAMITADA);
+//				else if (peticionRespuesta.getEstado().equals("0004"))
+//					peticio.setEstat(PeticioEstatEnumDto.POLLING);
+//			} else {
+//				peticio.setEstat(PeticioEstatEnumDto.ERROR);
+//			}
+//		}
+//		peticio.setError(peticionRespuesta.getError());
+//		BackofficePeticioEntity backofficePeticio = backofficePeticioRepository.findByScspPeticionRespuesta(peticionRespuesta);
+//		if (backofficePeticio != null) {
+//			// Si l'estat SCSP és error no te sentit que revisem l'estat de la
+//			// petició a EMISERV.
+//			if (!PeticioEstatEnumDto.ERROR.equals(peticio.getEstat())) {
+//				peticio.setEstat(backofficePeticio.getEstat());
+//			}
+//			peticio.setProcessadesTotal(backofficePeticio.getProcessadesTotal());
+//			peticio.setProcessadesError(backofficePeticio.getProcessadesError());
+//			if (backofficePeticio.getComunicacioDarrera() != null) {
+//				peticio.setComunicacioBackofficeDisponible(true);
+//				peticio.setComunicacioBackofficeError(
+//						backofficePeticio.getComunicacioDarrera().getError() != null);
+//			}
+//		}
+//		List<ScspCoreTransmisionEntity> transmissions = scspCoreTransmisionRepository.findByPeticionIdOrderBySolicitudIdAsc(peticionRespuesta.getPeticionId());
+//		peticio.setProcedimentCodi(transmissions.stream().map(t -> t.getProcedimientoCodigo()).distinct().collect(Collectors.joining(", ")));
+//		peticio.setProcedimentNom(transmissions.stream().map(t -> t.getProcedimientoNombre()).distinct().collect(Collectors.joining(", ")));
+//		peticio.setProcedimentCodiNom(transmissions.stream().map(t -> getCodiNom(t.getProcedimientoCodigo(),  t.getProcedimientoNombre())).distinct().collect(Collectors.joining(", ")));
+//		return peticio;
+//	}
 
 	private AuditoriaPeticioDto toAuditoriaPeticioDto(
-			BackofficeListEntity peticioRespuesta) {
+			ScspCorePeticionRespuestaEntity peticioRespuesta) {
+		BackofficePeticioEntity backofficePeticio = backofficePeticioRepository.findByScspPeticionRespuesta(peticioRespuesta);
 		return AuditoriaPeticioDto.builder()
-				.peticioId(peticioRespuesta.getPeticioId())
-				.serveiCodi(peticioRespuesta.getServeiCodi())
-				.serveiDescripcio(peticioRespuesta.getServeiDescripcio())
-				.dataPeticio(peticioRespuesta.getDataPeticio())
+				.peticioId(peticioRespuesta.getPeticionId())
+				.serveiCodi(peticioRespuesta.getCodiServei())
+				.serveiDescripcio(peticioRespuesta.getNomServei())
+				.dataPeticio(peticioRespuesta.getFechaPeticion())
+				.dataResposta(peticioRespuesta.getFechaRespuesta())
+				.ter(peticioRespuesta.getFechaEstimadaRespuesta())
+				.dataDarreraComprovacio(peticioRespuesta.getFechaUltimoSondeo())
 				.sincrona(peticioRespuesta.isSincrona())
-				.numTransmissions(peticioRespuesta.getNumTransmissions())
+				.numEnviaments(peticioRespuesta.getNumEnvios())
+				.numTransmissions(peticioRespuesta.getNumTransmisiones())
+				.estatScsp(peticioRespuesta.getEstado())
 				.estat(peticioRespuesta.getEstat())
-				.estatScsp(peticioRespuesta.getEstatScsp())
 				.error(peticioRespuesta.getError())
-				.processadesTotal(peticioRespuesta.getProcessadesTotal())
-				.procedimentCodi(peticioRespuesta.getProcedimentCodi())
-				.procedimentNom(peticioRespuesta.getProcedimentNom())
-				.procedimentCodiNom(peticioRespuesta.getPRocedimentCodiNom())
+				.processadesTotal(backofficePeticio != null ? backofficePeticio.getProcessadesTotal() : 0)
+				.processadesError(backofficePeticio != null ? backofficePeticio.getProcessadesError() : 0)
+				.comunicacioBackofficeDisponible(backofficePeticio != null && backofficePeticio.getComunicacioDarrera() != null)
+				.comunicacioBackofficeError(backofficePeticio != null && backofficePeticio.getComunicacioDarrera() != null ? backofficePeticio.getComunicacioDarrera().getError() != null : false)
+				.procedimentCodi(peticioRespuesta.getCodiProcediment())
+				.procedimentNom(peticioRespuesta.getNomProcediment())
+				.procedimentCodiNom(getCodiNom(peticioRespuesta.getCodiProcediment(), peticioRespuesta.getNomProcediment()))
 				.build();
 	}
 

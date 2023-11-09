@@ -3,16 +3,16 @@
  */
 package es.caib.emiserv.persist.repository.scsp;
 
-import java.util.Date;
-import java.util.List;
-
+import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
+import es.caib.emiserv.persist.entity.scsp.ScspCorePeticionRespuestaEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import es.caib.emiserv.persist.entity.scsp.ScspCorePeticionRespuestaEntity;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Definició dels mètodes necessaris per a gestionar una entitat de base
@@ -25,9 +25,9 @@ public interface ScspCorePeticionRespuestaRepository extends JpaRepository<ScspC
 	@Query(	"from " +
 			"    ScspCorePeticionRespuestaEntity scp " +
 			"where " +
-			"    (:esNullServei = true or scp.certificado = :servei) " +
-			"and (:esNullProcediment = true or exists (from ScspCoreTransmisionEntity sct where sct.peticionId = scp.peticionId and sct.procedimientoCodigo = :procediment)) " +
-			"and (:esNullEstat = true or (:esError = true and substring(scp.estado, 1, 2) != '00') or (:esError = false and scp.estado = :estat)) " +
+			"    (:esNullServei = true or scp.codiServei = :servei) " +
+			"and (:esNullProcediment = true or scp.codiProcediment = :procediment) " +
+			"and (:esNullEstat = true or scp.estat = :estat or (:esDesconegutEstat = true and scp.estat is null)) " +
 			"and (:esNullDataInici = true or scp.fechaPeticion >= :dataInici) " +
 			"and (:esNullDataFi = true or scp.fechaPeticion <= :dataFi) " +
 			"and (:nomesServeisPermesos = false or scp.certificado in (:serveisPermesos)) " +
@@ -36,10 +36,10 @@ public interface ScspCorePeticionRespuestaRepository extends JpaRepository<ScspC
 			@Param("esNullProcediment") boolean esNullProcediment,
 			@Param("procediment") String procediment,
 			@Param("esNullServei") boolean esNullServei,
-			@Param("servei") Long servei,
+			@Param("servei") String servei,
 			@Param("esNullEstat") boolean esNullEstat,
-			@Param("esError") boolean esError,
-			@Param("estat") String estat,
+			@Param("esDesconegutEstat") boolean esDesconegutEstat,
+			@Param("estat") PeticioEstatEnumDto estat,
 			@Param("esNullDataInici") boolean esNullDataInici,
 			@Param("dataInici") Date dataInici,
 			@Param("esNullDataFi") boolean esNullDataFi,

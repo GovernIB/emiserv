@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.persist.entity;
 
+import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -10,6 +11,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Lob;
 import javax.persistence.OneToMany;
@@ -72,6 +75,14 @@ public class RedireccioPeticioEntity extends AbstractPersistable<Long> {
 	@Column(name = "entitat_codi", length = 64)
 	private String entitatCodiRedireccio;
 
+	@Column(name = "procediment_codi")
+	private String procedimentCodi;
+	@Column(name = "procediment_nom")
+	private String procedimentNom;
+	@Column(name = "estatenum")
+	@Enumerated(EnumType.ORDINAL)
+	private PeticioEstatEnumDto estatEnum;
+
 
 
 	public String getPeticioId() {
@@ -116,13 +127,43 @@ public class RedireccioPeticioEntity extends AbstractPersistable<Long> {
 	public String getEntitatCodiRedireccio() {
 		return entitatCodiRedireccio;
 	}
+	public String getProcedimentCodi() {
+		return procedimentCodi;
+	}
+	public String getProcedimentNom() {
+		return procedimentNom;
+	}
+	public PeticioEstatEnumDto getEstatEnum() {
+		return estatEnum;
+	}
+
+	public String getPRocedimentCodiNom() {
+		if ((procedimentCodi == null || procedimentCodi.isBlank()) && (procedimentNom == null || procedimentNom.isBlank()))
+			return null;
+		if (procedimentCodi == null || procedimentCodi.isBlank())
+			return procedimentNom;
+		if ((procedimentNom == null || procedimentNom.isBlank()))
+			return procedimentCodi;
+		return procedimentCodi + " - " + procedimentNom;
+	}
 
 	public void updateResposta(
 			String estat,
 			String error) {
 		this.dataResposta = new Date();
 		this.estat = estat;
+		this.estatEnum = getEnumEstat(estat);
 		this.error = error;
+	}
+
+	private static PeticioEstatEnumDto getEnumEstat(String estat) {
+		switch (estat) {
+			case "0001": return PeticioEstatEnumDto.PENDENT;
+			case "0002": return PeticioEstatEnumDto.EN_PROCES;
+			case "0003": return PeticioEstatEnumDto.TRAMITADA;
+			case "0004": return PeticioEstatEnumDto.POLLING;
+			default: return PeticioEstatEnumDto.ERROR;
+		}
 	}
 
 	public void updateResposta(
@@ -131,6 +172,7 @@ public class RedireccioPeticioEntity extends AbstractPersistable<Long> {
 			String entitatCodiRedireccio) {
 		this.dataResposta = new Date();
 		this.estat = estat;
+		this.estatEnum = getEnumEstat(estat);
 		this.error = error;
 		this.entitatCodiRedireccio = entitatCodiRedireccio;
 	}
@@ -168,6 +210,7 @@ public class RedireccioPeticioEntity extends AbstractPersistable<Long> {
 			built.peticioId = peticioId;
 			built.serveiCodi = serveiCodi;
 			built.estat = estat;
+			built.estatEnum = getEnumEstat(estat);
 			built.numEnviaments = numEnviaments;
 			built.numTransmissions = numTransmissions;
 			built.emissorCodi = emissorCodi;
@@ -190,6 +233,14 @@ public class RedireccioPeticioEntity extends AbstractPersistable<Long> {
 		}
 		public Builder ter(Date ter) {
 			built.ter = ter;
+			return this;
+		}
+		public Builder procedimentCodi(String procedimentCodi) {
+			built.procedimentCodi = procedimentCodi;
+			return this;
+		}
+		public Builder procedimentNom(String procedimentNom) {
+			built.procedimentNom = procedimentNom;
 			return this;
 		}
 		public RedireccioPeticioEntity build() {
