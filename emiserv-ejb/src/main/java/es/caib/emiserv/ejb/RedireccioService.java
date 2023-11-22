@@ -91,7 +91,13 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 				paginacioParams);
 	}
 
-	@Override
+    @Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+    public AuditoriaPeticioDto peticioFindById(Long idPeticio) {
+        return getDelegateService().peticioFindById(idPeticio);
+    }
+
+    @Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public List<AuditoriaSolicitudDto> solicitudFindByPeticioId(
 			Long peticioId) {

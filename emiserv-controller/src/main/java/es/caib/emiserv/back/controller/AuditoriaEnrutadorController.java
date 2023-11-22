@@ -105,7 +105,19 @@ public class AuditoriaEnrutadorController extends BaseController {
 		return redireccioService.solicitudFindByPeticioId(peticioId);
 	}
 
-	@RequestMapping(value = "/xmlPeticio/{peticioId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{idPeticio}/detall", method = RequestMethod.GET)
+	public String detall(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			@PathVariable Long idPeticio,
+			Model model) {
+		model.addAttribute(
+				"peticio",
+				redireccioService.peticioFindById(idPeticio));
+		return "auditoriaEnrutadorPeticioDetall";
+	}
+
+	@RequestMapping(value = "/{peticioId}/xmlPeticio", method = RequestMethod.GET)
 	public String xmlPeticio(
 			HttpServletRequest request,
 			@PathVariable Long peticioId,
@@ -115,7 +127,15 @@ public class AuditoriaEnrutadorController extends BaseController {
 				redireccioService.peticioXmlPeticio(peticioId));
 		return "missatgeXml";
 	}
-	@RequestMapping(value = "/xmlResposta/{peticioId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{peticioId}/xmlPeticioRest", method = RequestMethod.GET)
+	@ResponseBody
+	public String xmlPeticioRest(
+			HttpServletRequest request,
+			@PathVariable Long peticioId) {
+		return redireccioService.peticioXmlPeticio(peticioId);
+	}
+
+	@RequestMapping(value = "/{peticioId}/xmlResposta", method = RequestMethod.GET)
 	public String xmlResposta(
 			HttpServletRequest request,
 			HttpServletResponse response,
@@ -126,7 +146,14 @@ public class AuditoriaEnrutadorController extends BaseController {
 				redireccioService.peticioXmlResposta(peticioId));
 		return "missatgeXml";
 	}
-	@RequestMapping(value = "/xmlRespostes/{peticioId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{peticioId}/xmlRespostaRest", method = RequestMethod.GET)
+	@ResponseBody
+	public String xmlRespostaRest(
+			HttpServletRequest request,
+			@PathVariable Long peticioId) {
+		return redireccioService.peticioXmlResposta(peticioId);
+	}
+	@RequestMapping(value = "/{peticioId}/xmlRespostes", method = RequestMethod.GET)
 	public String xmlRespostes(
 			HttpServletRequest request,
 			HttpServletResponse response,

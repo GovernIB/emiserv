@@ -5,6 +5,8 @@ package es.caib.emiserv.logic.service;
 
 import es.caib.emiserv.logic.helper.ConversioTipusHelper;
 import es.caib.emiserv.logic.helper.PaginacioHelper;
+import es.caib.emiserv.logic.helper.PermisosHelper;
+import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.helper.XmlHelper;
 import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
@@ -18,6 +20,7 @@ import es.caib.emiserv.logic.intf.dto.RedireccioRespostaDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
+import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
 import es.caib.emiserv.logic.intf.service.RedireccioService;
 import es.caib.emiserv.logic.resolver.EntitatResolver;
 import es.caib.emiserv.logic.resolver.ResponseResolver;
@@ -34,6 +37,10 @@ import es.caib.emiserv.persist.repository.ServeiRepository;
 import es.caib.emiserv.persist.repository.ServeiRutaDestiRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.model.Permission;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
@@ -83,6 +90,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 	private XmlHelper xmlHelper;
 	@Autowired
 	private PaginacioHelper paginacioHelper;
+	@Autowired
+	private PermisosHelper permisosHelper;
+	@Autowired
+	private SecurityHelper securityHelper;
 	@Autowired
 	private ConversioTipusHelper conversioTipusHelper;
 
@@ -666,6 +677,40 @@ public class RedireccioServiceImpl implements RedireccioService {
 
 	@Transactional(readOnly = true)
 	@Override
+	public AuditoriaPeticioDto peticioFindById(Long idPeticio) {
+		log.debug("Consulta dels detalls de la petició (id=" + idPeticio + ")");
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		var peticionRespuesta = redireccioPeticioRepository.getById(idPeticio);
+		if (peticionRespuesta == null) {
+			throw new NotFoundException(
+					idPeticio,
+					RedireccioPeticioEntity.class);
+		}
+		ServeiEntity servei = serveiRepository.findByCodi(peticionRespuesta.getServeiCodi());
+		if (servei == null) {
+			throw new NotFoundException(
+					"(codi=" + peticionRespuesta.getServeiCodi() + ")",
+					ServeiEntity.class);
+		}
+		if (!securityHelper.hasRole("EMS_ADMIN")) {
+			boolean tePermisos = permisosHelper.isGrantedAll(
+					servei.getId(),
+					ServeiEntity.class,
+					new Permission[] {BasePermission.ADMINISTRATION},
+					auth);
+			if (!tePermisos) {
+				throw new PermissionDeniedException(
+						servei.getId(),
+						ServeiEntity.class,
+						auth.getName(),
+						BasePermission.ADMINISTRATION.toString());
+			}
+		}
+		return toAuditoriaPeticioDto(peticionRespuesta);
+	}
+
+	@Transactional(readOnly = true)
+	@Override
 	public List<AuditoriaSolicitudDto> solicitudFindByPeticioId(
 			Long peticioId) {
 		log.debug("Consulta de transmissions associades a una petició ("
@@ -864,7 +909,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 				.id(redireccioPeticio.getId())
 				.peticioId(redireccioPeticio.getPeticioId())
 				.serveiCodi(redireccioPeticio.getServeiCodi())
-				.serveiDescripcio(servei != null ? servei.getDescripcio() : null)
+				.serveiDescripcio(servei != null ? servei.getNom() : null)
 				.serveiTipus(servei != null ? servei.getTipus() : null)
 				.dataPeticio(redireccioPeticio.getDataPeticio())
 				.sincrona(redireccioPeticio.isSincrona())

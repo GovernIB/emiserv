@@ -178,13 +178,29 @@ function formatState(estat) {
 						{{if !sincrona && estat != 'ERROR'}}<span class="badge">{{:processadesPercent}}%</span>{{/if}}
 					</script>
 				</th>
-				<c:if test="${isRolActualAdministrador}">
-					<th data-col-name="peticioId" data-orderable="false" data-template="#cellAccionsTemplate" data-orderable="false" width="1%">
-						<script id="cellAccionsTemplate" type="text/x-jsrender">
-						<a href="auditoriaBackoffice/{{:peticioId}}/detall" class="btn btn-default" data-toggle="modal"><span class="fa fa-info-circle"></span></a>
+				<th data-template="#cellAccionsTemplate" data-orderable="false" width="1%">
+					<script id="cellAccionsTemplate" type="text/x-jsrender">
+						<div class="dropdown">
+							<button class="btn btn-primary" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.boto.accions"/>&nbsp;<span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li><a href="auditoriaBackoffice/{{:peticioId}}/xmlPeticio" data-toggle="modal"><span class="fa fa-arrow-circle-o-down"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlpeticio"/></a></li>
+								{{if estat == 'TRAMITADA' || estat == 'ERROR'}}
+									<li><a href="auditoriaBackoffice/{{:peticioId}}/xmlResposta" data-toggle="modal"><span class="fa fa-arrow-circle-o-up"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlresposta"/></a></li>
+								{{/if}}
+								<c:if test="${isRolActualAdministrador}">
+									<li><a href="auditoriaBackoffice/{{:peticioId}}/detall" data-toggle="modal"><span class="fa fa-info-circle"></span>&nbsp;&nbsp;<spring:message code="auditoria.backoffice.peticio.detall.titol"/></a></li>
+								</c:if>
+							</ul>
+						</div>
 					</script>
-					</th>
-				</c:if>
+				</th>
+<%--				<c:if test="${isRolActualAdministrador}">--%>
+<%--					<th data-col-name="peticioId" data-orderable="false" data-template="#cellAccionsTemplate" data-orderable="false" width="1%">--%>
+<%--						<script id="cellAccionsTemplate" type="text/x-jsrender">--%>
+<%--						<a href="auditoriaBackoffice/{{:peticioId}}/detall" class="btn btn-default" data-toggle="modal"><span class="fa fa-info-circle"></span></a>--%>
+<%--					</script>--%>
+<%--					</th>--%>
+<%--				</c:if>--%>
 			</tr>
 		</thead>
 	</table>

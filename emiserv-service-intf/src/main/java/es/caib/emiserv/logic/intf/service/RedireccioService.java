@@ -107,6 +107,16 @@ public interface RedireccioService {
 			PaginacioParamsDto paginacioParams);
 
 	/**
+	 * Retorna els detalls de la petició.
+	 *
+	 * @param idPeticio
+	 *            Atribut peticioId per a identificar la petició.
+	 * @return El missatge XML.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public AuditoriaPeticioDto peticioFindById(Long idPeticio);
+
+	/**
 	 * Consulta el llistat de transmissions associades a una petició.
 	 * 
 	 * @param peticioId

@@ -131,12 +131,32 @@ public class AuditoriaBackofficeController extends BaseController {
 			@PathVariable String peticioId) {
 		return backofficeService.peticioXmlPeticioScsp(peticioId);
 	}
+	@RequestMapping(value = "/{peticioId}/xmlPeticio", method = RequestMethod.GET)
+	public String xmlPeticio(
+			HttpServletRequest request,
+			@PathVariable String peticioId,
+			Model model) {
+		model.addAttribute(
+				"missatgeXml",
+				backofficeService.peticioXmlPeticioScsp(peticioId));
+		return "missatgeXml";
+	}
 	@RequestMapping(value = "/{peticioId}/xmlRespostaScsp", method = RequestMethod.GET)
 	@ResponseBody
 	public String xmlRespostaScsp(
 			HttpServletRequest request,
 			@PathVariable String peticioId) {
 		return backofficeService.peticioXmlRespostaScsp(peticioId);
+	}
+	@RequestMapping(value = "/{peticioId}/xmlResposta", method = RequestMethod.GET)
+	public String xmlRespostaScsp(
+			HttpServletRequest request,
+			@PathVariable String peticioId,
+			Model model) {
+		model.addAttribute(
+				"missatgeXml",
+				backofficeService.peticioXmlRespostaScsp(peticioId));
+		return "missatgeXml";
 	}
 
 	@RequestMapping(value = "/{peticioId}/xmlPeticioBackoffice", method = RequestMethod.GET)
