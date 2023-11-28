@@ -18,6 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,6 +67,10 @@ public class ScspRoutingController extends BaseController {
 
 	@Autowired
 	private RedireccioService redireccioService;
+//	@Autowired
+//	private ConfigService configService;
+	@Autowired
+	private Environment environment;
 
 	@RequestMapping(value = SERVLET_PATH_PREFIX + "/**", method = RequestMethod.GET)
 	@ResponseStatus(value = HttpStatus.OK)
@@ -199,6 +204,11 @@ public class ScspRoutingController extends BaseController {
 							resultat,
 							xmlsPerEscollir);
 					resultat.setEntitatCodiRedireccio(respostaEscollida);
+					boolean logEnrutaments = environment.getProperty("es.caib.emiserv.log.enrutaments", Boolean.class, true);
+//					boolean logEnrutaments = configService.getProperty("es.caib.emiserv.log.enrutaments", Boolean.class, true);
+					if (logEnrutaments) {
+						logger.info("Resposta escollida en enrutador múltiple (codiCertificat=" + resultat.getAtributCodigoCertificado() + ", peticioId=" + resultat.getAtributPeticioId() + "): " + respostaEscollida);
+					}
 					// Retornar resultat amb la resposta escollida
 					EnrutamentMultipleThreadResult resposta = respostesPeticions.get(respostaEscollida);
 					if (resposta != null) {
@@ -633,11 +643,14 @@ public class ScspRoutingController extends BaseController {
 												new ByteArrayInputStream(
 														method.getResponseBody())))
 								: method.getResponseBody());
-				logger.info("Resposta rebuda en enrutador múltiple (codiCertificat=" + resultat.getAtributCodigoCertificado() + ", codiEntitat=" + codiEntitat + "): ");
-				if (ret.getXml() != null && ret.getXml().length > 0) {
-					logger.info(new String(ret.getXml()));
-				} else {
-					logger.info("SENSE CONTINGUT");
+				boolean logEnrutaments = environment.getProperty("es.caib.emiserv.log.enrutaments", Boolean.class, true);
+				if (logEnrutaments) {
+					logger.info("Resposta rebuda en enrutador múltiple (codiCertificat=" + resultat.getAtributCodigoCertificado() + ", peticioId=" + resultat.getAtributPeticioId() + ", codiEntitat=" + codiEntitat + "): ");
+					if (ret.getXml() != null && ret.getXml().length > 0) {
+						logger.info(new String(ret.getXml()));
+					} else {
+						logger.info("SENSE CONTINGUT");
+					}
 				}
 			} catch (Exception ex) {
 				logger.error(

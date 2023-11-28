@@ -641,6 +641,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 		Map<String, String> mapeigOrdenacio = new HashMap<>();
 		mapeigOrdenacio.put("procedimentCodiNom", "procedimentCodi");
 		mapeigOrdenacio.put("entitatCodi", "entitatCodiRedireccio");
+		mapeigOrdenacio.put("estat", "estatEnum");
+
 		// Evitar problema quan s'ordena per estat
 		if (paginacioParams.getOrdres().size() == 1 && "estat".equals(paginacioParams.getOrdres().get(0).getCamp())) {
 			paginacioParams.getOrdres().add(new PaginacioParamsDto.OrdreDto("id", PaginacioParamsDto.OrdreDireccioDto.DESCENDENT));

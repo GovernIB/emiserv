@@ -33,4 +33,11 @@ public class ConfigService extends AbstractService<es.caib.emiserv.logic.intf.se
 	public List<String> syncFromJBossProperties(){
 		return getDelegateService().syncFromJBossProperties();
 	}
+
+//	@Override
+//	@PermitAll
+//	public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
+//		return getDelegateService().getProperty(key, targetType, defaultValue);
+//	}
+
 }

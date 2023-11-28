@@ -23,3 +23,8 @@ databaseChangeLog:
               - column:
                   name: entitat_codi
                   type: varchar(64 ${varcharUnit})
+        - sql:
+            dbms: oracle
+            sql: "
+            INSERT INTO ems_config (key, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.log.enrutaments', 'propietat.log.enrutaments', 'GENERAL', '10', 'DATABASE', 'BOOL');
+            "

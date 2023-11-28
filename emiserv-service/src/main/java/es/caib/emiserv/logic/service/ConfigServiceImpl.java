@@ -71,6 +71,11 @@ public class ConfigServiceImpl implements ConfigService {
         throw new RuntimeException("Function not implemented");
     }
 
+//    @Override
+//    public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
+//        return environment.getProperty(key, targetType, defaultValue);
+//    }
+
     private void processPropertyValues(ConfigGroupDto cGroup) {
 //        if ("SCSP".equals(cGroup.getKey())) {
 //            List<ScspCoreParametroConfiguracionEntity> scspParametres = scspCoreParametroConfiguracionRepository.findAll(Sort.by(Sort.Direction.ASC, "nombre"));

@@ -45,5 +45,6 @@ public interface ConfigService {
 	@PreAuthorize("hasRole('EMS_ADMIN')")
 	List<String> syncFromJBossProperties();
 
+//	<T> T getProperty(String key, Class<T> targetType, T defaultValue);
 }
 
