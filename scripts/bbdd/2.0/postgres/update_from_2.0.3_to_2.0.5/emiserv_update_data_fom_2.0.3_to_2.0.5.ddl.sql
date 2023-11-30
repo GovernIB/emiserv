@@ -3,7 +3,7 @@ CREATE TABLE ems_entitat (
      codi VARCHAR(64) NOT NULL,
      nom VARCHAR(255) NOT NULL,
      cif VARCHAR(9) NOT NULL,
-     unitat_arrel VARCHAR(9) NOT NULL,
+     unitat_arrel VARCHAR(9),
      CONSTRAINT ems_entitat_pk PRIMARY KEY (id),
      UNIQUE (codi));
 
