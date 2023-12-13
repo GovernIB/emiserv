@@ -128,7 +128,7 @@ function formatState(estat) {
 			</div>
 		</div>
 	</form:form>
-	<table id="peticions" data-toggle="datatable" data-url="auditoriaEnrutador/datatable" data-search-enabled="false" data-default-order="6" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
+	<table id="peticions" data-toggle="datatable" data-url="auditoriaEnrutador/datatable" data-search-enabled="false" data-default-order="7" data-default-dir="desc" data-row-info="true" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
 				<th data-col-name="id" data-visible="false" data-orderable="false">#</th>
@@ -137,6 +137,7 @@ function formatState(estat) {
 				<th data-col-name="serveiDescripcio" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiCodiNom" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="serveiTipus" data-visible="false" data-orderable="false">#</th>
+				<th data-col-name="teRespostes" data-visible="false" data-orderable="false">#</th>
 				<th data-col-name="dataPeticio" data-converter="datetime" width="15%"><spring:message code="auditoria.list.columna.data"/></th>
 				<th data-col-name="peticioId" width="15%"><spring:message code="auditoria.list.columna.num.peticio"/></th>
 				<th data-col-name="procedimentCodiNom" width="15%"><spring:message code="auditoria.list.columna.procediment"/></th>
@@ -180,9 +181,9 @@ function formatState(estat) {
 								<li><a href="auditoriaEnrutador/{{:id}}/xmlPeticio" data-toggle="modal"><span class="fa fa-arrow-circle-o-down"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlpeticio"/></a></li>
 								{{if estat == 'TRAMITADA' || estat == 'ERROR_EMISOR'}}
 									<li><a href="auditoriaEnrutador/{{:id}}/xmlResposta" data-toggle="modal"><span class="fa fa-arrow-circle-o-up"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlresposta"/></a></li>
-									{{if serveiTipus == 'ENRUTADOR_MULTIPLE'}}
-										<li><a href="auditoriaEnrutador/{{:id}}/xmlRespostes" data-toggle="modal"><span class="fa fa-arrow-circle-o-up"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlrespostes"/></a></li>
-									{{/if}}
+								{{/if}}
+								{{if teRespostes && serveiTipus == 'ENRUTADOR_MULTIPLE'}}
+									<li><a href="auditoriaEnrutador/{{:id}}/xmlRespostes" data-toggle="modal"><span class="fa fa-arrow-circle-o-up"></span>&nbsp;&nbsp;<spring:message code="auditoria.list.accio.xmlrespostes"/></a></li>
 								{{/if}}
 								<c:if test="${isRolActualAdministrador}">
 									<li><a href="auditoriaEnrutador/{{:id}}/detall" data-toggle="modal"><span class="fa fa-info-circle"></span>&nbsp;&nbsp;<spring:message code="auditoria.backoffice.peticio.detall.titol"/></a></li>

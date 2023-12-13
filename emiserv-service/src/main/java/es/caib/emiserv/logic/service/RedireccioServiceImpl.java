@@ -568,26 +568,26 @@ public class RedireccioServiceImpl implements RedireccioService {
 				}
 			}
 
-			// Desam tots els missatges rebuts
-			if (xmls != null) {
-				int missatgeTipus = RedireccioMissatgeEntity.TIPUS_RESPOSTA_ENTITAT;
-				RedireccioPeticioEntity redireccioPeticio = null;
-				List<RedireccioPeticioEntity> redireccioPeticions = redireccioPeticioRepository.findByPeticioIdAndServeiCodi(peticioId, serveiCodi);
-				if (!redireccioPeticions.isEmpty()) {
-					redireccioPeticio = redireccioPeticions.get(0);
-					for (var msgResposta : xmls.entrySet()) {
-						var xmlBytes = msgResposta.getValue();
-						if (xmlBytes != null && xmlBytes.length > 0) {
-							RedireccioMissatgeEntity redireccioMissatge = RedireccioMissatgeEntity.getBuilder(
-									redireccioPeticio,
-									missatgeTipus,
-									new String(xmlBytes),
-									msgResposta.getKey()).build();
-							redireccioMissatgeRepository.save(redireccioMissatge);
-						}
-					}
-				}
-			}
+//			// Desam tots els missatges rebuts
+//			if (xmls != null) {
+//				int missatgeTipus = RedireccioMissatgeEntity.TIPUS_RESPOSTA_ENTITAT;
+//				RedireccioPeticioEntity redireccioPeticio = null;
+//				List<RedireccioPeticioEntity> redireccioPeticions = redireccioPeticioRepository.findByPeticioIdAndServeiCodi(peticioId, serveiCodi);
+//				if (!redireccioPeticions.isEmpty()) {
+//					redireccioPeticio = redireccioPeticions.get(0);
+//					for (var msgResposta : xmls.entrySet()) {
+//						var xmlBytes = msgResposta.getValue();
+//						if (xmlBytes != null && xmlBytes.length > 0) {
+//							RedireccioMissatgeEntity redireccioMissatge = RedireccioMissatgeEntity.getBuilder(
+//									redireccioPeticio,
+//									missatgeTipus,
+//									new String(xmlBytes),
+//									msgResposta.getKey()).build();
+//							redireccioMissatgeRepository.save(redireccioMissatge);
+//						}
+//					}
+//				}
+//			}
 		}
 		if (entitatCodi == null) {
 			resultat.setError(true);
@@ -595,7 +595,35 @@ public class RedireccioServiceImpl implements RedireccioService {
 			resultat.setErrorDescripcio("[EMISERV] No s'ha pogut resoldre cap resposta vàlida per a la petició");
 		}
 		return entitatCodi;
-	}	
+	}
+
+    private static final int RESPOSTA_ENTITAT_TIPUS = RedireccioMissatgeEntity.TIPUS_RESPOSTA_ENTITAT;
+
+	@Transactional
+	public void saveRespostesPerEntitat(Map<String, String> respostes, String peticioId, String serveiCodi) {
+        if (respostes != null && !respostes.isEmpty()) {
+            List<RedireccioPeticioEntity> redireccioPeticioList = redireccioPeticioRepository.findByPeticioIdAndServeiCodi(peticioId, serveiCodi);
+            if (!redireccioPeticioList.isEmpty()) {
+                RedireccioPeticioEntity redireccioPeticio = redireccioPeticioList.get(0);
+                saveRedirectionMessages(respostes, redireccioPeticio);
+			}
+		}
+	}
+
+    private void saveRedirectionMessages(Map<String, String> respostes, RedireccioPeticioEntity redireccioPeticio) {
+        for (var respostaEntry : respostes.entrySet()) {
+			String resposta = respostaEntry.getValue();
+			String entitat = respostaEntry.getKey();
+            if (resposta != null && !resposta.isBlank()) {
+                RedireccioMissatgeEntity redirectionMessage = RedireccioMissatgeEntity.getBuilder(
+                        redireccioPeticio,
+						RESPOSTA_ENTITAT_TIPUS,
+                        resposta,
+						entitat).build();
+                redireccioMissatgeRepository.save(redirectionMessage);
+            }
+		}
+	}
 
 	@Transactional(readOnly = true)
 	@Override
@@ -664,15 +692,12 @@ public class RedireccioServiceImpl implements RedireccioService {
 						paginacioHelper.toSpringDataPageable(paginacioParams, mapeigOrdenacio)),
 				AuditoriaPeticioDto.class,
 				this::toAuditoriaPeticioDto);
+		List<ServeiEntity> serveis = serveiRepository.findAll();
 		for (AuditoriaPeticioDto peticio: resposta.getContingut()) {
 			String serveiCodi = peticio.getServeiCodi();
 			peticio.setServeiDescripcio(serveiCodi);
-			for (ServeiEntity serveiPermes: serveiRepository.findAll()) {
-				if (serveiPermes.getCodi().equals(serveiCodi)) {
-					peticio.setServeiDescripcio(serveiPermes.getNom());
-					break;
-				}
-			}
+			peticio.setServeiDescripcio(serveis.stream().filter(s -> s.getCodi().equals(serveiCodi)).findFirst().map(s -> s.getNom()).orElseGet(() -> null));
+			peticio.setTeRespostes(redireccioMissatgeRepository.countByPeticioIdAndTipus(peticio.getPeticioId(), peticio.getServeiCodi(), RESPOSTA_ENTITAT_TIPUS) > 0);
 		}
 		return resposta;
 	}

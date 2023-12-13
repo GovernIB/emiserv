@@ -21,6 +21,8 @@
 			entitatSeleccionada = '${missatge.entitat}';
 		}
 		</c:forEach>
+		var primeraEntitat = "${missatgesXml[0].entitat}";
+
 		$(document).ready(function() {
 			$("#entitat").select2({
 				theme: "bootstrap",
@@ -45,6 +47,10 @@
 			if (entitatSeleccionada != null) {
 				$("#entitat").val(entitatSeleccionada);
 				$("#entitat").trigger("change");
+			} else {
+				$("#entitat").val(primeraEntitat);
+				$("#entitat").trigger("change");
+				$("#msgSeleccionat").css("display", "none");
 			}
 		});
 

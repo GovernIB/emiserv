@@ -66,6 +66,11 @@ public interface RedireccioService {
 			RedireccioProcessarResultatDto resultat,
 			Map<String, byte[]> xmls);
 
+	public void saveRespostesPerEntitat(
+			Map<String, String> respostes,
+			String peticioId,
+			String serveiCodi);
+
 	/**
 	 * Genera un missatge SOAPFault a partir del valor retornat en
 	 * una cridada al mètode processarPeticio.

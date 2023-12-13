@@ -60,6 +60,12 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 			Map<String, byte[]> xmls) {
 		return getDelegateService().escollirResposta(resultat, xmls);
 	}
+
+	@Override
+	@PermitAll
+	public void saveRespostesPerEntitat(Map<String, String> respostes, String peticioId, String serveiCodi) {
+		getDelegateService().saveRespostesPerEntitat(respostes, peticioId, serveiCodi);
+	};
 	
 
 	@Override

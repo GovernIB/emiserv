@@ -43,6 +43,8 @@ public class AuditoriaPeticioDto implements Serializable {
 	private int processadesError;
 	private String entitatCodi; // Entitat que ha retornat la resposta
 
+	private boolean teRespostes;
+
 	// Alerta --> Aquests camps poden ser múltiple en cas de peticions múltiples
 	private String procedimentCodi;
 	private String procedimentNom;
