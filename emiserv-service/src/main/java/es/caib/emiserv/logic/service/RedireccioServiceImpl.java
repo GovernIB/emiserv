@@ -733,7 +733,9 @@ public class RedireccioServiceImpl implements RedireccioService {
 						BasePermission.ADMINISTRATION.toString());
 			}
 		}
-		return toAuditoriaPeticioDto(peticionRespuesta);
+		var peticio = toAuditoriaPeticioDto(peticionRespuesta);
+		peticio.setTeRespostes(redireccioMissatgeRepository.countByPeticioIdAndTipus(peticio.getPeticioId(), peticio.getServeiCodi(), RESPOSTA_ENTITAT_TIPUS) > 0);
+		return peticio;
 	}
 
 	@Transactional(readOnly = true)
@@ -891,42 +893,6 @@ public class RedireccioServiceImpl implements RedireccioService {
 					RedireccioPeticioEntity.class);
 		}
 		return redireccioPeticio.get();
-	}
-
-	private AuditoriaPeticioDto toAuditoriaPeticioDto_(
-			RedireccioPeticioEntity redireccioPeticio) {
-		AuditoriaPeticioDto peticio = new AuditoriaPeticioDto();
-		peticio.setId(redireccioPeticio.getId());
-		peticio.setPeticioId(redireccioPeticio.getPeticioId());
-		peticio.setServeiCodi(redireccioPeticio.getServeiCodi());
-		peticio.setDataPeticio(redireccioPeticio.getDataPeticio());
-		peticio.setDataResposta(redireccioPeticio.getDataResposta());
-		peticio.setTer(redireccioPeticio.getTer());
-		peticio.setDataDarreraComprovacio(redireccioPeticio.getDataDarreraComprovacio());
-		peticio.setSincrona(redireccioPeticio.isSincrona());
-		peticio.setNumEnviaments(redireccioPeticio.getNumEnviaments());
-		peticio.setNumTransmissions(redireccioPeticio.getNumTransmissions());
-		if (redireccioPeticio.getEstat() != null) {
-			peticio.setEstatScsp(redireccioPeticio.getEstat());
-			if (redireccioPeticio.getEstat().startsWith("00")) {
-				if (redireccioPeticio.getEstat().equals("0001"))
-					peticio.setEstat(PeticioEstatEnumDto.PENDENT);
-				else if (redireccioPeticio.getEstat().equals("0002"))
-					peticio.setEstat(PeticioEstatEnumDto.EN_PROCES);
-				else if (redireccioPeticio.getEstat().equals("0003"))
-					peticio.setEstat(PeticioEstatEnumDto.TRAMITADA);
-				else if (redireccioPeticio.getEstat().equals("0004"))
-					peticio.setEstat(PeticioEstatEnumDto.POLLING);
-			} else {
-				peticio.setEstat(PeticioEstatEnumDto.ERROR);
-			}
-		}
-		peticio.setError(redireccioPeticio.getError());
-		List<RedireccioSolicitudEntity> solicituds = redireccioSolicitudRepository.findByPeticioOrderBySolicitudIdAsc(redireccioPeticio);
-		peticio.setProcedimentCodi(solicituds.stream().map(s -> s.getProcedimentCodi()).distinct().collect(Collectors.joining(", ")));
-		peticio.setProcedimentNom(solicituds.stream().map(s -> s.getProcedimentNom()).distinct().collect(Collectors.joining(", ")));
-		peticio.setProcedimentCodiNom(solicituds.stream().map(s -> getCodiNom(s.getProcedimentCodi(),  s.getProcedimentNom())).distinct().collect(Collectors.joining(", ")));
-		return peticio;
 	}
 
 	private AuditoriaPeticioDto toAuditoriaPeticioDto(

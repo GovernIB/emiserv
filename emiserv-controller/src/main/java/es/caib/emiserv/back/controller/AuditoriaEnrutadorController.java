@@ -7,6 +7,7 @@ import es.caib.emiserv.back.command.AuditoriaFiltreCommand;
 import es.caib.emiserv.back.helper.DatatablesHelper;
 import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
 import es.caib.emiserv.back.helper.RequestSessionHelper;
+import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto.OrdreDireccioDto;
@@ -111,9 +112,11 @@ public class AuditoriaEnrutadorController extends BaseController {
 			HttpServletResponse response,
 			@PathVariable Long idPeticio,
 			Model model) {
-		model.addAttribute(
-				"peticio",
-				redireccioService.peticioFindById(idPeticio));
+		AuditoriaPeticioDto peticio = redireccioService.peticioFindById(idPeticio);
+		model.addAttribute("peticio", peticio);
+		if (peticio.isTeRespostes()) {
+			model.addAttribute("missatgesXml", redireccioService.peticioXmlRespostes(idPeticio));
+		}
 		return "auditoriaEnrutadorPeticioDetall";
 	}
 
