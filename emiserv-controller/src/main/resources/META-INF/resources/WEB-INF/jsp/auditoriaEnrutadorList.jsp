@@ -93,10 +93,10 @@ function formatState(estat) {
 	<form:form action="" method="post" cssClass="well" modelAttribute="auditoriaFiltreCommand">
 		<div class="row">
 			<div class="col-md-4">
-				<emi:inputSelect name="procediment" optionItems="${procediments}" optionValueAttribute="codi" optionTextAttribute="codiNom" emptyOption="true" placeholderKey="auditoria.list.filtre.procediment" inline="true"/>
+				<emi:inputSelect name="procediment" optionMinimumResultsForSearch="0" optionItems="${procediments}" optionValueAttribute="codi" optionTextAttribute="codiNom" emptyOption="true" placeholderKey="auditoria.list.filtre.procediment" inline="true"/>
 			</div>
 			<div class="col-md-8">
-				<emi:inputSelect name="serveiCodi" optionItems="${serveis}" optionValueAttribute="codi" optionTextAttribute="codiNom" emptyOption="true" placeholderKey="auditoria.list.filtre.servei" inline="true"/>
+				<emi:inputSelect name="serveiCodi" optionMinimumResultsForSearch="0" optionItems="${serveis}" optionValueAttribute="codi" optionTextAttribute="codiNom" emptyOption="true" placeholderKey="auditoria.list.filtre.servei" inline="true"/>
 			</div>
 		</div>
 		<div class="row">
