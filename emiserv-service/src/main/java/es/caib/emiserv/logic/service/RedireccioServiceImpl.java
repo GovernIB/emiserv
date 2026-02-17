@@ -62,6 +62,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto.FaultCodeEnum.CLIENT;
+import static es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto.FaultCodeEnum.SERVER;
+
 /**
  * Implementació del servei de backoffice.
  * 
@@ -212,49 +215,68 @@ public class RedireccioServiceImpl implements RedireccioService {
 				int numElementos = (numElementosStr != null) ? Integer.parseInt(numElementosStr) : 0;
 				if (numElementos != numSolicituds) {
 					resposta = new RedireccioProcessarResultatDto(
-							"0502",
-							"[EMISERV] El nombre de sol·licituds no coincideix amb l'atribut numElementos (" +
-									"numSolicituds=" + numSolicituds + ", " +
+							"0414",
+							"[EMS] El número de elementos no coincide con el número de solicitudes recibidas (" +
+									"numSolicitudes=" + numSolicituds + ", " +
 									"numElementos=" + numElementosStr + ")",
 							idPeticion,
 							timestamp,
-							codigoCertificado);
+							codigoCertificado,
+							CLIENT,
+							"0414",
+							"El número de elementos no coincide con el número de solicitudes recibidas");
+					resposta.setNumElements(numElementos);
 					resposta.setScspVersio((isV2) ? 2 : 3);
 				} else if (numElementos != 1) {
 					resposta = new RedireccioProcessarResultatDto(
-							"0502",
-							"[EMISERV] Només es permet una solicitud per petició",
+							"0415",
+							"[EMS] El número de solicitudes es mayor que uno. Ejecute el servicio en modo asíncrono",
 							idPeticion,
 							timestamp,
-							codigoCertificado);
+							codigoCertificado,
+							CLIENT,
+							"0415",
+							"El número de solicitudes es mayor que uno. Ejecute el servicio en modo asíncrono");
+					resposta.setNumElements(numElementos);
 					resposta.setScspVersio((isV2) ? 2 : 3);
 				} else {
 					ServeiEntity servei = serveiRepository.findByCodi(codigoCertificado);
 					if (servei == null) {
 						resposta = new RedireccioProcessarResultatDto(
-								"0502",
-								"[EMISERV] No s'ha trobat el servei (" +
-										"codi=" + codigoCertificado + ")",
+								"0255",
+								"[EMS] El servicio " + codigoCertificado + " no se encuentra disponible en el entorno",
 								idPeticion,
 								timestamp,
-								codigoCertificado);
+								codigoCertificado,
+								SERVER,
+								"0255",
+								"El servicio " + codigoCertificado + " no se encuentra disponible en el entorno");
+						resposta.setNumElements(numElementos);
 						resposta.setScspVersio((isV2) ? 2 : 3);
 					} else if (redireccioPeticioRepository.findByPeticioIdAndServeiCodi(idPeticion, codigoCertificado).size() > 0) {
 						resposta = new RedireccioProcessarResultatDto(
-								"0502",
-								"[EMISERV] L'identificador de la petició ja ha estat enregistrada per aquest servei (" +
+								"0229",
+								"[EMS] La petición ya ha sido tramitada o ya existe en el sistema o está repetida (" +
 										"codigoCertificado=" + codigoCertificado + ", " +
-										"idPeticion=" + idPeticion + ")");
+										"idPeticion=" + idPeticion + ")",
+								CLIENT,
+								"0229",
+								"La petición ya ha sido tramitada o ya existe en el sistema o está repetida");
+						resposta.setNumElements(numElementos);
 						resposta.setScspVersio((isV2) ? 2 : 3);
 					} else if (!ServeiTipusEnumDto.ENRUTADOR.equals(servei.getTipus())
 								&& !ServeiTipusEnumDto.ENRUTADOR_MULTIPLE.equals(servei.getTipus())) {
 						resposta = new RedireccioProcessarResultatDto(
-								"0502",
-								"[EMISERV] El servei no és del tipus enrutador (" +
+								"0242",
+								"[EMS] El servicio no es de tipo enrutador (" +
 										"codi=" + codigoCertificado + ")",
 								idPeticion,
 								timestamp,
-								codigoCertificado);
+								codigoCertificado,
+								SERVER,
+								"0503",
+								"Error al obtener la respuesta o el resultado del servicio del Backoffice");
+						resposta.setNumElements(numElementos);
 						resposta.setScspVersio((isV2) ? 2 : 3);
 					} else if (xml != null) {
 						if (ServeiTipusEnumDto.ENRUTADOR.equals(servei.getTipus())){
@@ -280,13 +302,17 @@ public class RedireccioServiceImpl implements RedireccioService {
 												codigoCertificado);
 									} else {
 										resposta = new RedireccioProcessarResultatDto(
-												"0502",
-												"[EMISERV] No s'ha trobat cap ruta per a redirigir la petició (" +
+												"0242",
+												"[EMS] No se ha encontrado ninguna ruta para redirigir la petición al servicio correspondiente (" +
 														"serveiCodi=" + codigoCertificado + ", " +
 														"entitatCodi=" + entitatCodi + ")",
 												idPeticion,
 												timestamp,
-												codigoCertificado);
+												codigoCertificado,
+												SERVER,
+												"0503",
+												"Error al obtener la respuesta o el resultado del servicio del Backoffice");
+										resposta.setNumElements(numElementos);
 										resposta.setScspVersio((isV2) ? 2 : 3);
 									}
 								} else {
@@ -308,12 +334,16 @@ public class RedireccioServiceImpl implements RedireccioService {
 											codigoCertificado);
 								} else {
 									resposta = new RedireccioProcessarResultatDto(
-											"0502",
-											"[EMISERV] El servei no te url per defecte ni entitat resolver configurat (" +
+											"0504",
+											"[EMS] Error en la configuración: El servicio no tiene url por defecto ni entidad resolver configurado (" +
 													"serveiCodi=" + codigoCertificado + ")",
 											idPeticion,
 											timestamp,
-											codigoCertificado);
+											codigoCertificado,
+											SERVER,
+											"0504",
+											"Error en la configuración: El servicio no tiene url por defecto ni entidad resolver configurado");
+									resposta.setNumElements(numElementos);
 									resposta.setScspVersio((isV2) ? 2 : 3);
 								}
 							}
@@ -334,22 +364,30 @@ public class RedireccioServiceImpl implements RedireccioService {
 										codigoCertificado);
 							} else {
 								resposta = new RedireccioProcessarResultatDto(
-										"0502",
-										"[EMISERV] No s'ha trobat cap ruta per a redirigir la petició (" +
+										"0242",
+										"[EMS] Backoffice destinatario no disponible: no se encuentra ninguna ruta a la que redirigir la petición (" +
 												"serveiCodi=" + codigoCertificado + ")",
 										idPeticion,
 										timestamp,
-										codigoCertificado);
+										codigoCertificado,
+										SERVER,
+										"0503",
+										"Error al obtener la respuesta o el resultado del servicio del Backoffice");
+								resposta.setNumElements(numElementos);
 								resposta.setScspVersio((isV2) ? 2 : 3);
 							}
 						}
 					} else {
 						resposta = new RedireccioProcessarResultatDto(
-								"0502",
-								"[EMISERV] El missatge XML no pot ser null",
+								"0403",
+								"[EMS] Imposible obtener el contenido XML del mensaje: El mensaje XML no puede estar vacio",
 								idPeticion,
 								timestamp,
-								codigoCertificado);
+								codigoCertificado,
+								CLIENT,
+								"0403",
+								"Imposible obtener el contenido XML del mensaje");
+						resposta.setNumElements(numElementos);
 						resposta.setScspVersio((isV2) ? 2 : 3);
 					}
 				}
@@ -413,11 +451,14 @@ public class RedireccioServiceImpl implements RedireccioService {
 					redireccioMissatgeRepository.save(redireccioMissatgeFault);
 				}
 			} else {
-				log.error(
-						"No s'ha pogut obtenir la versió de protocol SCSP de la petició");
+				log.error("No s'ha pogut obtenir la versió de protocol SCSP de la petició");
 				resposta = new RedireccioProcessarResultatDto(
-						"0502",
-						"No s'ha pogut obtenir la versió de protocol SCSP de la petició");
+						"0401",
+						"No se ha podido obtenir la versión del protocolo SCSP de la petición " +
+								"(no se ha encontrado el nodo Peticion en los namespaces esperados)",
+						CLIENT,
+						"0401",
+						"La estructura del fichero recibido no corresponde con el esquema.");
 			}
 		} catch (Exception ex) {
 			log.error(
@@ -425,7 +466,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 					ex);
 			resposta = new RedireccioProcessarResultatDto(
 					"0502",
-					"[EMISERV] Error al processar petició de redirecció (" + ex.getMessage() + ")");
+					"[EMS] Error interno procesando la petición de redirección (" + ex.getMessage() + ")",
+					SERVER,
+					"0502",
+					"Error de sistema & identificación del sistema");
 		}
 		return resposta;
 	}
@@ -591,8 +635,11 @@ public class RedireccioServiceImpl implements RedireccioService {
 		}
 		if (entitatCodi == null) {
 			resultat.setError(true);
-			resultat.setErrorCodi("0502");
-			resultat.setErrorDescripcio("[EMISERV] No s'ha pogut resoldre cap resposta vàlida per a la petició");
+			resultat.setErrorCodi("0242");
+			resultat.setErrorDescripcio("[EMS] Backoffice destinatario no disponible");
+			resultat.setFaultCode(SERVER);
+			resultat.setFaultErrorCode("0503");
+			resultat.setFaultErrorString("Error al obtener la respuesta o el resultado del servicio del Backoffice");
 		}
 		return entitatCodi;
 	}
@@ -830,30 +877,39 @@ public class RedireccioServiceImpl implements RedireccioService {
 	}
 
 	@Override
-	public String generarSoapFault(
-			RedireccioProcessarResultatDto redireccioProcessarResultat) {
+	public String generarSoapFault(RedireccioProcessarResultatDto faultResult) {
+
+		String faultCode = faultResult.getFaultCode() != null ? ("soapnenv:" + faultResult.getFaultCode().getValue()) : "soapenv:Server";
+		String faultString = (faultResult.getFaultErrorString() != null ? "[" + faultResult.getFaultErrorCode() + "]" : "")
+				+ (faultResult.getFaultErrorString() != null ? HtmlUtils.htmlEscapeHex(faultResult.getFaultErrorString()) : "");
+		String codigoEstado = faultResult.getErrorCodi();
+		String literalError = HtmlUtils.htmlEscapeHex(faultResult.getErrorDescripcio());
+
 		StringBuilder soapFaultSb = new StringBuilder();
 		soapFaultSb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		soapFaultSb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">");
 		soapFaultSb.append("<soapenv:Body>");
 		soapFaultSb.append("<soapenv:Fault>");
-		soapFaultSb.append("<faultcode>" + redireccioProcessarResultat.getErrorCodi() + "</faultcode>");
-		soapFaultSb.append("<faultstring>" + HtmlUtils.htmlEscapeHex(redireccioProcessarResultat.getErrorDescripcio()) + "</faultstring>");
-		if (redireccioProcessarResultat.isAtributs()) {
+		soapFaultSb.append("<faultcode>" + faultCode + "</faultcode>");
+		soapFaultSb.append("<faultstring>" + faultString + "</faultstring>");
+		if (faultResult.isAtributs()) {
 			String xmlnsAtributos = "";
-			if (redireccioProcessarResultat.getScspVersio() == 2) {
+			if (faultResult.getScspVersio() == 2) {
 				xmlnsAtributos = "http://www.map.es/scsp/esquemas/atributos";
-			} else if (redireccioProcessarResultat.getScspVersio() == 3) {
+			} else if (faultResult.getScspVersio() == 3) {
 				xmlnsAtributos = "http://intermediacion.redsara.es/scsp/esquemas/V3/soapfaultatributos";
 			}
 			soapFaultSb.append("<detail>");
 			soapFaultSb.append("<a:Atributos xmlns:a=\"" + xmlnsAtributos + "\">");
-			soapFaultSb.append("<a:IdPeticion>" + redireccioProcessarResultat.getAtributPeticioId() + "</a:IdPeticion>");
-			soapFaultSb.append("<a:TimeStamp>" + redireccioProcessarResultat.getAtributTimestamp() + "</a:TimeStamp>");
-			soapFaultSb.append("<a:CodigoCertificado>" + redireccioProcessarResultat.getAtributCodigoCertificado() + "</a:CodigoCertificado>");
+			soapFaultSb.append("<a:IdPeticion>" + faultResult.getAtributPeticioId() + "</a:IdPeticion>");
+			if (faultResult.getNumElements() != null) {
+				soapFaultSb.append("<a:NumElementos>" + faultResult.getNumElements() + "</a:NumElementos>");
+			}
+			soapFaultSb.append("<a:TimeStamp>" + faultResult.getAtributTimestamp() + "</a:TimeStamp>");
+			soapFaultSb.append("<a:CodigoCertificado>" + faultResult.getAtributCodigoCertificado() + "</a:CodigoCertificado>");
 			soapFaultSb.append("<a:Estado>");
-			soapFaultSb.append("<a:CodigoEstado>" + redireccioProcessarResultat.getErrorCodi() + "</a:CodigoEstado>");
-			soapFaultSb.append("<a:LiteralError>" + HtmlUtils.htmlEscapeHex(redireccioProcessarResultat.getErrorDescripcio()) + "</a:LiteralError>");
+			soapFaultSb.append("<a:CodigoEstado>" + codigoEstado + "</a:CodigoEstado>");
+			soapFaultSb.append("<a:LiteralError>" + literalError + "</a:LiteralError>");
 			soapFaultSb.append("</a:Estado>");
 			soapFaultSb.append("</a:Atributos>");
 			soapFaultSb.append("</detail>");

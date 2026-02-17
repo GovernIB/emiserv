@@ -3,6 +3,8 @@
  */
 package es.caib.emiserv.logic.intf.dto;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.util.HashMap;
@@ -12,6 +14,8 @@ import java.util.Map;
  * Resultat de processar la petició de redirecció SCSP.
  * 
  */
+@Getter
+@Setter
 public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 
 	/** Per indicar el tipus de redirecció simple o múltiple. */
@@ -30,12 +34,12 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 	private String atributTimestamp;
 	private String atributCodigoCertificado;
 
-	public ServeiTipusEnumDto getTipus() {
-		return tipus;
-	}
-	public void setTipus(ServeiTipusEnumDto tipus) {
-		this.tipus = tipus;
-	}
+	// Atributs per montar un SoapFault
+	private FaultCodeEnum faultCode;
+	private String faultErrorCode;
+	private String faultErrorString;
+	private Integer numElements;
+
 	public RedireccioProcessarResultatDto() {
 		super();
 	}
@@ -51,9 +55,9 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 		this.urlDesti = urlDesti;
 		this.scspVersio = scspVersio;
 		this.atributPeticioId = atributPeticioId;
-		this. atributTimestamp = atributTimestamp;
+		this.atributTimestamp = atributTimestamp;
 		this.atributCodigoCertificado = atributCodigoCertificado;
-	}	
+	}
 	/** Constructor per a un destí múltiple. */
 	public RedireccioProcessarResultatDto(
 			Map<String, String> urlDestins,
@@ -66,23 +70,32 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 		this.urlDestins = urlDestins;
 		this.scspVersio = scspVersio;
 		this.atributPeticioId = atributPeticioId;
-		this. atributTimestamp = atributTimestamp;
+		this.atributTimestamp = atributTimestamp;
 		this.atributCodigoCertificado = atributCodigoCertificado;
 	}
 	public RedireccioProcessarResultatDto(
 			String errorCodi,
-			String errorDescripcio) {
+			String errorDescripcio,
+			FaultCodeEnum faultCode,
+			String faultErrorCode,
+			String faultErrorString) {
 		super();
 		this.error = true;
 		this.errorCodi = errorCodi;
 		this.errorDescripcio = errorDescripcio;
+		this.faultCode = faultCode;
+		this.faultErrorCode = faultErrorCode;
+		this.faultErrorString = faultErrorString;
 	}
 	public RedireccioProcessarResultatDto(
 			String errorCodi,
 			String errorDescripcio,
 			String atributPeticioId,
 			String atributTimestamp,
-			String atributCodigoCertificado) {
+			String atributCodigoCertificado,
+			FaultCodeEnum faultCode,
+			String faultErrorCode,
+			String faultErrorString) {
 		super();
 		this.error = true;
 		this.errorCodi = errorCodi;
@@ -90,72 +103,17 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 		this.atributPeticioId = atributPeticioId;
 		this.atributTimestamp = atributTimestamp;
 		this.atributCodigoCertificado = atributCodigoCertificado;
+		this.faultCode = faultCode;
+		this.faultErrorCode = faultErrorCode;
+		this.faultErrorString = faultErrorString;
 	}
 
-	public String getUrlDesti() {
-		return this.urlDesti;
-	}
-	public void setUrlDesti(String urlDesti) {
-		this.urlDesti = urlDesti;
-	}
-	public Map<String, String> getUrlDestins() {
-		return urlDestins;
-	}
-	public void setUrlDestins(Map<String, String> urlDestins) {
-		this.urlDestins = urlDestins;
-	}
 	public void addUrlDesti(String codiEntitat, String urlDesti) {
 		this.urlDestins.put(codiEntitat, urlDesti);
-	}
-	public String getEntitatCodiRedireccio() {
-		return entitatCodiRedireccio;
-	}
-	public void setEntitatCodiRedireccio(String entitatCodiRedireccio) {
-		this.entitatCodiRedireccio = entitatCodiRedireccio;
-	}
-	public int getScspVersio() {
-		return scspVersio;
-	}
-	public void setScspVersio(int scspVersio) {
-		this.scspVersio = scspVersio;
-	}
-	public boolean isError() {
-		return error;
 	}
 	public void setError(boolean error) {
 		this.error = error;
 	}
-	public String getErrorCodi() {
-		return errorCodi;
-	}
-	public void setErrorCodi(String errorCodi) {
-		this.errorCodi = errorCodi;
-	}
-	public String getErrorDescripcio() {
-		return errorDescripcio;
-	}
-	public void setErrorDescripcio(String errorDescripcio) {
-		this.errorDescripcio = errorDescripcio;
-	}
-	public String getAtributPeticioId() {
-		return atributPeticioId;
-	}
-	public void setAtributPeticioId(String atributPeticioId) {
-		this.atributPeticioId = atributPeticioId;
-	}
-	public String getAtributTimestamp() {
-		return atributTimestamp;
-	}
-	public void setAtributTimestamp(String atributTimestamp) {
-		this.atributTimestamp = atributTimestamp;
-	}
-	public String getAtributCodigoCertificado() {
-		return atributCodigoCertificado;
-	}
-	public void setAtributCodigoCertificado(String atributCodigoCertificado) {
-		this.atributCodigoCertificado = atributCodigoCertificado;
-	}
-
 	public boolean isAtributs() {
 		return atributPeticioId != null || atributTimestamp != null || atributCodigoCertificado != null;
 	}
@@ -180,10 +138,25 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 		copy.setAtributPeticioId(this.atributPeticioId);
 		copy.setAtributTimestamp(this.atributTimestamp);
 		copy.setAtributCodigoCertificado(this.atributCodigoCertificado);
+		copy.setFaultCode(this.faultCode);
+		copy.setFaultErrorCode(this.faultErrorCode);
+		copy.setFaultErrorString(this.faultErrorString);
+		copy.setNumElements(this.numElements);
 		
 		return copy;
 	}
 
-	private static final long serialVersionUID = -139254994389509932L;
+	public static enum FaultCodeEnum {
+		SERVER("Server"),
+		CLIENT("Client");
 
+		@Getter
+		private String value;
+
+		private FaultCodeEnum(String value) {
+			this.value = value;
+		}
+	}
+
+	private static final long serialVersionUID = -139254994389509932L;
 }

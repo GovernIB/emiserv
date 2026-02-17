@@ -40,11 +40,13 @@ import java.util.Date;
  */
 public class EmiservScSpBackofficeTest {
 
-	private static final String SERVICE_URL = "http://localhost:8080/ws/EmiservBackoffice";
+//	private static final String SERVICE_URL = "http://localhost:8080/ws/EmiservBackoffice";
+	private static final String SERVICE_URL = "https://proves.caib.es/precodews/ws/PinBalService";
 	private static final String USERNAME = null; // $
 	private static final String PASSWORD = null;
 
-	private static final String CODI_CERTIFICAT = "SVDSCDDWS01";
+//	private static final String CODI_CERTIFICAT = "SVDSCDDWS01";
+	private static final String CODI_CERTIFICAT = "SVDSCDDWS02";
 
 
 	@Test
@@ -55,12 +57,13 @@ public class EmiservScSpBackofficeTest {
 				xmlPeticio,
 				xmlResposta);
 		DatosEspecificosHandler datosEspecificosHandler = new DatosEspecificosHandler();
-		var respuesta = getEmiservBackoffice(
+		var backoffice = getEmiservBackoffice(
 				SERVICE_URL,
 				USERNAME,
 				PASSWORD,
 				peticioRespostaHandler,
-				datosEspecificosHandler).peticionSincrona(getPeticion());
+				datosEspecificosHandler);
+		var respuesta = backoffice.peticionSincrona(getPeticion());
 		System.out.println(">>> PETICIO: " + xmlPeticio.toString());
 		System.out.println(">>> RESPOSTA: " + xmlResposta.toString());
 
