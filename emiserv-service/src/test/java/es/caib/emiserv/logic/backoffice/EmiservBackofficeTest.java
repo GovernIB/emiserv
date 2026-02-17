@@ -3,7 +3,18 @@
  */
 package es.caib.emiserv.logic.backoffice;
 
-import es.caib.emiserv.logic.intf.service.ws.backoffice.*;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Atributos;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Consentimiento;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.DatosGenericos;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.EmiservBackoffice;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Emisor;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Funcionario;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Procedimiento;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Solicitante;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudTransmision;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Solicitudes;
+import es.caib.emiserv.logic.intf.service.ws.backoffice.Transmision;
 import es.caib.emiserv.logic.service.ws.DatosEspecificosHandler;
 import es.caib.emiserv.logic.service.ws.PeticioRespostaHandler;
 import es.caib.emiserv.logic.service.ws.WsClientHelper;

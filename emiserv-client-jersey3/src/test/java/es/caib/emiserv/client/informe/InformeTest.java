@@ -31,7 +31,7 @@ public class InformeTest {
 	private static final String USUARI = "u999001";
 	private static final String CONTRASENYA = "u999001";
 
-	private ClientInforme client = new ClientInforme(URL_BASE, USUARI, CONTRASENYA, null, null);
+	private final ClientInforme client = new ClientInforme(URL_BASE, USUARI, CONTRASENYA, null, null);
 
 	@Test
 	public void general() throws Exception {

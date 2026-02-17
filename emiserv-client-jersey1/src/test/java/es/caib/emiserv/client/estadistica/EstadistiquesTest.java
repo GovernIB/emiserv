@@ -26,12 +26,14 @@ import static org.junit.Assert.assertNotNull;
 public class EstadistiquesTest {
 
 	private static final String URL_BASE = "http://localhost:8080/emiservapi";
-	private static final String USUARI = "u999001";
-	private static final String CONTRASENYA = "u999001";
+//	private static final String USUARI = "u999001";
+//	private static final String CONTRASENYA = "u999001";
+	private static final String USUARI = "e18225486x";
+	private static final String CONTRASENYA = "limit";
 
 	private static final String ENTITAT_NIF = "12345678Z";
 
-	private ClientEstadistica client = new ClientEstadistica(URL_BASE, USUARI, CONTRASENYA, null, null);
+	private final ClientEstadistica client = new ClientEstadistica(URL_BASE, USUARI, CONTRASENYA, null, null);
 
 	@Test
 	public void consultes() throws IOException {

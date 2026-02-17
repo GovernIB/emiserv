@@ -6,6 +6,8 @@ package es.caib.emiserv.back.controller;
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.RedireccioService;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -545,6 +547,8 @@ public class ScspRoutingController extends BaseController {
 	 * Classe per retornar el resultat d'una petició d'enrutament des del thread d'enrutament
 	 * múltiple.
 	 */
+	@Getter
+	@Setter
 	public class EnrutamentMultipleThreadResult {		
 		private String codiEntitat;
 		private int proxyResponseCode = -1;
@@ -556,43 +560,6 @@ public class ScspRoutingController extends BaseController {
 		private byte[] xml;
 		private String error;
 		
-		public String getCodiEntitat() {
-			return codiEntitat;
-		}
-		public void setCodiEntitat(String codiEntitat) {
-			this.codiEntitat = codiEntitat;
-		}
-		public int getProxyResponseCode() {
-			return proxyResponseCode;
-		}
-		public void setProxyResponseCode(int proxyResponseCode) {
-			this.proxyResponseCode = proxyResponseCode;
-		}
-		public PostMethod getMethod() {
-			return method;
-		}
-		public void setMethod(PostMethod method) {
-			this.method = method;
-		}
-		public RedireccioProcessarResultatDto getResultat() {
-			return resultat;
-		}
-		public void setResultat(RedireccioProcessarResultatDto resultat) {
-			this.resultat = resultat;
-		}
-		public byte[] getXml() {
-			return xml;
-		}
-		public void setXml(byte[] xml) {
-			this.xml = xml;
-		}
-		public String getError() {
-			return error;
-		}
-		public void setError(String error) {
-			this.error = error;
-		}
-
 		public String getResposta() {
 			if (xml == null || xml.length == 0) {
 				return error;
