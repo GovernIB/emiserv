@@ -3,11 +3,23 @@
  */
 package es.caib.emiserv.logic.service;
 
+import es.caib.comanda.model.server.monitoring.ContextInfo;
+import es.caib.comanda.model.server.monitoring.IntegracioInfo;
+import es.caib.comanda.model.server.monitoring.IntegracioSalut;
+import es.caib.comanda.model.server.monitoring.Manual;
+import es.caib.comanda.model.server.monitoring.MissatgeSalut;
+import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
+import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
 import es.caib.emiserv.logic.helper.PropertiesHelper;
+import es.caib.emiserv.logic.helper.SalutHelper;
+import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
+import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.UsuariEntity;
+import es.caib.emiserv.persist.repository.ServeiRepository;
 import es.caib.emiserv.persist.repository.UsuariRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
@@ -15,7 +27,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Implementació dels mètodes per a gestionar l'aplicació.
@@ -30,9 +49,14 @@ public class AplicacioServiceImpl implements AplicacioService {
 	private UsuariRepository usuariRepository;
 	@Autowired
 	private PropertiesHelper propertiesHelper;
+	@Autowired
+	private ServeiRepository serveiRepository;
 
 	@Autowired
 	private Environment environment;
+
+    @PersistenceContext
+    private EntityManager em;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -68,6 +92,119 @@ public class AplicacioServiceImpl implements AplicacioService {
     @Override
     public void propagateDbProperties() {
 		propertiesHelper.reloadDbProperties();
+    }
+
+
+	// Salut
+	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	@Override
+	public void addSubsistemaExit(SubsistemesEnum subsistema, String serveiCodi, long duracioMs) {
+		SalutHelper.addSubsistemaExit(subsistema, serveiCodi, duracioMs);
+	}
+
+	@Override
+	public void addSubsistemaError(SubsistemesEnum subsistema, String serveiCodi) {
+		SalutHelper.addSubsistemaError(subsistema, serveiCodi);
+	}
+
+    @Override
+    public void addSubsistemaError(SubsistemesEnum subsistema) {
+        SalutHelper.addSubsistemaError(subsistema);
+    }
+
+    @Override
+	public List<IntegracioInfo> getIntegracionsInfo() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<IntegracioSalut> getIntegracionsSalut() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<SubsistemaInfo> getSubsistemesInfo() {
+
+		// Subsistemes per consultes a backoffice i enrutador
+		List<SubsistemaInfo> subsistemes = Arrays.stream(SubsistemesEnum.values())
+				.map(s -> new SubsistemaInfo()
+						.codi(s.name())
+						.nom(s.getNom()))
+				.collect(Collectors.toCollection(ArrayList::new));
+
+		// Un subsistema per servei actiu
+		List<ServeiEntity> serveisActius = serveiRepository.findByActiuTrue();
+		for (ServeiEntity servei : serveisActius) {
+			subsistemes.add(new SubsistemaInfo().codi(servei.getCodi()).nom(servei.getNom()));
+		}
+		return subsistemes;
+	}
+
+	@Override
+	public List<SubsistemaSalut> getSubsistemesSalut() {
+		return SalutHelper.getSubsistemesSalut();
+	}
+
+	@Override
+	public List<ContextInfo> getContextsInfo(String baseUrl) {
+		return List.of(
+				new ContextInfo()
+						.codi("BACK")
+						.nom("Backoffice")
+						.path(baseUrl + "/emiservback")
+						.manuals(List.of(
+								new Manual().nom("Manual d'usuari").path("https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/02_emiserv_usuari.pdf"),
+								new Manual().nom("Manual d'implementació de backoffices").path("https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/01_emiserv_backoffice.pdf"),
+								new Manual().nom("Manual d'instal·lació").path("https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/00_emiserv_instalar.pdf")
+						)),
+				new ContextInfo()
+						.codi("INT")
+						.nom("API interna")
+						.path(baseUrl + "/emiservapi/interna")
+						.manuals(List.of(
+								new Manual().nom("Manual d'integració").path("https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/03_emiserv_integracio.pdf")
+						))
+						.api(baseUrl + "/emiservapi/interna/swagger-ui/index.html"),
+				new ContextInfo()
+						.codi("EXT")
+						.nom("API externa")
+						.path(baseUrl + "/emiservapi/externa")
+						.manuals(List.of(
+								new Manual().nom("Manual d'integració").path("https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/03_emiserv_integracio.pdf")
+								))
+						.api(baseUrl + "/emiservapi/externa/swagger-ui/index.html")
+		);
+	}
+
+	@Override
+	public List<MissatgeSalut> getMissatgesSalut() {
+		return Collections.emptyList();
+	}
+
+	public Integer measureDbLatencyMs() {
+
+        try {
+            Session session = em.unwrap(Session.class);
+
+            final String[] sql = new String[1];
+
+            // 1) Detectar producte de BBDD amb JDBC
+            session.doWork(conn -> {
+                String product = conn.getMetaData().getDatabaseProductName().toLowerCase();
+                sql[0] = product.contains("oracle") ? "SELECT 1 FROM DUAL" : "SELECT 1";
+            });
+
+            // 2) Mesurar query
+            long start = System.currentTimeMillis();
+            em.createNativeQuery(sql[0])
+                    .setHint("org.hibernate.timeout", 2) // segons
+                    .getSingleResult();
+
+            return (int) (System.currentTimeMillis() - start);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 //	@Override

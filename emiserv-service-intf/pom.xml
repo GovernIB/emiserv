@@ -7,6 +7,7 @@
 		<version>2.0.5</version>
 	</parent>
 	<artifactId>emiserv-service-intf</artifactId>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
@@ -51,6 +52,16 @@
 			<groupId>es.caib.emiserv</groupId>
 			<artifactId>emiserv-client-intf</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.caib.comanda</groupId>
+			<artifactId>comanda-api-server-monitoring</artifactId>
+			<version>${comanda.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.caib.comanda</groupId>
+			<artifactId>comanda-api-utils</artifactId>
+			<version>${comanda.version}</version>
 		</dependency>
 		<!--dependency>
 			<groupId>es.scsp</groupId>

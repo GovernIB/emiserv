@@ -83,4 +83,5 @@ public interface ServeiRepository extends JpaRepository<ServeiEntity, Long> {
 	public List<ServeiEntity> findByBackofficeCaibAsyncTipus(
 			BackofficeAsyncTipusEnumDto backofficeCaibAsyncTipus);
 
+    List<ServeiEntity> findByActiuTrue();
 }

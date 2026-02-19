@@ -12,3 +12,4 @@
 /emiserv-client-jersey2/target/
 /emiserv-client-jersey3/target/
 /docker-compose.yml
+/.env

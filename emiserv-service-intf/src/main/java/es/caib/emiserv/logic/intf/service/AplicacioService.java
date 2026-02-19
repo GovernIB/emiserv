@@ -3,7 +3,16 @@
  */
 package es.caib.emiserv.logic.intf.service;
 
+import es.caib.comanda.model.server.monitoring.ContextInfo;
+import es.caib.comanda.model.server.monitoring.IntegracioInfo;
+import es.caib.comanda.model.server.monitoring.IntegracioSalut;
+import es.caib.comanda.model.server.monitoring.MissatgeSalut;
+import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
+import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
+import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.util.List;
 
 /**
  * Declaració dels mètodes comuns de l'aplicació.
@@ -35,5 +44,30 @@ public interface AplicacioService {
 	 */
     public void propagateDbProperties();
 
-//	public Map<String, String> readProperties();
+
+	// Salut
+	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	public void addSubsistemaExit(SubsistemesEnum subsistema, String serveiCodi, long duracioMs);
+
+	public void addSubsistemaError(SubsistemesEnum subsistema, String serveiCodi);
+	public void addSubsistemaError(SubsistemesEnum subsistema);
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	public List<IntegracioInfo> getIntegracionsInfo();
+
+	public List<IntegracioSalut> getIntegracionsSalut();
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	public List<SubsistemaInfo> getSubsistemesInfo();
+
+	public List<SubsistemaSalut> getSubsistemesSalut();
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	public List<ContextInfo> getContextsInfo(String baseUrl);
+
+	public List<MissatgeSalut> getMissatgesSalut();
+
+	public Integer measureDbLatencyMs();
+
 }

@@ -5,6 +5,8 @@ package es.caib.emiserv.back.controller;
 
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
+import es.caib.emiserv.logic.intf.service.AplicacioService;
 import es.caib.emiserv.logic.intf.service.RedireccioService;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,6 +73,8 @@ public class ScspRoutingController extends BaseController {
 
 	@Autowired
 	private RedireccioService redireccioService;
+	@Autowired
+	private AplicacioService aplicacioService;
 //	@Autowired
 //	private ConfigService configService;
 	@Autowired
@@ -98,11 +102,11 @@ public class ScspRoutingController extends BaseController {
 					getMethod,
 					null);
 			processProxyResponse(
-					request, 
-					response, 
-					proxyResponseCode, 
-					proxyUrl, 
-					getMethod, 
+					request,
+					response,
+					proxyResponseCode,
+					proxyUrl,
+					getMethod,
 					null);
 		}
 	}
@@ -121,121 +125,140 @@ public class ScspRoutingController extends BaseController {
 			int proxyResponseCode = -1;
 			String proxyUrl = null;
 			PostMethod postMethod = null;
-			// Processa la petició d'entrada
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			IOUtils.copy(
-					request.getInputStream(),
-					baos);
-			byte[] xml = baos.toByteArray();
-			RequestEntity requestEntity = new ByteArrayRequestEntity(xml);
-			RedireccioProcessarResultatDto resultat = redireccioService.processarPeticio(xml);
-			logger.debug(
-					"Dades del processament de la petició SCSP (" +
-					"tipus=" + resultat.getTipus() + ", " +
-					"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
-					"peticioId=" + resultat.getAtributPeticioId() + ", " +
-					"urlDesti=" + resultat.getUrlDesti() + ", " +
-					"urlDestins=" + resultat.getUrlDestins() + ", " +
-					"error=" + resultat.isError() + ")");
-			if (!resultat.isError()) {
-				// Fa la petició segons el tipus d'enrutador simple o múltiple
-				if (ServeiTipusEnumDto.ENRUTADOR.equals(resultat.getTipus()) ) {
-					// ENRUTADOR SIMPLE
-					proxyUrl = getProxyUrl(
-							request,
-							resultat.getUrlDesti());
-					postMethod = new PostMethod(proxyUrl);
-					copiarCapsaleresHttp(
-							request,
-							postMethod,
-							proxyUrl);
-					postMethod.setRequestEntity(requestEntity);
-					logger.debug(
-							"Executant la redirecció simple de la petició (proxyUrl=" + proxyUrl + ")");
-					proxyResponseCode = executeProxyRequest(
-							postMethod,
-							resultat);
-				} else {
-					// ENRUTADOR MÚLTIPLE
-					// Crea un servei per manejar els threads de cada petició
-					ExecutorService service = Executors.newFixedThreadPool(resultat.getUrlDestins().size());
-					// Crea la llista d'objectes per a les peticions en paral·lel.
-					List<EnrutamentMultipleThread> peticionsMultiples = new ArrayList<EnrutamentMultipleThread>();
-					for (String codiEntitat: resultat.getUrlDestins().keySet()) {
-						peticionsMultiples.add(
-								new EnrutamentMultipleThread(
-									request,
-									requestEntity,
-									codiEntitat,
-									resultat.getUrlDestins().get(codiEntitat),
-									resultat.copy()));
-					}
-					// Llença totes les peticions en paral·lel
-					logger.debug("Iniciant " + resultat.getUrlDestins().size() + " peticions múltiples en paral·lel (" +
-							"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
-							"peticioId=" + resultat.getAtributPeticioId() + ", " +
-							"urlDestins=" + resultat.getUrlDestins() + ")");
-					List<Future<EnrutamentMultipleThreadResult>> respostesThreadsPeticio = null;
-					try {
-						respostesThreadsPeticio = service.invokeAll(peticionsMultiples);
-					} catch(Exception err) {
-						logger.error("Error realitzant petició múltiple", err);
+
+			try {
+				// Processa la petició d'entrada
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				IOUtils.copy(
+						request.getInputStream(),
+						baos);
+				byte[] xml = baos.toByteArray();
+				RequestEntity requestEntity = new ByteArrayRequestEntity(xml);
+				long inici = System.currentTimeMillis();
+				RedireccioProcessarResultatDto resultat = redireccioService.processarPeticio(xml);
+				logger.debug(
+						"Dades del processament de la petició SCSP (" +
+								"tipus=" + resultat.getTipus() + ", " +
+								"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+								"peticioId=" + resultat.getAtributPeticioId() + ", " +
+								"urlDesti=" + resultat.getUrlDesti() + ", " +
+								"urlDestins=" + resultat.getUrlDestins() + ", " +
+								"error=" + resultat.isError() + ")");
+				if (!resultat.isError()) {
+					// Fa la petició segons el tipus d'enrutador simple o múltiple
+					if (ServeiTipusEnumDto.ENRUTADOR.equals(resultat.getTipus())) {
+						// ENRUTADOR SIMPLE
+						proxyUrl = getProxyUrl(
+								request,
+								resultat.getUrlDesti());
+						postMethod = new PostMethod(proxyUrl);
+						copiarCapsaleresHttp(
+								request,
+								postMethod,
+								proxyUrl);
+						postMethod.setRequestEntity(requestEntity);
+						logger.debug(
+								"Executant la redirecció simple de la petició (proxyUrl=" + proxyUrl + ")");
+						proxyResponseCode = executeProxyRequest(
+								postMethod,
+								resultat);
+						if (proxyResponseCode == 200) {
+							aplicacioService.addSubsistemaExit(SubsistemesEnum.ENR_S, resultat.getAtributCodigoCertificado(), System.currentTimeMillis() - inici);
+						} else {
+							aplicacioService.addSubsistemaError(SubsistemesEnum.ENR_S, resultat.getAtributCodigoCertificado());
+						}
+					} else {
+						// ENRUTADOR MÚLTIPLE
+						// Crea un servei per manejar els threads de cada petició
+						ExecutorService service = Executors.newFixedThreadPool(resultat.getUrlDestins().size());
+						// Crea la llista d'objectes per a les peticions en paral·lel.
+						List<EnrutamentMultipleThread> peticionsMultiples = new ArrayList<EnrutamentMultipleThread>();
+						for (String codiEntitat : resultat.getUrlDestins().keySet()) {
+							peticionsMultiples.add(
+									new EnrutamentMultipleThread(
+											request,
+											requestEntity,
+											codiEntitat,
+											resultat.getUrlDestins().get(codiEntitat),
+											resultat.copy()));
+						}
+						// Llença totes les peticions en paral·lel
+						logger.debug("Iniciant " + resultat.getUrlDestins().size() + " peticions múltiples en paral·lel (" +
+								"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+								"peticioId=" + resultat.getAtributPeticioId() + ", " +
+								"urlDestins=" + resultat.getUrlDestins() + ")");
+						List<Future<EnrutamentMultipleThreadResult>> respostesThreadsPeticio = null;
+						try {
+							respostesThreadsPeticio = service.invokeAll(peticionsMultiples);
+						} catch (Exception err) {
+							logger.error("Error realitzant petició múltiple", err);
 //						err.printStackTrace();
-					}
-					service.shutdown();
-					logger.debug("Peticions múltiples en paral·lel finalitzades (" +
-							"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
-							"peticioId=" + resultat.getAtributPeticioId() + ", " +
-							"urlDestins=" + resultat.getUrlDestins() + ")");
-					Map<String, byte[]> xmlsPerEscollir = new HashMap<>();
-					Map<String, String> respostes = new HashMap<>();
-					Map<String, EnrutamentMultipleThreadResult> respostesPeticions = new HashMap<>();
-					if (respostesThreadsPeticio != null) {
-						for (Future<EnrutamentMultipleThreadResult> r: respostesThreadsPeticio) {
-							try {
-								// Guarda la petició per informar la resposta
-								respostesPeticions.put(r.get().codiEntitat, r.get());
-								// Prepara les respostes per a escollir-ne una
-								xmlsPerEscollir.put(r.get().codiEntitat, r.get().getXml());
-								// Prepara les respostes per a desar-les
-								respostes.put(r.get().codiEntitat, r.get().getResposta());
-							} catch (Exception ex) {
-								logger.error("Error processant les respostes de les peticions múltiples (" +
-										"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
-										"peticioId=" + resultat.getAtributPeticioId() + ", " +
-										"urlDestins=" + resultat.getUrlDestins() + ")", ex);
+						}
+						service.shutdown();
+						logger.debug("Peticions múltiples en paral·lel finalitzades (" +
+								"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+								"peticioId=" + resultat.getAtributPeticioId() + ", " +
+								"urlDestins=" + resultat.getUrlDestins() + ")");
+						Map<String, byte[]> xmlsPerEscollir = new HashMap<>();
+						Map<String, String> respostes = new HashMap<>();
+						Map<String, EnrutamentMultipleThreadResult> respostesPeticions = new HashMap<>();
+						if (respostesThreadsPeticio != null) {
+							for (Future<EnrutamentMultipleThreadResult> r : respostesThreadsPeticio) {
+								try {
+									// Guarda la petició per informar la resposta
+									respostesPeticions.put(r.get().codiEntitat, r.get());
+									// Prepara les respostes per a escollir-ne una
+									xmlsPerEscollir.put(r.get().codiEntitat, r.get().getXml());
+									// Prepara les respostes per a desar-les
+									respostes.put(r.get().codiEntitat, r.get().getResposta());
+								} catch (Exception ex) {
+									logger.error("Error processant les respostes de les peticions múltiples (" +
+											"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
+											"peticioId=" + resultat.getAtributPeticioId() + ", " +
+											"urlDestins=" + resultat.getUrlDestins() + ")", ex);
+								}
 							}
 						}
-					}
-					// Desar totes les respostes
-					redireccioService.saveRespostesPerEntitat(respostes, resultat.getAtributPeticioId(), resultat.getAtributCodigoCertificado());
-					// Processar les respostes amb el mètode del servei d'enrutament
-					String respostaEscollida = redireccioService.escollirResposta(
-							resultat,
-							xmlsPerEscollir);
-					resultat.setEntitatCodiRedireccio(respostaEscollida);
-					boolean logEnrutaments = environment.getProperty("es.caib.emiserv.log.enrutaments", Boolean.class, true);
+						// Desar totes les respostes
+						redireccioService.saveRespostesPerEntitat(respostes, resultat.getAtributPeticioId(), resultat.getAtributCodigoCertificado());
+						// Processar les respostes amb el mètode del servei d'enrutament
+						String respostaEscollida = redireccioService.escollirResposta(
+								resultat,
+								xmlsPerEscollir);
+						resultat.setEntitatCodiRedireccio(respostaEscollida);
+						boolean logEnrutaments = environment.getProperty("es.caib.emiserv.log.enrutaments", Boolean.class, true);
 //					boolean logEnrutaments = configService.getProperty("es.caib.emiserv.log.enrutaments", Boolean.class, true);
-					if (logEnrutaments) {
-						logger.info("Resposta escollida en enrutador múltiple (codiCertificat=" + resultat.getAtributCodigoCertificado() + ", peticioId=" + resultat.getAtributPeticioId() + "): " + respostaEscollida);
+						if (logEnrutaments) {
+							logger.info("Resposta escollida en enrutador múltiple (codiCertificat=" + resultat.getAtributCodigoCertificado() + ", peticioId=" + resultat.getAtributPeticioId() + "): " + respostaEscollida);
+						}
+						// Retornar resultat amb la resposta escollida
+						EnrutamentMultipleThreadResult resposta = respostesPeticions.get(respostaEscollida);
+						if (resposta != null) {
+							proxyResponseCode = resposta.getProxyResponseCode();
+							proxyUrl = resposta.getMethod().getURI().toString();
+							postMethod = resposta.getMethod();
+						}
+						if (proxyResponseCode == 200) {
+							aplicacioService.addSubsistemaExit(SubsistemesEnum.ENR_M, resultat.getAtributCodigoCertificado(), System.currentTimeMillis() - inici);
+						} else {
+							aplicacioService.addSubsistemaError(SubsistemesEnum.ENR_M, resultat.getAtributCodigoCertificado());
+						}
 					}
-					// Retornar resultat amb la resposta escollida
-					EnrutamentMultipleThreadResult resposta = respostesPeticions.get(respostaEscollida);
-					if (resposta != null) {
-						proxyResponseCode = resposta.getProxyResponseCode();
-						proxyUrl = resposta.getMethod().getURI().toString();
-						postMethod = resposta.getMethod();
-					}
+				} else {
+					aplicacioService.addSubsistemaError(SubsistemesEnum.ENR_S, resultat.getAtributCodigoCertificado());
 				}
+				// Tractament comú de la resposta
+				this.processProxyResponse(
+						request,
+						response,
+						proxyResponseCode,
+						proxyUrl,
+						postMethod,
+						resultat);
+			} catch (Exception e) {
+				aplicacioService.addSubsistemaError(SubsistemesEnum.ENR_S);
+				throw e;
 			}
-			// Tractament comú de la resposta
-			this.processProxyResponse(
-					request, 
-					response, 
-					proxyResponseCode, 
-					proxyUrl, 
-					postMethod,
-					resultat);
 		} 
 	}
 

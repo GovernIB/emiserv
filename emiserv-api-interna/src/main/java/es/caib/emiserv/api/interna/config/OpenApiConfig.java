@@ -18,13 +18,16 @@ import org.springframework.context.annotation.Configuration;
                 version = "v1.0",
                 contact = @Contact(name = "Limit Tecnologies", url = "http://limit.es", email = "limit@limit.es")
         ),
-        security = @SecurityRequirement(name = "basic"),
+        security = @SecurityRequirement(name = OpenApiConfig.SECURITY_NAME),
         servers = {
                 @Server(url = "/emiservapi/interna", description = "Servidor per defecte"),
                 @Server(url = "https://proves.caib.es/emiservapi/interna", description = "Servidor de l'entorn de PROVES")
         }
 )
-@SecurityScheme(name = "basic", scheme = "basic", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
+@SecurityScheme(name = OpenApiConfig.SECURITY_NAME, scheme = OpenApiConfig.SECURITY_SCHEME, type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 public class OpenApiConfig {
+
+        public static final String SECURITY_NAME = "basicAuth";
+        public static final String SECURITY_SCHEME = "basic";
 
 }
