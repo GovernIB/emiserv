@@ -3,6 +3,9 @@
  */
 package es.caib.emiserv.logic.intf.service;
 
+import es.caib.comanda.model.server.monitoring.DimensioDesc;
+import es.caib.comanda.model.server.monitoring.IndicadorDesc;
+import es.caib.comanda.model.server.monitoring.RegistresEstadistics;
 import es.caib.emiserv.client.dadesobertes.DadesObertesResposta;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
@@ -13,6 +16,7 @@ import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -21,7 +25,6 @@ import java.util.List;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
-@PreAuthorize("hasRole('EMS_REPORT')")
 public interface ExplotacioService {
 
 	/** Retorna una llista amb la informació per generar l'informe d'estat general.
@@ -31,6 +34,7 @@ public interface ExplotacioService {
 	 * @param tipusPeticio Filtra per backoffices, enrutador o tots si és null.
 	 * @return Retorna la llista amb la informació.
 	 */
+	@PreAuthorize("hasRole('EMS_REPORT')")
 	List<InformeGeneralEstatDto> informeGeneralEstat(
 			Date dataInici,
 			Date dataFi,
@@ -72,6 +76,7 @@ public interface ExplotacioService {
 	 *
 	 * @return la llista d'informació de càrrega.
 	 */
+	@PreAuthorize("hasRole('EMS_REPORT')")
 	List<CarregaDto> findEstadistiquesCarrega();
 
 	/**
@@ -82,6 +87,21 @@ public interface ExplotacioService {
 	 *            Filtre de consultes.
 	 * @return el llistat amb les estadístiques.
 	 */
+	@PreAuthorize("hasRole('EMS_REPORT')")
 	List<EstadisticaDto> findEstadistiquesByFiltre(EstadistiquesFiltreDto filtre);
 
+	@PreAuthorize("hasRole('EMS_COM')")
+    List<DimensioDesc> getDimensions();
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	List<IndicadorDesc> getIndicadors();
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	RegistresEstadistics consultaUltimesEstadistiques();
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	RegistresEstadistics consultaEstadistiques(LocalDate date);
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	List<RegistresEstadistics> consultaEstadistiques(LocalDate iniDate, LocalDate fiDate);
 }

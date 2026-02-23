@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -43,4 +44,9 @@ public interface EntitatRepository extends JpaRepository<EntitatEntity, Long> {
 			@Param("esNullUnitatArrel") boolean esNullUnitatArrel,
 			@Param("unitatArrel") String unitatArrel,
 			Pageable pageable);
+
+	@Query(	"select distinct e.nom " +
+			"  from EntitatEntity e " +
+			" order by e.nom")
+    List<String> findAllNoms();
 }

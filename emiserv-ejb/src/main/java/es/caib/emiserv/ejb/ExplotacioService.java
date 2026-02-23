@@ -3,6 +3,9 @@
  */
 package es.caib.emiserv.ejb;
 
+import es.caib.comanda.model.server.monitoring.DimensioDesc;
+import es.caib.comanda.model.server.monitoring.IndicadorDesc;
+import es.caib.comanda.model.server.monitoring.RegistresEstadistics;
 import es.caib.emiserv.client.dadesobertes.DadesObertesResposta;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
@@ -15,6 +18,7 @@ import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -61,5 +65,35 @@ public class ExplotacioService extends AbstractService<es.caib.emiserv.logic.int
 	@Override
 	public List<EstadisticaDto> findEstadistiquesByFiltre(EstadistiquesFiltreDto filtre) {
 		return getDelegateService().findEstadistiquesByFiltre(filtre);
+	}
+
+    @Override
+	@RolesAllowed("EMS_COM")
+    public List<DimensioDesc> getDimensions() {
+        return getDelegateService().getDimensions();
+    }
+
+	@Override
+	@RolesAllowed("EMS_COM")
+	public List<IndicadorDesc> getIndicadors() {
+		return getDelegateService().getIndicadors();
+	}
+
+    @Override
+	@RolesAllowed("EMS_COM")
+    public RegistresEstadistics consultaUltimesEstadistiques() {
+        return getDelegateService().consultaUltimesEstadistiques();
+    }
+
+	@Override
+	@RolesAllowed("EMS_COM")
+	public RegistresEstadistics consultaEstadistiques(LocalDate date) {
+		return getDelegateService().consultaEstadistiques(date);
+	}
+
+	@Override
+	@RolesAllowed("EMS_COM")
+	public List<RegistresEstadistics> consultaEstadistiques(LocalDate iniDate, LocalDate fiDate) {
+		return getDelegateService().consultaEstadistiques(iniDate, fiDate);
 	}
 }

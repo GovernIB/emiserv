@@ -3,20 +3,22 @@
  */
 package es.caib.emiserv.logic.service;
 
+import es.caib.comanda.model.server.monitoring.DimensioDesc;
+import es.caib.comanda.model.server.monitoring.IndicadorDesc;
+import es.caib.comanda.model.server.monitoring.RegistresEstadistics;
+import es.caib.comanda.ms.estadistica.helper.EstadisticaHelper;
 import es.caib.emiserv.client.comu.ServeiTipus;
 import es.caib.emiserv.client.dadesobertes.DadesObertesResposta;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
-import es.caib.emiserv.logic.intf.dto.CarregaDto;
+import es.caib.emiserv.logic.intf.dto.*;
 import es.caib.emiserv.logic.intf.dto.CarregaDto.CarregaDetailedCountDto;
-import es.caib.emiserv.logic.intf.dto.ConsultaOpenDataDto;
-import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
-import es.caib.emiserv.logic.intf.dto.EstadistiquesFiltreDto;
-import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
-import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.ExplotacioService;
 import es.caib.emiserv.persist.entity.OpenDataEntity;
+import es.caib.emiserv.persist.repository.EntitatRepository;
 import es.caib.emiserv.persist.repository.OpenDataRepository;
 import es.caib.emiserv.persist.repository.RedireccioPeticioRepository;
+import es.caib.emiserv.persist.repository.ServeiRepository;
+import es.caib.emiserv.persist.repository.scsp.ScspCoreEmisorCertificadoRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateUtils;
@@ -26,12 +28,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static es.caib.comanda.model.server.monitoring.Format.LONG;
+import static es.caib.emiserv.logic.service.ExplotacioServiceImpl.DimEnum.*;
+import static es.caib.emiserv.logic.service.ExplotacioServiceImpl.IndEnum.PET_ERR;
+import static es.caib.emiserv.logic.service.ExplotacioServiceImpl.IndEnum.PET_OK;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
@@ -46,9 +54,15 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 	@Autowired
 	private ScspCoreTransmisionRepository scspCoreTransmisionRepository;
 	@Autowired
+	private ScspCoreEmisorCertificadoRepository scspCoreEmisorCertificadoRepository;
+	@Autowired
 	private RedireccioPeticioRepository redireccioPeticioRepository;
 	@Autowired
 	private OpenDataRepository openDataRepository;
+	@Autowired
+	private EntitatRepository entitatRepository;
+	@Autowired
+	private ServeiRepository serveiRepository;
 
 //	private List<CarregaDto> carreguesAny;
 //	private List<CarregaDto> carreguesMes;
@@ -302,86 +316,157 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 		return estadistiques;
 	}
 
+	@Override
+	public List<DimensioDesc> getDimensions() {
+		List<String> entitatNoms = entitatRepository.findAllNoms();
+		List<String> serveisCodis = serveiRepository.findAllCodis();
+		List<String> tipus = Arrays.stream(ServeiTipusEnumDto.values()).map(Enum::name).sorted().collect(Collectors.toList());
+		// Procediments
+		List<String> procedimentsBack = scspCoreTransmisionRepository.findAllProcediments();
+		List<String> procedimentsEnrut = redireccioPeticioRepository.findAllProcediments();
+		List<String> procediments = Stream.concat(
+						procedimentsBack.stream(),
+						procedimentsEnrut.stream()
+				)
+				.distinct()
+				.sorted()
+				.collect(Collectors.toList());
+		// Departaments
+		List<String> departamentsBack = scspCoreTransmisionRepository.findAllDepartaments();
+		List<String> departamentsEnrut = redireccioPeticioRepository.findAllDepartaments();
+		List<String> departaments = Stream.concat(
+						departamentsBack.stream(),
+						departamentsEnrut.stream()
+				)
+				.distinct()
+				.sorted()
+				.collect(Collectors.toList());
+		// Emissors
+		List<String> emisorsBack = scspCoreEmisorCertificadoRepository.findAllEmisors();
+		List<String> emisorsEnrut = redireccioPeticioRepository.findAllEmisors();
+		List<String> emisors = Stream.concat(
+						emisorsBack.stream(),
+						emisorsEnrut.stream()
+				)
+				.distinct()
+				.sorted()
+				.collect(Collectors.toList());
 
-//	public void actualitzarEstadistiquesPeticio(
-//			Long entitatCif,
-//			List<Solicitud> solicituds,
-//			boolean recobriment) {
-//		initEstadistiquesCarrega();
-//		if (solicituds != null && solicituds.size() > 0) {
-//			Solicitud solicitud = solicituds.get(0);
-//			String departamentNom = solicitud.getUnitatTramitadora();
-//			String procedimentNom = solicitud.getProcedimentNom();
-//			String serveiCodi = solicitud.getServeiCodi();
-//			afegirConsultaEstadistiquesCarrega(entitatCif, departamentNom, procedimentNom, serveiCodi, carreguesAny);
-//			afegirConsultaEstadistiquesCarrega(entitatCif, departamentNom, procedimentNom, serveiCodi, carreguesMes);
-//			afegirConsultaEstadistiquesCarrega(entitatCif, departamentNom, procedimentNom, serveiCodi, carreguesDia);
-//			afegirConsultaEstadistiquesCarrega(entitatCif, departamentNom, procedimentNom, serveiCodi, carreguesHora);
-//			afegirConsultaEstadistiquesCarrega(entitatCif, departamentNom, procedimentNom, serveiCodi, carreguesMinut);
-//		}
-//	}
+		return List.of(
+				new DimensioDesc().codi(DimEnum.ENT.name()).nom(DimEnum.ENT.getNom()).descripcio(DimEnum.ENT.getDescripcio()).valors(entitatNoms),
+				new DimensioDesc().codi(PRC.name()).nom(PRC.getNom()).descripcio(PRC.getDescripcio()).valors(procediments),
+				new DimensioDesc().codi(SRV.name()).nom(SRV.getNom()).descripcio(SRV.getDescripcio()).valors(serveisCodis),
+				new DimensioDesc().codi(DEP.name()).nom(DEP.getNom()).descripcio(DEP.getDescripcio()).valors(departaments),
+				new DimensioDesc().codi(EMI.name()).nom(EMI.getNom()).descripcio(EMI.getDescripcio()).valors(emisors),
+				new DimensioDesc().codi(TIP.name()).nom(TIP.getNom()).descripcio(TIP.getDescripcio()).valors(tipus)
+		);
+	}
 
-//	// Mètodes privats per a calculat les estadístiques de càrrega
-//	private void initEstadistiquesCarrega() {
-//		if (carreguesAny == null) {
-//			carreguesAny = Collections.synchronizedList(
-//					scspCoreTransmisionRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.YEAR)));
-//			carreguesAny.addAll(redireccioPeticioRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.YEAR)));
-//		}
-//		if (carreguesMes == null) {
-//			carreguesMes = Collections.synchronizedList(
-//					scspCoreTransmisionRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.MONTH)));
-//			carreguesMes.addAll(redireccioPeticioRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.MONTH)));
-//		}
-//		if (carreguesDia == null) {
-//			carreguesDia = Collections.synchronizedList(
-//					scspCoreTransmisionRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH)));
-//			carreguesDia.addAll(redireccioPeticioRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH)));
-//		}
-//		if (carreguesHora == null) {
-//			carreguesHora = Collections.synchronizedList(
-//					scspCoreTransmisionRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.HOUR_OF_DAY)));
-//			carreguesHora.addAll(redireccioPeticioRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.HOUR_OF_DAY)));
-//		}
-//		if (carreguesMinut == null) {
-//			carreguesMinut = Collections.synchronizedList(
-//					scspCoreTransmisionRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.MINUTE)));
-//			carreguesMinut.addAll(redireccioPeticioRepository.findCarrega(DateUtils.truncate(new Date(), Calendar.MINUTE)));
-//		}
-//	}
+	@Override
+	public List<IndicadorDesc> getIndicadors() {
+		return List.of(
+				new IndicadorDesc().codi(PET_OK.name()).nom(PET_OK.getNom()).descripcio(PET_OK.getDescripcio()).format(LONG),
+				new IndicadorDesc().codi(PET_ERR.name()).nom(PET_ERR.getNom()).descripcio(PET_ERR.getDescripcio()).format(LONG)
+		);
+	}
 
-//	private void afegirConsultaEstadistiquesCarrega(
-//			String entitatNom,
-//			String entitatCif,
-//			String departamentNom,
-//			String procedimentCodi,
-//			String procedimentNom,
-//			String serveiCodi,
-//			String serveiNom,
-//			ServeiTipusEnumDto serveiTipus,
-//			String emissorCodi,
-//			List<CarregaDto> carregues) {
-//		CarregaDto carrega = carreguesAny.stream()
-//				.filter(c -> c.getEntitatCif().equals(entitatCif) && c.getDepartamentNom().equals(departamentNom) && c.getProcedimentNom().equals(procedimentNom) && c.getServeiCodi().equals(serveiCodi))
-//				.findFirst()
-//				.orElse(null);
-//
-//		if (carrega == null) {
-//			carregues.add(CarregaDto.builder()
-//					.count(1L)
-//					.entitatNom(entitatNom)
-//					.entitatCif(entitatCif)
-//					.departamentNom(departamentNom)
-//					.procedimentCodi(procedimentCodi)
-//					.procedimentNom(procedimentNom)
-//					.serveiCodi(serveiCodi)
-//					.serveiNom(serveiNom)
-//					.serveiTipus(serveiTipus)
-//					.emisor(emissorCodi)
-//					.build());
-//		} else {
-//			carrega.setCount(carrega.getCount() + 1);
-//		}
-//	}
+	@Override
+	@Transactional(readOnly = true)
+	public RegistresEstadistics consultaUltimesEstadistiques() {
 
+		LocalDate ahir = LocalDate.now().minusDays(1);
+		return getRegistresEstadisticsPerData(ahir);
+	}
+
+	@Override
+	public RegistresEstadistics consultaEstadistiques(LocalDate date) {
+		return getRegistresEstadisticsPerData(date);
+	}
+
+	@Override
+	public List<RegistresEstadistics> consultaEstadistiques(LocalDate iniDate, LocalDate fiDate) {
+
+		List<RegistresEstadistics> estadistiques = new ArrayList<>();
+		iniDate.datesUntil(fiDate.plusDays(1))
+				.forEach(d -> estadistiques.add(getRegistresEstadisticsPerData(d)));
+		return estadistiques;
+	}
+
+	private RegistresEstadistics getRegistresEstadisticsPerData(LocalDate data) {
+
+		Date iniciDia = Date.from(data.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+		Date finalDia = Date.from(data.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
+		List<EstadisticaDto> estadistiques = findEstadistiquesByFiltre(EstadistiquesFiltreDto.builder()
+				.dataInici(iniciDia)
+				.dataFi(finalDia)
+				.build());
+
+		return new RegistresEstadistics()
+				.temps(iniciDia.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime())
+				.fets(EstadisticaHelper.toRegistreEstadistic(estadistiques, dimFunc, fetFunc));
+	}
+
+	// Funció per mapejar les dimensions
+	Function<EstadisticaDto, Map<String, String>> dimFunc = est -> {
+		LinkedHashMap<String, String> m = new LinkedHashMap<>();
+		m.put(ENT.name(), est.getEntitatNom());
+		m.put(PRC.name(), est.getProcedimentCodi());
+		m.put(SRV.name(), est.getServeiCodi());
+		m.put(DEP.name(), est.getDepartamentNom());
+		m.put(EMI.name(), est.getEmisor());
+		m.put(TIP.name(), est.getServeiTipus().name());
+		return m;
+	};
+
+	// Funció per mapejar els fets
+	Function<EstadisticaDto, Map<String, ? extends Number>> fetFunc = est -> {
+		LinkedHashMap<String, Number> m = new LinkedHashMap<>();
+		m.put(PET_OK.name(), est.getSumatoriNumOk());
+		m.put(PET_ERR.name(), est.getSumatoriNumError());
+		return m;
+	};
+
+	public enum DimEnum {
+		ENT ("Entitat", "Nom de l'entitat que realitza la consulta"),
+		PRC ("Procediment", "Procediment al que pertany la consulta"),
+		SRV ("Servei", "Servei al que pertany la consulta"),
+		DEP ("Departament", "Departament que realitza la consulta"),
+		EMI ("Emisor", "Emisor de la consulta"),
+		TIP ("Tipus", "Tipus de servei consultat: Bacloffice, enrutador simple o enrutador múltiple");
+
+		private String nom;
+		private String descripcio;
+
+		DimEnum(String nom, String descripcio) {
+			this.nom = nom;
+			this.descripcio = descripcio;
+		}
+
+		public String getNom() {
+			return nom;
+		}
+		public String getDescripcio() {
+			return descripcio;
+		}
+	}
+
+	public enum IndEnum {
+		PET_OK ("Peticions OK", "Peticions realitzades correctament"),
+		PET_ERR ("Peticions ERROR", "Peticions processades amb error");
+
+		private String nom;
+		private String descripcio;
+
+		IndEnum(String nom, String descripcio) {
+			this.nom = nom;
+			this.descripcio = descripcio;
+		}
+
+		public String getNom() {
+			return nom;
+		}
+		public String getDescripcio() {
+			return descripcio;
+		}
+	}
 }

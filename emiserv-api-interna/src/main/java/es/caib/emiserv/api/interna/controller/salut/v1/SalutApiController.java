@@ -35,9 +35,7 @@ import static es.caib.emiserv.api.interna.config.OpenApiConfig.SECURITY_SCHEME;
 import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME;
 
 /**
- * Contracte de l'API de Salut que COMANDA espera que implementin les APPs.
- * Aquesta classe defineix les rutes i els models retornats per generar el contracte OpenAPI.
- * La implementació real ha de ser aportada per cada APP.
+ * API de Salut per COMANDA
  */
 @RequiredArgsConstructor
 @RestController

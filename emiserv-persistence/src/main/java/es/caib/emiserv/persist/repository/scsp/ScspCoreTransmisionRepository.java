@@ -3,7 +3,6 @@
  */
 package es.caib.emiserv.persist.repository.scsp;
 
-import es.caib.emiserv.client.comu.EstatTipus;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
 import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
@@ -238,4 +237,11 @@ public interface ScspCoreTransmisionRepository extends JpaRepository<ScspCoreTra
 			@Param("dataInici") Date dataInici,
 			@Param("esNullDataFi") boolean esNullDataFi,
 			@Param("dataFi") Date dataFi);
+
+	@Query("SELECT distinct procedimientoCodigo FROM ScspCoreTransmisionEntity")
+	List<String> findAllProcediments();
+
+	@Query("SELECT distinct unidadTramitadora FROM ScspCoreTransmisionEntity")
+	List<String> findAllDepartaments();
+
 }
