@@ -20,6 +20,8 @@
 		<web-resource-collection>
 			<web-resource-name>scspRouting</web-resource-name>
 			<url-pattern>/scspRouting/*</url-pattern>
+			<url-pattern>/mock/desti/*</url-pattern>
+			<url-pattern>/mock/backoffice/*</url-pattern>
 			<url-pattern>/webjars/*</url-pattern>
 		</web-resource-collection>
 	</security-constraint>

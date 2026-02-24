@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.back.controller;
 
+import es.caib.emiserv.back.helper.HeaderCopier;
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
@@ -80,6 +81,9 @@ public class ScspRoutingController extends BaseController {
 	@Autowired
 	private Environment environment;
 
+	@Autowired
+	private HeaderCopier headerCopier;
+
 	@RequestMapping(value = SERVLET_PATH_PREFIX + "/**", method = RequestMethod.GET)
 	@ResponseStatus(value = HttpStatus.OK)
 	public void doGet(
@@ -152,7 +156,7 @@ public class ScspRoutingController extends BaseController {
 								request,
 								resultat.getUrlDesti());
 						postMethod = new PostMethod(proxyUrl);
-						copiarCapsaleresHttp(
+						headerCopier.copiarCapsaleresHttp(
 								request,
 								postMethod,
 								proxyUrl);
@@ -631,7 +635,7 @@ public class ScspRoutingController extends BaseController {
 						this.request,
 						this.urlDesti);
 				PostMethod method = new PostMethod(proxyUrl);
-				copiarCapsaleresHttp(
+				headerCopier.copiarCapsaleresHttp(
 						request,
 						method,
 						proxyUrl);

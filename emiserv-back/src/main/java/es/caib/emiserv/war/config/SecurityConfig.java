@@ -55,6 +55,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private static final String[] AUTH_WHITELIST = {
 			"/scspRouting/**/*",
+			"/mock/desti/**/*",
+			"/mock/backoffice/**/*",
 			"/webjars/**"
 	};
 
