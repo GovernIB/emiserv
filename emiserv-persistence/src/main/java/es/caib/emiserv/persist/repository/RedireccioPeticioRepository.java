@@ -3,7 +3,6 @@
  */
 package es.caib.emiserv.persist.repository;
 
-import es.caib.emiserv.client.comu.EstatTipus;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
 import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
@@ -266,4 +265,13 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			@Param("dataInici") Date dataInici,
 			@Param("esNullDataFi") boolean esNullDataFi,
 			@Param("dataFi") Date dataFi);
+
+	@Query("SELECT distinct procedimentCodi FROM RedireccioSolicitudEntity")
+	List<String> findAllProcediments();
+
+	@Query("SELECT distinct unitatTramitadora FROM RedireccioSolicitudEntity")
+	List<String> findAllDepartaments();
+
+	@Query("SELECT distinct emissorCodi FROM RedireccioPeticioEntity")
+	List<String> findAllEmisors();
 }
