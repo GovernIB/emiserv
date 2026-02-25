@@ -4,12 +4,16 @@
 package es.caib.emiserv.logic.service;
 
 import es.caib.comanda.model.server.monitoring.ContextInfo;
+import es.caib.comanda.model.server.monitoring.FitxerContingut;
+import es.caib.comanda.model.server.monitoring.FitxerInfo;
 import es.caib.comanda.model.server.monitoring.IntegracioInfo;
 import es.caib.comanda.model.server.monitoring.IntegracioSalut;
 import es.caib.comanda.model.server.monitoring.Manual;
 import es.caib.comanda.model.server.monitoring.MissatgeSalut;
 import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
 import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
+import es.caib.comanda.ms.log.helper.LogFileStream;
+import es.caib.comanda.ms.log.helper.LogHelper;
 import es.caib.emiserv.logic.helper.PropertiesHelper;
 import es.caib.emiserv.logic.helper.SalutHelper;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
@@ -206,6 +210,41 @@ public class AplicacioServiceImpl implements AplicacioService {
             return null;
         }
     }
+
+	// LOGS
+	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private static String logDir;
+	private static final String APP_NOM = "emiserv";
+
+    @Override
+    public List<FitxerInfo> llistarLogFiles() {
+        return LogHelper.llistarFitxers(getLogDir(), APP_NOM);
+    }
+
+	@Override
+	public FitxerContingut getLogFileByNom(String nomFitxer) {
+		LogHelper.setAppNom(APP_NOM);
+		return LogHelper.getFitxerByNom(getLogDir(), nomFitxer);
+	}
+
+	@Override
+	public LogFileStream getFileLogStreamByNom(String nomFitxer) {
+		LogHelper.setAppNom(APP_NOM);
+		return LogHelper.getFileStreamByNom(getLogDir(), nomFitxer);
+	}
+
+	@Override
+	public List<String> readLastNLogLines(String nomFitxer, Long nLinies) {
+		LogHelper.setAppNom(APP_NOM);
+		return LogHelper.readLastNLines(getLogDir(), nomFitxer, nLinies);
+	}
+
+	private String getLogDir() {
+		if (logDir == null) {
+			logDir = environment.getProperty("es.caib.emiserv.log.dir");
+		}
+		return logDir;
+	}
 
 //	@Override
 //	public Map<String, String> readProperties() {

@@ -4,11 +4,14 @@
 package es.caib.emiserv.logic.intf.service;
 
 import es.caib.comanda.model.server.monitoring.ContextInfo;
+import es.caib.comanda.model.server.monitoring.FitxerContingut;
+import es.caib.comanda.model.server.monitoring.FitxerInfo;
 import es.caib.comanda.model.server.monitoring.IntegracioInfo;
 import es.caib.comanda.model.server.monitoring.IntegracioSalut;
 import es.caib.comanda.model.server.monitoring.MissatgeSalut;
 import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
 import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
+import es.caib.comanda.ms.log.helper.LogFileStream;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -70,4 +73,18 @@ public interface AplicacioService {
 
 	public Integer measureDbLatencyMs();
 
+	// LOGS
+	// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	@PreAuthorize("hasRole('EMS_COM')")
+    List<FitxerInfo> llistarLogFiles();
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	FitxerContingut getLogFileByNom(String nomFitxer);
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	LogFileStream getFileLogStreamByNom(String nomFitxer);
+
+	@PreAuthorize("hasRole('EMS_COM')")
+	List<String> readLastNLogLines(String nomFitxer, Long nLinies);
 }

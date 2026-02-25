@@ -4,11 +4,14 @@
 package es.caib.emiserv.ejb;
 
 import es.caib.comanda.model.server.monitoring.ContextInfo;
+import es.caib.comanda.model.server.monitoring.FitxerContingut;
+import es.caib.comanda.model.server.monitoring.FitxerInfo;
 import es.caib.comanda.model.server.monitoring.IntegracioInfo;
 import es.caib.comanda.model.server.monitoring.IntegracioSalut;
 import es.caib.comanda.model.server.monitoring.MissatgeSalut;
 import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
 import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
+import es.caib.comanda.ms.log.helper.LogFileStream;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 
 import javax.annotation.security.PermitAll;
@@ -101,6 +104,30 @@ public class AplicacioService extends AbstractService<es.caib.emiserv.logic.intf
 	@PermitAll
 	public Integer measureDbLatencyMs() {
 		return getDelegateService().measureDbLatencyMs();
+	}
+
+    @Override
+	@RolesAllowed({"EMS_COM"})
+    public List<FitxerInfo> llistarLogFiles() {
+        return getDelegateService().llistarLogFiles();
+    }
+
+	@Override
+	@RolesAllowed({"EMS_COM"})
+	public FitxerContingut getLogFileByNom(String nomFitxer) {
+		return getDelegateService().getLogFileByNom(nomFitxer);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_COM"})
+	public LogFileStream getFileLogStreamByNom(String nomFitxer) {
+		return getDelegateService().getFileLogStreamByNom(nomFitxer);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_COM"})
+	public List<String> readLastNLogLines(String nomFitxer, Long nLinies) {
+		return getDelegateService().readLastNLogLines(nomFitxer, nLinies);
 	}
 
 }
