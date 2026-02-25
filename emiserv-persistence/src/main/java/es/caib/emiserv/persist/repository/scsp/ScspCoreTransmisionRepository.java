@@ -238,6 +238,50 @@ public interface ScspCoreTransmisionRepository extends JpaRepository<ScspCoreTra
 			@Param("esNullDataFi") boolean esNullDataFi,
 			@Param("dataFi") Date dataFi);
 
+	@Query(	"select " +
+			"	new es.caib.emiserv.logic.intf.dto.EstadisticaDto( " +
+			"		count(ct.solicitudId), " +
+			"		ct.solicitanteNombre, " +
+			"		ct.solicitanteId, " +
+			"		ct.unidadTramitadora, " +
+			"		ct.procedimientoCodigo, " +
+			"		ct.procedimientoNombre, " +
+			"		cs.codigoCertificado, " +
+			"		cs.descripcion, " +
+			"		cs.emisor.cif, " +
+			"		sum(case " +
+			"			when substring(cpr.estado,0,2) = '00' then 1 " +
+			"			else 0 " +
+			"		end) as correcte, " +
+			"		sum(case " +
+			"			when substring(cpr.estado,0,2) = '00' then 0 " +
+			"			else 1 " +
+			"		end) as error) " +
+			"	from " +
+			"		ScspCoreTransmisionEntity ct " +
+			"			inner join ct.peticionRespuesta cpr, " +
+			"		ScspCoreServicioEntity cs " +
+			"	where cpr.certificado = cs.id " +
+			"		and cpr.fechaPeticion >= :dataInici " +
+			"		and cpr.fechaPeticion <= :dataFi " +
+			"group by " +
+			"		ct.solicitanteNombre, " +
+			"		ct.solicitanteId, " +
+			"		ct.unidadTramitadora, " +
+			"		ct.procedimientoCodigo, " +
+			"		ct.procedimientoNombre, " +
+			"		cs.codigoCertificado, " +
+			"		cs.descripcion, " +
+			"		cs.emisor.cif " +
+			"order by " +
+			"	ct.solicitanteNombre, " +
+			"	ct.unidadTramitadora, " +
+			"	ct.procedimientoNombre, " +
+			"	cs.descripcion")
+	List<EstadisticaDto> findEstadistiques(
+			@Param("dataInici") Date dataInici,
+			@Param("dataFi") Date dataFi);
+
 	@Query("SELECT distinct procedimientoCodigo FROM ScspCoreTransmisionEntity")
 	List<String> findAllProcediments();
 

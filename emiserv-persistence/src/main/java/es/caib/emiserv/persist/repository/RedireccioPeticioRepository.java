@@ -266,6 +266,52 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			@Param("esNullDataFi") boolean esNullDataFi,
 			@Param("dataFi") Date dataFi);
 
+	@Query(	"select " +
+			"	new es.caib.emiserv.logic.intf.dto.EstadisticaDto( " +
+			"		count(rs.id), " +
+			"		rs.solicitantNom, " +
+			"		rs.solicitantId, " +
+			"		rs.unitatTramitadora, " +
+			"		rs.procedimentCodi, " +
+			"		rs.procedimentNom, " +
+			"		rp.serveiCodi, " +
+			"		s.nom, " +
+			"		s.tipus, " +
+			"		rp.emissorCodi, " +
+			"		sum(case " +
+			"			when substring(rp.estat,0,2) = '00' then 1 " +
+			"			else 0 " +
+			"		end) as correcte, " +
+			"		sum(case " +
+			"			when substring(rp.estat,0,2) = '00' then 0 " +
+			"			else 1 " +
+			"		end) as error) " +
+			"	from " +
+			"		RedireccioSolicitudEntity as rs " +
+			"			inner join rs.peticio as rp, " +
+			"		ServeiEntity s " +
+			"	where rp.serveiCodi = s.codi " +
+			"		and rp.dataPeticio >= :dataInici " +
+			"		and rp.dataPeticio <= :dataFi " +
+			"group by " +
+			"		rs.solicitantNom, " +
+			"		rs.solicitantId, " +
+			"		rs.unitatTramitadora, " +
+			"		rs.procedimentCodi, " +
+			"		rs.procedimentNom, " +
+			"		rp.serveiCodi, " +
+			"		s.nom, " +
+			"		s.tipus, " +
+			"		rp.emissorCodi " +
+			"order by " +
+			"	rs.solicitantNom, " +
+			"	rs.unitatTramitadora, " +
+			"	rs.procedimentNom, " +
+			"	s.nom")
+	List<EstadisticaDto> findEstadistiques(
+			@Param("dataInici") Date dataInici,
+			@Param("dataFi") Date dataFi);
+
 	@Query("SELECT distinct procedimentCodi FROM RedireccioSolicitudEntity")
 	List<String> findAllProcediments();
 

@@ -316,6 +316,12 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 		return estadistiques;
 	}
 
+	public List<EstadisticaDto> findEstadistiquesByDates(Date dataInici, Date dataFi) {
+		List<EstadisticaDto> estadistiques = scspCoreTransmisionRepository.findEstadistiques(dataInici, dataFi);
+		estadistiques.addAll(redireccioPeticioRepository.findEstadistiques(dataInici, dataFi));
+		return estadistiques;
+	}
+
 	@Override
 	public List<DimensioDesc> getDimensions() {
 		List<String> entitatNoms = entitatRepository.findAllNoms();
@@ -396,10 +402,7 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 
 		Date iniciDia = Date.from(data.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 		Date finalDia = Date.from(data.atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant());
-		List<EstadisticaDto> estadistiques = findEstadistiquesByFiltre(EstadistiquesFiltreDto.builder()
-				.dataInici(iniciDia)
-				.dataFi(finalDia)
-				.build());
+		List<EstadisticaDto> estadistiques = findEstadistiquesByDates(iniciDia, finalDia);
 
 		return new RegistresEstadistics()
 				.temps(iniciDia.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime())
