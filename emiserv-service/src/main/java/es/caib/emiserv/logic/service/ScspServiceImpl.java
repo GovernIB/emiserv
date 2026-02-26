@@ -20,9 +20,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import javax.persistence.criteria.Predicate;
 import java.util.*;
 
 /**
@@ -924,10 +927,10 @@ public class ScspServiceImpl implements ScspService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioParams) {
+	public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioParams, ScspParametreFiltreDto scspParametreFiltreDto) {
 		log.debug("Obtenint el llistat de paràmetres SCSP");
 		Pageable pageable = paginacioHelper.toSpringDataPageable(paginacioParams);
-		Page<ScspCoreParametroConfiguracionEntity> page = scspCoreParametroConfiguracionRepository.findAll(pageable);
+		Page<ScspCoreParametroConfiguracionEntity> page = scspCoreParametroConfiguracionRepository.findAll(filterScspParametreFiltreDto(scspParametreFiltreDto), pageable);
 		return paginacioHelper.toPaginaDto(page, ScspParametreDto.class);
 	}
 
@@ -1068,4 +1071,20 @@ public class ScspServiceImpl implements ScspService {
 		return servicio;
 	}
 
+    private static Specification<ScspCoreParametroConfiguracionEntity> filterScspParametreFiltreDto(ScspParametreFiltreDto filter) {
+        return (root, query, criteriaBuilder) -> {
+            if (filter == null) { return criteriaBuilder.conjunction(); }
+            List<Predicate> predicates = new ArrayList<>();
+            if (StringUtils.hasText(filter.getNombre())) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("nombre")),"%" + filter.getNombre().toLowerCase() + "%"));
+            }
+            if (StringUtils.hasText(filter.getValor())) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("valor")),"%" + filter.getValor().toLowerCase() + "%"));
+            }
+            if (StringUtils.hasText(filter.getDescripcion())) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("descripcion")),"%" + filter.getDescripcion().toLowerCase() + "%"));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 }

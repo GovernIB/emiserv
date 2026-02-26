@@ -14,8 +14,38 @@
 	<script src="<c:url value="/js/webutil.common.js"/>"></script>
 	<script src="<c:url value="/js/webutil.datatable.js"/>"></script>
 	<script src="<c:url value="/js/webutil.modal.js"/>"></script>
+    <script type="application/javascript">
+        $(document).ready(function () {
+            $("form").on('keydown', function (e) {
+                debugger
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    if ($("#nombre").is(":focus") || $("#descripcion").is(":focus")) {
+                        $("#b_filtrar").click();
+                    }
+                    return false;
+                }
+            })
+        });
+    </script>
 </head>
 <body>
+    <form:form action="" method="post" cssClass="well" modelAttribute="scspParametreFiltreDto">
+		<div class="row">
+			<div class="col-md-4">
+				<emi:inputText name="nombre" placeholderKey="parametres.list.taula.columna.nom" inline="true"/>
+			</div>
+			<div class="col-md-6">
+				<emi:inputText name="descripcion" placeholderKey="parametres.list.taula.columna.descripcio" inline="true"/>
+			</div>
+            <div class="col-md-2">
+                <div class="pull-right">
+                    <button id="b_netejar" type="submit" name="accio" value="netejar" class="btn btn-default"><spring:message code="comu.boto.netejar"/></button>
+                    <button id="b_filtrar" type="submit" name="accio" value="filtrar" class="btn btn-primary"><span class="fa fa-filter"></span> <spring:message code="comu.boto.filtrar"/></button>
+                </div>
+            </div>
+        </div>
+	</form:form>
 	<table id="parametres" data-toggle="datatable" data-url="parametres/datatable" data-search-enabled="false" data-botons-template="#botonsTemplate" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
@@ -37,7 +67,7 @@
 		</thead>
 	</table>
 	<script id="botonsTemplate" type="text/x-jsrender">
-		<a id="accio-new" class="btn btn-default pull-right" href="parametres/new" data-toggle="modal" data-refresh-missatges="false" data-reload-on-close="true" data-datatable-id="autoritatsca">
+		<a id="accio-new" class="btn btn-default pull-right" href="parametres/new" data-toggle="modal" data-refresh-missatges="false" data-reload-on-close="true" data-datatable-id="parametres">
 			<span class="fa fa-plus"></span>&nbsp;<spring:message code="parametres.list.boto.nou.registre"/>
 		</a>
 	</script>

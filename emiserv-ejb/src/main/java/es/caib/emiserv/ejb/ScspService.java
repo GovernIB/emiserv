@@ -334,8 +334,8 @@ public class ScspService extends AbstractService<es.caib.emiserv.logic.intf.serv
 	}
 
 	@Override
-	public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioDtoFromRequest) {
-		return getDelegateService().getScspParametres(paginacioDtoFromRequest);
+	public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioDtoFromRequest, ScspParametreFiltreDto scspParametreFiltreDto) {
+		return getDelegateService().getScspParametres(paginacioDtoFromRequest, scspParametreFiltreDto);
 	}
 
 	@Override

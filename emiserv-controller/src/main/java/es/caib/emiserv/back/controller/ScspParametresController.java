@@ -6,18 +6,17 @@ package es.caib.emiserv.back.controller;
 import es.caib.emiserv.back.command.ScspParametreCommand;
 import es.caib.emiserv.back.helper.DatatablesHelper;
 import es.caib.emiserv.back.helper.MissatgeHelper;
+import es.caib.emiserv.back.helper.RequestSessionHelper;
 import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.ScspParametreDto;
+import es.caib.emiserv.logic.intf.dto.ScspParametreFiltreDto;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.service.ScspService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -31,19 +30,44 @@ import javax.validation.Valid;
 @RequestMapping("/scsp/parametres")
 public class ScspParametresController extends BaseController {
 
+    private static final String SESSION_ATTRIBUTE_FILTRE = "ScspParametresController.session.filtre";
+
 	@Autowired
 	private ScspService scspService;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public String get() {
+	public String get(HttpServletRequest request, Model model) {
+        model.addAttribute(getFiltreCommand(request));
 		return "scspParametresList";
 	}
 
+    @RequestMapping(method = RequestMethod.POST)
+    public String post(
+            HttpServletRequest request,
+            @RequestParam("accio") String accio,
+            @Valid ScspParametreFiltreDto filtre,
+            BindingResult bindingResult,
+            Model model) {
+        if ("netejar".equals(accio)) {
+            RequestSessionHelper.esborrarObjecteSessio(
+                    request,
+                    SESSION_ATTRIBUTE_FILTRE);
+        } else if (!bindingResult.hasErrors()) {
+            RequestSessionHelper.actualitzarObjecteSessio(
+                    request,
+                    SESSION_ATTRIBUTE_FILTRE,
+                    filtre);
+        }
+        return "redirect:parametres";
+    }
+
 	@RequestMapping(value = "/datatable", method = RequestMethod.GET)
 	@ResponseBody
-	public DatatablesHelper.DatatablesResponse datatable(
-			HttpServletRequest request) {
-		PaginaDto<ScspParametreDto> scspParametres = scspService.getScspParametres(DatatablesHelper.getPaginacioDtoFromRequest(request));
+	public DatatablesHelper.DatatablesResponse datatable(HttpServletRequest request, Model model) {
+        ScspParametreFiltreDto filtre = (ScspParametreFiltreDto)RequestSessionHelper.obtenirObjecteSessio(
+                request,
+                SESSION_ATTRIBUTE_FILTRE);
+		PaginaDto<ScspParametreDto> scspParametres = scspService.getScspParametres(DatatablesHelper.getPaginacioDtoFromRequest(request), filtre);
 		scspParametres.getContingut().stream().filter(p -> p.getNombre().toUpperCase().contains("PASS")).forEach(p -> p.setValor("********"));
 		DatatablesHelper.DatatablesResponse dtr = DatatablesHelper.getDatatableResponse(
 				request,
@@ -92,5 +116,20 @@ public class ScspParametresController extends BaseController {
 		MissatgeHelper.success(request, getMessage(request, "parametres.controller.esborrat.ok"));
 		return "redirect:../../parametres";
 	}
+
+    private ScspParametreFiltreDto getFiltreCommand(
+            HttpServletRequest request) {
+        ScspParametreFiltreDto filtreCommand = (ScspParametreFiltreDto) RequestSessionHelper.obtenirObjecteSessio(
+                request,
+                SESSION_ATTRIBUTE_FILTRE);
+        if (filtreCommand == null) {
+            filtreCommand = new ScspParametreFiltreDto();
+            RequestSessionHelper.actualitzarObjecteSessio(
+                    request,
+                    SESSION_ATTRIBUTE_FILTRE,
+                    filtreCommand);
+        }
+        return filtreCommand;
+    }
 
 }

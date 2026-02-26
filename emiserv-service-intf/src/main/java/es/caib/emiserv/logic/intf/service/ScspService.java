@@ -497,7 +497,7 @@ public interface ScspService {
 	 * @return El llistat dels paràmetres de configuració de scsp
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN')")
-    public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioParams);
+    public PaginaDto<ScspParametreDto> getScspParametres(PaginacioParamsDto paginacioParams, ScspParametreFiltreDto scspParametreFiltreDto);
 
 	/**
 	 * Consulta un parametre SCSP donat el seu nom
