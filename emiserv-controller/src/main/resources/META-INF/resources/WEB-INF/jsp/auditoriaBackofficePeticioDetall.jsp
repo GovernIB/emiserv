@@ -10,6 +10,33 @@
 	<script src="<c:url value="/js/vkbeautify.js"/>"></script>
 	<emi:modalHead/>
 <script>
+function copyToClipboard(text) {
+	if (navigator.clipboard && window.isSecureContext) {
+		navigator.clipboard.writeText(text).then(function() {})
+		.catch(function() { fallbackCopyText(text); });
+	} else {
+		fallbackCopyText(text);
+	}
+}
+
+function fallbackCopyText(text) {
+	var $temp = $("<textarea>");
+	$("body").append($temp);
+	$temp.val(text);
+	$temp[0].select();
+	$temp[0].setSelectionRange(0, 99999);
+	try {
+		document.execCommand('copy');
+	} catch (err) {
+		console.error("Error copiant el text", err);
+	}
+	$temp.remove();
+}
+
+function copyTextarea(selector) {
+	copyToClipboard($(selector).val());
+}
+
 $(document).ready(function() {
 	$('#peticioError').on('show.bs.collapse', function () {
 		$('#peticioErrorBtn span').attr('class', 'fa fa-chevron-up');
@@ -141,6 +168,9 @@ $(document).ready(function() {
 					</c:if>
 					<div id="peticioError" class="collapse" style="margin-top:1em">
 						<textarea class="form-control" rows="3">${peticio.error}</textarea>
+						<div style="margin-top:1em">
+							<button class="btn btn-default btn-xs" onclick="copyTextarea('#peticioError textarea'); return false;"><span class="fa fa-clipboard"></span> <spring:message code="comu.boto.copiar"/></button>
+						</div>
 					</div>
 				</li>
 				<li class="list-group-item">
@@ -164,6 +194,9 @@ $(document).ready(function() {
 				</h5>
 				<div id="xmlPeticioScsp" class="collapse" style="margin-top:1em">
 					<textarea class="form-control" rows="10"></textarea>
+					<div style="margin-top:1em">
+						<button class="btn btn-default btn-xs" onclick="copyTextarea('#xmlPeticioScsp textarea'); return false;"><span class="fa fa-clipboard"></span> <spring:message code="comu.boto.copiar"/></button>
+					</div>
 				</div>
 			</div>
 			<div class="well well-sm">
@@ -173,6 +206,9 @@ $(document).ready(function() {
 				</h5>
 				<div id="xmlRespostaScsp" class="collapse" style="margin-top:1em">
 					<textarea class="form-control" rows="10"></textarea>
+					<div style="margin-top:1em">
+						<button class="btn btn-default btn-xs" onclick="copyTextarea('#xmlRespostaScsp textarea'); return false;"><span class="fa fa-clipboard"></span> <spring:message code="comu.boto.copiar"/></button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -187,6 +223,9 @@ $(document).ready(function() {
 						</h5>
 						<div id="errorComunicacioBackoffice" class="collapse" style="margin-top:1em">
 							<textarea class="form-control" rows="10"></textarea>
+							<div style="margin-top:1em">
+								<button class="btn btn-default btn-xs" onclick="copyTextarea('#errorComunicacioBackoffice textarea'); return false;"><span class="fa fa-clipboard"></span> <spring:message code="comu.boto.copiar"/></button>
+							</div>
 						</div>
 					</div>
 				</c:if>
@@ -197,6 +236,9 @@ $(document).ready(function() {
 					</h5>
 					<div id="xmlPeticioBackoffice" class="collapse" style="margin-top:1em">
 						<textarea class="form-control" rows="10"></textarea>
+						<div style="margin-top:1em">
+							<button class="btn btn-default btn-xs" onclick="copyTextarea('#xmlPeticioBackoffice textarea'); return false;"><span class="fa fa-clipboard"></span> <spring:message code="comu.boto.copiar"/></button>
+						</div>
 					</div>
 				</div>
 				<div class="well well-sm">
@@ -206,10 +248,16 @@ $(document).ready(function() {
 					</h5>
 					<div id="xmlRespostaBackoffice" class="collapse" style="margin-top:1em">
 						<textarea class="form-control" rows="10"></textarea>
+						<div style="margin-top:1em">
+							<button class="btn btn-default btn-xs" onclick="copyTextarea('#xmlRespostaBackoffice textarea'); return false;"><span class="fa fa-clipboard"></span> <spring:message code="comu.boto.copiar"/></button>
+						</div>
 					</div>
 				</div>
 			</div>
 		</c:if>
+	</div>
+	<div id="modal-botons" class="well">
+		<a href="<c:url value="/"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.tancar"/></a>
 	</div>
 </body>
 </html>

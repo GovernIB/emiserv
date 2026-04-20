@@ -132,7 +132,7 @@ body {
 										<c:forEach var="rol" items="${rolsUsuariActual}">
 											<c:if test="${rol != rolActual}">
 												<li>
-													<c:url var="canviRolUrl" value="/index">
+													<c:url var="canviRolUrl" value="/servei">
 														<c:param name="${requestParameterCanviRol}" value="${rol}"/>
 													</c:url>
 													<a href="${canviRolUrl}"><spring:message code="decorator.menu.rol.${rol}"/></a>

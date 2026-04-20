@@ -61,6 +61,29 @@
 					.replace(/"/g, "&quot;")
 					.replace(/'/g, "&#39;");
 		}
+
+		function copyToClipboard(text) {
+			if (navigator.clipboard && window.isSecureContext) {
+				navigator.clipboard.writeText(text).then(() => {})
+				.catch(function() { fallbackCopyText(text); });
+			} else {
+				fallbackCopyText(text);
+			}
+		}
+
+		function fallbackCopyText(text) {
+			var $temp = $("<textarea>");
+			$("body").append($temp);
+			$temp.val(text);
+			$temp[0].select();
+			$temp[0].setSelectionRange(0, 99999);
+			try {
+				document.execCommand('copy');
+			} catch (err) {
+				console.error("Error copiant el text", err);
+			}
+			$temp.remove();
+		}
 	</script>
 	<style type="text/css">
 		.select2-selection__rendered {
@@ -82,5 +105,14 @@
 		</select>
 	</div>
 	<textarea id="missatgeXml" rows="16" class="input-xxlarge" style="width:100%"></textarea>
+	<div id="modal-botons" class="well">
+		<button id="cbcopy" class="btn btn-default"><span class="fa fa-clipboard"></span> <spring:message code="comu.boto.copiar"/></button>
+		<a href="<c:url value="/"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.tancar"/></a>
+	</div>
+	<script type="text/javascript">
+		$('#cbcopy').click(function() {
+			copyToClipboard($('#missatgeXml').val());
+		});
+	</script>
 </body>
 </html>
