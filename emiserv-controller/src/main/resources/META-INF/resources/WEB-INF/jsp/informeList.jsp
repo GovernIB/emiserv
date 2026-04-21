@@ -27,5 +27,11 @@ pageContext.setAttribute(
 				<a class="btn btn-default pull-right" href="<c:url value="informe/generalEstat"/>" data-toggle="modal"><span class="fa fa-download"></span>&nbsp;<spring:message code="informe.list.generar"/></a>
 			</h4>
 		</div>
+		<div class="well well-sm">
+			<h4>
+				<spring:message code="informe.list.informe.emisorEnrutat"/>
+				<a class="btn btn-default pull-right" href="<c:url value="informe/emisorEnrutat"/>" data-toggle="modal"><span class="fa fa-download"></span>&nbsp;<spring:message code="informe.list.generar"/></a>
+			</h4>
+		</div>
 	</c:if>
 </body>

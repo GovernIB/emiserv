@@ -6,6 +6,7 @@ package es.caib.emiserv.persist.repository;
 import es.caib.emiserv.client.dadesobertes.DadesObertesRespostaConsulta;
 import es.caib.emiserv.logic.intf.dto.CarregaDto;
 import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
+import es.caib.emiserv.logic.intf.dto.InformeEmisorEnrutatDto;
 import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
 import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
 import es.caib.emiserv.persist.entity.RedireccioPeticioEntity;
@@ -21,7 +22,7 @@ import java.util.List;
 /**
  * Definició dels mètodes necessaris per a gestionar una entitat de base
  * de dades del tipus redireccioPeticio.
- * 
+ *
  * @author Limit Tecnologies <limit@limit.es>
  */
 public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPeticioEntity, Long> {
@@ -61,10 +62,10 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			"from " +
 			"    RedireccioPeticioEntity rdp")
 	List<String> findServeiDistint();
-	
-	
+
+
 	/** Consulta els enrutadors simples i múltiples filtrant per tipus != 0
-	 * 
+	 *
 	 * @param dataInici
 	 * @param dataFi
 	 * @return
@@ -80,23 +81,23 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			"		s.nom, " +
 			"		rp.emissorCodi, " +
 			"		sum(case " +
-			"			when substring(rp.estat,0,2) = '00' then 1 " +	
-			"			else 0 " +	
+			"			when substring(rp.estat,0,2) = '00' then 1 " +
+			"			else 0 " +
 			"		end) as correcte, " +
 			"		sum(case " +
-			"			when substring(rp.estat,0,2) = '00' then 0 " +	
-			"			else 1 " +	
+			"			when substring(rp.estat,0,2) = '00' then 0 " +
+			"			else 1 " +
 			"		end) as error " +
 			"	) " +
 			"	from " +
-			"		RedireccioSolicitudEntity as rs " + 
-			"			inner join rs.peticio as rp, " + 
+			"		RedireccioSolicitudEntity as rs " +
+			"			inner join rs.peticio as rp, " +
 			"		ServeiEntity s " +
 			"	where rp.serveiCodi = s.codi " +
-			"		and s.tipus != es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto.BACKOFFICE " + 
+			"		and s.tipus != es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto.BACKOFFICE " +
  			"		and rp.dataPeticio >= :dataInici " +
 			"		and rp.dataPeticio < :dataFi " +
-			"group by " + 
+			"group by " +
 			"	s.tipus, " +
 			"	rs.solicitantNom, " +
 			"	rs.solicitantId, " +
@@ -104,15 +105,106 @@ public interface RedireccioPeticioRepository extends JpaRepository<RedireccioPet
 			"	rs.procedimentCodi, " +
 			"	rs.procedimentNom, " +
 			"	rp.serveiCodi, " +
-			"	s.nom, " + 
-			"	rp.emissorCodi " + 
+			"	s.nom, " +
+			"	rp.emissorCodi " +
 			"order by " +
 			"	rs.solicitantNom, " +
 			"	rs.procedimentCodi, " +
 			"	rp.serveiCodi "
 			)
 	List<InformeGeneralEstatDto> informeGeneralEstat(
-			@Param("dataInici") Date dataInici, 
+			@Param("dataInici") Date dataInici,
+			@Param("dataFi") Date dataFi);
+
+	@Query( "select new es.caib.emiserv.logic.intf.dto.InformeEmisorEnrutatDto( " +
+			"		rp.emissorCodi, " +
+			"		s.tipus, " +
+			"		rp.serveiCodi, " +
+			"		s.nom, " +
+			"		rm.entitatCodi, " +
+			"		coalesce(rm.url, rd.url, s.urlPerDefecte), " +
+			"		count(distinct rp.id) as total, " +
+			"		count(distinct case " +
+			"			when substring(rp.estat,0,2) = '00' then rp.id " +
+			"			else null " +
+			"		end) as correcte, " +
+			"		count(distinct case " +
+			"			when substring(rp.estat,0,2) = '00' then null " +
+			"			else rp.id " +
+			"		end) as error, " +
+			"		sum(case " +
+			"			when s.tipus = es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto.ENRUTADOR_MULTIPLE and rp.entitatCodiRedireccio = rm.entitatCodi then 1 " +
+			"			else 0 " +
+			"		end) as respostaEsperada, " +
+			"		(select count(distinct rp2.id) " +
+			"			from RedireccioPeticioEntity rp2 " +
+			"				inner join ServeiEntity s2 on rp2.serveiCodi = s2.codi " +
+			"			where rp2.emissorCodi = rp.emissorCodi " +
+			"				and rp2.serveiCodi = rp.serveiCodi " +
+			"				and s2.tipus = es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto.ENRUTADOR_MULTIPLE " +
+			"				and rp2.estatEnum not in (es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.PENDENT, es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.EN_PROCES) " +
+			"				and rp2.dataPeticio >= :dataInici " +
+			"				and rp2.dataPeticio < :dataFi), " +
+			"		(select count(distinct rp2.id) " +
+			"			from RedireccioPeticioEntity rp2 " +
+			"			where rp2.emissorCodi = rp.emissorCodi " +
+			"				and rp2.serveiCodi = rp.serveiCodi " +
+			"				and rp2.estatEnum not in (es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.PENDENT, es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.EN_PROCES) " +
+			"				and substring(rp2.estat,0,2) = '00' " +
+			"				and rp2.dataPeticio >= :dataInici " +
+			"				and rp2.dataPeticio < :dataFi), " +
+			"		(select count(distinct rp2.id) " +
+			"			from RedireccioPeticioEntity rp2 " +
+			"			where rp2.emissorCodi = rp.emissorCodi " +
+			"				and rp2.serveiCodi = rp.serveiCodi " +
+			"				and rp2.estatEnum not in (es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.PENDENT, es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.EN_PROCES) " +
+			"				and substring(rp2.estat,0,2) <> '00' " +
+			"				and rp2.dataPeticio >= :dataInici " +
+			"				and rp2.dataPeticio < :dataFi) " +
+			"		, (select count(distinct rp2.id) " +
+			"			from RedireccioPeticioEntity rp2 " +
+			"				inner join ServeiEntity s2 on rp2.serveiCodi = s2.codi " +
+			"			where rp2.emissorCodi = rp.emissorCodi " +
+			"				and rp2.serveiCodi = rp.serveiCodi " +
+			"				and s2.tipus = es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto.ENRUTADOR_MULTIPLE " +
+			"				and rp2.estatEnum not in (es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.PENDENT, es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.EN_PROCES) " +
+			"				and rp2.entitatCodiRedireccio is not null " +
+			"				and rp2.dataPeticio >= :dataInici " +
+			"				and rp2.dataPeticio < :dataFi) " +
+			"	) " +
+			"	from " +
+			"		RedireccioMissatgeEntity rm " +
+			"			inner join rm.peticio rp on rp.id = rm.peticio.id and rp.estatEnum not in (es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.PENDENT, es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.EN_PROCES) " +
+			"			inner join ServeiEntity s on rp.serveiCodi = s.codi " +
+			"			left join ServeiRutaDestiEntity rd on rd.servei = s and rd.entitatCodi = rm.entitatCodi " +
+			"	where s.tipus != es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto.BACKOFFICE " +
+//			"		and rp.estatEnum != es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto.PENDENT " +
+//			"		and rm.entitatCodi is not null " +
+			"		and rm.tipus <> " + es.caib.emiserv.persist.entity.RedireccioMissatgeEntity.TIPUS_PETICION +
+			"		and ( " +
+			"			(s.tipus = es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto.ENRUTADOR_MULTIPLE " +
+			"				and rm.tipus in (" + es.caib.emiserv.persist.entity.RedireccioMissatgeEntity.TIPUS_RESPOSTA_ENTITAT + ", " + es.caib.emiserv.persist.entity.RedireccioMissatgeEntity.TIPUS_FAULT + ", " + es.caib.emiserv.persist.entity.RedireccioMissatgeEntity.TIPUS_FAULT_LOCAL + ")) " +
+			"			or " +
+			"			(s.tipus <> es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto.ENRUTADOR_MULTIPLE " +
+			"				and rm.tipus in (" + es.caib.emiserv.persist.entity.RedireccioMissatgeEntity.TIPUS_RESPUESTA + ", " + es.caib.emiserv.persist.entity.RedireccioMissatgeEntity.TIPUS_FAULT + ", " + es.caib.emiserv.persist.entity.RedireccioMissatgeEntity.TIPUS_FAULT_LOCAL + ")) " +
+			"		) " +
+			"		and rp.dataPeticio >= :dataInici " +
+			"		and rp.dataPeticio < :dataFi " +
+			"group by " +
+			"		rp.emissorCodi, " +
+			"		s.tipus, " +
+			"		rm.entitatCodi, " +
+			"		rp.serveiCodi, " +
+			"		s.nom, " +
+			"		rm.url, " +
+			"		rd.url, " +
+			"		s.urlPerDefecte " +
+			"order by " +
+			"		rp.emissorCodi, " +
+			"		rp.serveiCodi, " +
+			"		rm.entitatCodi")
+	List<InformeEmisorEnrutatDto> informeEmisorEnrutat(
+			@Param("dataInici") Date dataInici,
 			@Param("dataFi") Date dataFi);
 
 	/** Consulta les peticions als enrutadors per a la consulta de dades obertes

@@ -12,6 +12,7 @@ import es.caib.emiserv.logic.intf.dto.CarregaDto;
 import es.caib.emiserv.logic.intf.dto.ConsultaOpenDataDto;
 import es.caib.emiserv.logic.intf.dto.EstadisticaDto;
 import es.caib.emiserv.logic.intf.dto.EstadistiquesFiltreDto;
+import es.caib.emiserv.logic.intf.dto.InformeEmisorEnrutatDto;
 import es.caib.emiserv.logic.intf.dto.InformeGeneralEstatDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,6 +40,19 @@ public interface ExplotacioService {
 			Date dataInici,
 			Date dataFi,
 			ServeiTipusEnumDto tipusPeticio);
+
+	/**
+	 * Retorna una llista amb la informació per generar l'informe
+	 * de peticions realitzades a cada emissor pels serveis enrutats.
+	 *
+	 * @param dataInici Filtra per data inici.
+	 * @param dataFi Filtra per data fi.
+	 * @return Retorna la llista amb la informació.
+	 */
+	@PreAuthorize("hasRole('EMS_REPORT')")
+	List<InformeEmisorEnrutatDto> informeEmisorEnrutat(
+			Date dataInici,
+			Date dataFi);
 
 	/**
 	 * Retorna una llista de les consultes realitzades donada una entitat

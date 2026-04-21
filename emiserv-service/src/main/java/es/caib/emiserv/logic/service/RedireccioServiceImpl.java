@@ -444,7 +444,9 @@ public class RedireccioServiceImpl implements RedireccioService {
 					RedireccioMissatgeEntity redireccioMissatgeFault = RedireccioMissatgeEntity.getBuilder(
 							redireccioPeticio,
 							RedireccioMissatgeEntity.TIPUS_FAULT_LOCAL,
-							generarSoapFault(resposta)).build();
+							generarSoapFault(resposta),
+							entitatDesti,
+							resposta.getUrlDesti()).build();
 					redireccioPeticio.updateResposta(
 							resposta.getErrorCodi(),
 							resposta.getErrorDescripcio());
@@ -480,7 +482,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 			String peticioId,
 			String serveiCodi,
 			byte[] xml,
-			String entitatCodiRedireccio) throws Exception {
+			String entitatCodiRedireccio,
+			String urlRedireccio) throws Exception {
 		String xmlstr = xml != null ? new String(xml) : null;
 		log.debug(
 				"Obtenint URL servei SCSP per missatge XML (" +
@@ -543,7 +546,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 						redireccioPeticio,
 						missatgeTipus,
 						xmlstr,
-						entitatCodiRedireccio).build();
+						entitatCodiRedireccio,
+						urlRedireccio).build();
 				redireccioMissatgeRepository.save(redireccioMissatge);
 			} else {
 				log.error(
@@ -647,17 +651,25 @@ public class RedireccioServiceImpl implements RedireccioService {
     private static final int RESPOSTA_ENTITAT_TIPUS = RedireccioMissatgeEntity.TIPUS_RESPOSTA_ENTITAT;
 
 	@Transactional
-	public void saveRespostesPerEntitat(Map<String, String> respostes, String peticioId, String serveiCodi) {
+	@Override
+	public void saveRespostesPerEntitat(
+			Map<String, String> respostes,
+			Map<String, String> urlsPerEntitat,
+			String peticioId,
+			String serveiCodi) {
         if (respostes != null && !respostes.isEmpty()) {
             List<RedireccioPeticioEntity> redireccioPeticioList = redireccioPeticioRepository.findByPeticioIdAndServeiCodi(peticioId, serveiCodi);
             if (!redireccioPeticioList.isEmpty()) {
                 RedireccioPeticioEntity redireccioPeticio = redireccioPeticioList.get(0);
-                saveRedirectionMessages(respostes, redireccioPeticio);
+                saveRedirectionMessages(respostes, urlsPerEntitat, redireccioPeticio);
 			}
 		}
 	}
 
-    private void saveRedirectionMessages(Map<String, String> respostes, RedireccioPeticioEntity redireccioPeticio) {
+    private void saveRedirectionMessages(
+			Map<String, String> respostes,
+			Map<String, String> urlsPerEntitat,
+			RedireccioPeticioEntity redireccioPeticio) {
         for (var respostaEntry : respostes.entrySet()) {
 			String resposta = respostaEntry.getValue();
 			String entitat = respostaEntry.getKey();
@@ -666,7 +678,8 @@ public class RedireccioServiceImpl implements RedireccioService {
                         redireccioPeticio,
 						RESPOSTA_ENTITAT_TIPUS,
                         resposta,
-						entitat).build();
+						entitat,
+						urlsPerEntitat != null ? urlsPerEntitat.get(entitat) : null).build();
                 redireccioMissatgeRepository.save(redirectionMessage);
             }
 		}
@@ -870,6 +883,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 		return redireccioMissatges.stream().map(
 				m -> RedireccioRespostaDto.builder()
 						.entitat(m.getEntitatCodi())
+						.urlResposta(m.getUrl())
 						.xmlResposta(m.getXml())
 						.respostaEscollida(m.getEntitatCodi().equals(redireccioPeticio.getEntitatCodiRedireccio()))
 						.build())

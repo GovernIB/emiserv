@@ -43,6 +43,8 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 	private String xml;
 	@Column(name = "entitat_codi",  length = 64)
 	private String entitatCodi;
+	@Column(name = "url", length = 1024)
+	private String url;
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinColumn(
 			name = "peticio_id",
@@ -65,6 +67,9 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 	public String getEntitatCodi() {
 		return entitatCodi;
 	}
+	public String getUrl() {
+		return url;
+	}
 
 	public static Builder getBuilder(
 			RedireccioPeticioEntity peticio,
@@ -74,6 +79,7 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 				peticio,
 				tipus,
 				xml,
+				null,
 				null);
 	}
 
@@ -86,7 +92,22 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 				peticio,
 				tipus,
 				xml,
-				entitatCodi);
+				entitatCodi,
+				null);
+	}
+
+	public static Builder getBuilder(
+			RedireccioPeticioEntity peticio,
+			int tipus,
+			String xml,
+			String entitatCodi,
+			String url) {
+		return new Builder(
+				peticio,
+				tipus,
+				xml,
+				entitatCodi,
+				url);
 	}
 
 	public static class Builder {
@@ -95,12 +116,14 @@ public class RedireccioMissatgeEntity extends AbstractPersistable<Long> {
 				RedireccioPeticioEntity peticio,
 				int tipus,
 				String xml,
-				String entitatCodi) {
+				String entitatCodi,
+				String url) {
 			built = new RedireccioMissatgeEntity();
 			built.peticio = peticio;
 			built.tipus = tipus;
 			built.xml = xml;
 			built.entitatCodi = entitatCodi;
+			built.url = url;
 		}
 		public RedireccioMissatgeEntity build() {
 			return built;

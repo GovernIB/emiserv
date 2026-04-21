@@ -46,12 +46,14 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 			String peticioId,
 			String serveiCodi,
 			byte[] xml,
-			String entitatCodiRedireccio) throws Exception {
+			String entitatCodiRedireccio,
+			String urlRedireccio) throws Exception {
 		getDelegateService().processarResposta(
 				peticioId,
 				serveiCodi,
 				xml,
-				entitatCodiRedireccio);
+				entitatCodiRedireccio,
+				urlRedireccio);
 	}
 	
 	@Override
@@ -63,8 +65,12 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 
 	@Override
 	@PermitAll
-	public void saveRespostesPerEntitat(Map<String, String> respostes, String peticioId, String serveiCodi) {
-		getDelegateService().saveRespostesPerEntitat(respostes, peticioId, serveiCodi);
+	public void saveRespostesPerEntitat(
+			Map<String, String> respostes,
+			Map<String, String> urlsPerEntitat,
+			String peticioId,
+			String serveiCodi) {
+		getDelegateService().saveRespostesPerEntitat(respostes, urlsPerEntitat, peticioId, serveiCodi);
 	};
 	
 

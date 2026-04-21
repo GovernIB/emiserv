@@ -68,12 +68,21 @@ public class MockRedireccioService implements RedireccioService {
     }
 
     @Override
-    public void saveRespostesPerEntitat(Map<String, String> respostesPerEntitat, String peticioId, String serveiCodi) {
+    public void saveRespostesPerEntitat(
+            Map<String, String> respostesPerEntitat,
+            Map<String, String> urlsPerEntitat,
+            String peticioId,
+            String serveiCodi) {
         // No-op en mock
     }
 
     @Override
-    public void processarResposta(String peticioId, String serveiCodi, byte[] resposta, String entitatCodiRedireccio) {
+    public void processarResposta(
+            String peticioId,
+            String serveiCodi,
+            byte[] resposta,
+            String entitatCodiRedireccio,
+            String urlRedireccio) {
         // No-op en mock
     }
 

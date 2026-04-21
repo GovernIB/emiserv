@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - changeSet:
+      id: 1745152800000-1
+      author: codex
+      changes:
+        - addColumn:
+            tableName: ems_redir_missatge
+            columns:
+              - column:
+                  name: url
+                  type: varchar(1024 ${varcharUnit})

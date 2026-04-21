@@ -123,6 +123,33 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 
 	@Override
 	@Transactional(readOnly = true)
+	public List<InformeEmisorEnrutatDto> informeEmisorEnrutat(
+			Date dataInici,
+			Date dataFi) {
+
+		log.debug("Consulta de dades per l'informe de peticions per emissor enrutat (dataInici=" + dataInici +
+				", dataFi=" + dataFi + ")");
+
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(dataInici);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		dataInici = cal.getTime();
+		cal.setTime(dataFi);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		cal.add(Calendar.DATE, 1);
+		dataFi = cal.getTime();
+
+		return redireccioPeticioRepository.informeEmisorEnrutat(dataInici, dataFi);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public List<DadesObertesRespostaConsulta> findOpenData(String entitatNif, Date dataInici, Date dataFi, String procedimentCodi, String serveiCodi) {
 		log.debug("Consultant informació per opendata (" +
 				"entitatNif=" + entitatNif + ", " +

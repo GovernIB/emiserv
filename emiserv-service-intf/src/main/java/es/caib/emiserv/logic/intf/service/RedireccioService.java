@@ -52,7 +52,8 @@ public interface RedireccioService {
 			String peticioId,
 			String serveiCodi,
 			byte[] xml,
-			String entitatCodiRedireccio) throws Exception;
+			String entitatCodiRedireccio,
+			String urlRedireccio) throws Exception;
 
 	/** 
 	 * Analitza diferents missatges XML de resposta arribats del servei de redirecció múltiple i retorna la clau
@@ -68,6 +69,7 @@ public interface RedireccioService {
 
 	public void saveRespostesPerEntitat(
 			Map<String, String> respostes,
+			Map<String, String> urlsPerEntitat,
 			String peticioId,
 			String serveiCodi);
 

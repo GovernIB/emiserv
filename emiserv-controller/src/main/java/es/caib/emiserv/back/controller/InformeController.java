@@ -5,6 +5,7 @@ package es.caib.emiserv.back.controller;
 
 import es.caib.emiserv.back.command.InformeCommand;
 import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
+import es.caib.emiserv.back.view.InformeEmisorEnrutatExcelView;
 import es.caib.emiserv.back.view.InformeGeneralEstatExcelView;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.ExplotacioService;
@@ -39,6 +40,8 @@ public class InformeController extends BaseController {
 	private ExplotacioService explotacioService;
 	@Autowired
 	private InformeGeneralEstatExcelView informeView;
+	@Autowired
+	private InformeEmisorEnrutatExcelView informeEmisorEnrutatView;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public String get() {
@@ -74,6 +77,34 @@ public class InformeController extends BaseController {
 						command.getDataFi(),
 						command.getTipusPeticio()));
 		informeView.render(viewModel, request, response);
+		return null;
+	}
+
+	@RequestMapping(value = "/emisorEnrutat", method = RequestMethod.GET)
+	public String emisorEnrutatForm(
+			HttpServletRequest request,
+			Model model) {
+		model.addAttribute(new InformeCommand());
+		return "informeEmisorEnrutatForm";
+	}
+
+	@RequestMapping(value = "/emisorEnrutat", method = RequestMethod.POST)
+	public String emisorEnrutatPost(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			@Valid InformeCommand command,
+			BindingResult bindingResult,
+			Model model) throws Exception {
+		if (bindingResult.hasErrors()) {
+			return "informeEmisorEnrutatForm";
+		}
+		Map<String, Object> viewModel = new HashMap<String, Object>();
+		viewModel.put(
+				"informeDades",
+				explotacioService.informeEmisorEnrutat(
+						command.getDataInici(),
+						command.getDataFi()));
+		informeEmisorEnrutatView.render(viewModel, request, response);
 		return null;
 	}
 

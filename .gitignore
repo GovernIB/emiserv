@@ -13,3 +13,4 @@
 /emiserv-client-jersey3/target/
 /docker-compose.yml
 /.env
+/application.properties

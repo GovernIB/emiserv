@@ -205,6 +205,7 @@ public class ScspRoutingController extends BaseController {
 								"urlDestins=" + resultat.getUrlDestins() + ")");
 						Map<String, byte[]> xmlsPerEscollir = new HashMap<>();
 						Map<String, String> respostes = new HashMap<>();
+						Map<String, String> urlsPerEntitat = new HashMap<>();
 						Map<String, EnrutamentMultipleThreadResult> respostesPeticions = new HashMap<>();
 						if (respostesThreadsPeticio != null) {
 							for (Future<EnrutamentMultipleThreadResult> r : respostesThreadsPeticio) {
@@ -215,6 +216,7 @@ public class ScspRoutingController extends BaseController {
 									xmlsPerEscollir.put(r.get().codiEntitat, r.get().getXml());
 									// Prepara les respostes per a desar-les
 									respostes.put(r.get().codiEntitat, r.get().getResposta());
+									urlsPerEntitat.put(r.get().codiEntitat, r.get().getProxyUrl());
 								} catch (Exception ex) {
 									logger.error("Error processant les respostes de les peticions múltiples (" +
 											"serveiCodi=" + resultat.getAtributCodigoCertificado() + ", " +
@@ -224,7 +226,11 @@ public class ScspRoutingController extends BaseController {
 							}
 						}
 						// Desar totes les respostes
-						redireccioService.saveRespostesPerEntitat(respostes, resultat.getAtributPeticioId(), resultat.getAtributCodigoCertificado());
+						redireccioService.saveRespostesPerEntitat(
+								respostes,
+								urlsPerEntitat,
+								resultat.getAtributPeticioId(),
+								resultat.getAtributCodigoCertificado());
 						// Processar les respostes amb el mètode del servei d'enrutament
 						String respostaEscollida = redireccioService.escollirResposta(
 								resultat,
@@ -289,7 +295,8 @@ public class ScspRoutingController extends BaseController {
 						resultat.getAtributPeticioId(),
 						resultat.getAtributCodigoCertificado(),
 						soapFault.getBytes(),
-						resultat.getEntitatCodiRedireccio());
+						resultat.getEntitatCodiRedireccio(),
+						proxyUrl);
 				response.getOutputStream().write(soapFault.getBytes());
 			} catch (Exception ex) {
 				logger.error("Error processant resposta errònia d'una petició a l'enrutador: " + 
@@ -382,7 +389,8 @@ public class ScspRoutingController extends BaseController {
 								resultat.getAtributPeticioId(),
 								resultat.getAtributCodigoCertificado(),
 								respostaBytes,
-								resultat.getEntitatCodiRedireccio());
+								resultat.getEntitatCodiRedireccio(),
+								proxyUrl);
 						// Retorna la resposta al requirent
 						response.setStatus(proxyResponseCode);
 						for (Header header: headerArrayResponse) {
@@ -409,7 +417,8 @@ public class ScspRoutingController extends BaseController {
 									resultat.getAtributPeticioId(),
 									resultat.getAtributCodigoCertificado(),
 									soapFault.getBytes(),
-									resultat.getEntitatCodiRedireccio());
+									resultat.getEntitatCodiRedireccio(),
+									proxyUrl);
 							response.getOutputStream().write(soapFault.getBytes());
 						} catch (Exception ex2) {
 							logger.error("Error processant el resultat d'error: " + ex.getLocalizedMessage());
@@ -581,6 +590,7 @@ public class ScspRoutingController extends BaseController {
 		private int proxyResponseCode = -1;
 		private PostMethod method;
 		private RedireccioProcessarResultatDto resultat;
+		private String proxyUrl;
 		/** XML del body de la resposta. Com que pot venir comprimit es descomprimeix una sola vegada
 		 * pel seu processament.
 		 */
@@ -634,6 +644,7 @@ public class ScspRoutingController extends BaseController {
 				proxyUrl = getProxyUrl(
 						this.request,
 						this.urlDesti);
+				ret.setProxyUrl(proxyUrl);
 				PostMethod method = new PostMethod(proxyUrl);
 				headerCopier.copiarCapsaleresHttp(
 						request,

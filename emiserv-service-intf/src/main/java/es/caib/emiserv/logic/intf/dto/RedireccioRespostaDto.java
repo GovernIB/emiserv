@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 public class RedireccioRespostaDto extends ObjecteAmbPermisosDto {
 
 	private String entitat;
+	private String urlResposta;
 	private String xmlResposta;
 	private boolean respostaEscollida;
 
