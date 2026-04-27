@@ -35,7 +35,7 @@ public interface ExplotacioService {
 	 * @param tipusPeticio Filtra per backoffices, enrutador o tots si és null.
 	 * @return Retorna la llista amb la informació.
 	 */
-	@PreAuthorize("hasRole('EMS_REPORT')")
+	@PreAuthorize("hasAnyRole('EMS_REPORT', 'EMS_ADMIN')")
 	List<InformeGeneralEstatDto> informeGeneralEstat(
 			Date dataInici,
 			Date dataFi,
@@ -49,7 +49,7 @@ public interface ExplotacioService {
 	 * @param dataFi Filtra per data fi.
 	 * @return Retorna la llista amb la informació.
 	 */
-	@PreAuthorize("hasRole('EMS_REPORT')")
+	@PreAuthorize("hasAnyRole('EMS_REPORT', 'EMS_ADMIN')")
 	List<InformeEmisorEnrutatDto> informeEmisorEnrutat(
 			Date dataInici,
 			Date dataFi);

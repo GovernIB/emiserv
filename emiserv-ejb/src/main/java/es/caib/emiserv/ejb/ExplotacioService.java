@@ -24,7 +24,7 @@ import java.util.List;
  * @author Limit Tecnologies <limit@limit.es>
  */
 @Stateless
-@RolesAllowed("EMS_REPORT")
+@RolesAllowed({"EMS_REPORT", "EMS_ADMIN"})
 public class ExplotacioService extends AbstractService<es.caib.emiserv.logic.intf.service.ExplotacioService> implements es.caib.emiserv.logic.intf.service.ExplotacioService {
 
 	@Override
