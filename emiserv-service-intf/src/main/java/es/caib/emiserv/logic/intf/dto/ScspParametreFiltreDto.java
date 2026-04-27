@@ -3,6 +3,8 @@
  */
 package es.caib.emiserv.logic.intf.dto;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
@@ -10,21 +12,12 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
+@Getter @Setter
 public class ScspParametreFiltreDto {
 
     private String nombre;
     private String valor;
     private String descripcion;
-
-    public String getNombre() {
-        return nombre;
-    }
-    public String getValor() {
-        return valor;
-    }
-    public String getDescripcion() {
-        return descripcion;
-    }
 
     @Override
 	public String toString() {
