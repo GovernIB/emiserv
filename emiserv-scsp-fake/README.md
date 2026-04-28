@@ -23,12 +23,14 @@ Endpoints principals:
 - `POST /ws/EmiservBackoffice`
 - `POST /scsp/<codi-servei>/<codi-entitat>`
 - `POST /scsp/<codi-servei>/<codi-entitat>/ko`
+- `POST /scsp/<codi-servei>/<codi-entitat>/no`
 
 Comportament:
 
 - Qualsevol `POST` fora dels paths de backoffice es tracta com una petició SCSP.
 - Per a enrutador múltiple, el path esperat és `/scsp/<codi-servei>/<codi-entitat>`.
 - Si el path acaba amb `/ko` o l’XML conté `<error>`, el fake retorna un `SOAP Fault`.
+- Si el path acaba amb `/no` i el servei és `SVDSCTFNWS01`, el fake retorna una resposta vàlida sense dades trobades.
 - En cas contrari retorna una resposta `OK` i copia `codigoCertificado`, `idPeticion` i `idSolicitud` si són presents.
 
 Exemples de configuració a `emiserv`:
@@ -46,6 +48,7 @@ Enrutador múltiple:
 - Ruta entitat `CAIB`: `http://localhost:18080/scsp/SVDSCDDWS01/CAIB`
 - Ruta entitat `ALTRE`: `http://localhost:18080/scsp/SVDSCDDWS01/ALTRE`
 - Si vols simular que una entitat falla: `http://localhost:18080/scsp/SVDSCDDWS01/ALTRE/ko`
+- Per a `SVDSCTFNWS01`, si vols simular resposta sense informació i que el resolver retorni `null`: `http://localhost:18080/scsp/SVDSCTFNWS01/MALLORCA/no`
 
 Backoffice:
 

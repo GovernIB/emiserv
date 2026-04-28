@@ -81,6 +81,9 @@ class FakeEmiservServerTest {
 
 		assertEquals(500, response.statusCode());
 		assertTrue(response.body().contains("Fault"));
+		assertTrue(response.body().contains("soapfaultatributos"));
+		assertTrue(response.body().contains("<a:CodigoCertificado>SVDSCDDWS01</a:CodigoCertificado>"));
+		assertTrue(response.body().contains("<a:CodigoEstado>0101</a:CodigoEstado>"));
 	}
 
 	@Test
@@ -142,6 +145,31 @@ class FakeEmiservServerTest {
 		assertFalse(response.body().contains("<Provincia>"));
 		assertFalse(response.body().contains("<DatosTitular>"));
 		assertFalse(response.body().contains("<Codigo>0</Codigo>"));
+	}
+
+	@Test
+	void svdsctfnws01NoPathReturnsValidNoDataResponse() throws Exception {
+		server = FakeEmiservServer.createServer("127.0.0.1", 0);
+		server.start();
+
+		String requestXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+			+ "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:scsp=\"http://intermediacion.redsara.es/scsp/esquemas/V3/peticion\" xmlns:de=\"http://intermediacion.redsara.es/scsp/esquemas/datosespecificos\">"
+			+ "<soapenv:Body>"
+			+ "<scsp:Peticion>"
+			+ "<scsp:Atributos><scsp:CodigoCertificado>SVDSCTFNWS01</scsp:CodigoCertificado><scsp:IdPeticion>PET-FN-NO-1</scsp:IdPeticion></scsp:Atributos>"
+			+ "<scsp:Solicitudes><scsp:SolicitudTransmision><scsp:DatosGenericos><scsp:Titular><scsp:Documentacion>18225486X</scsp:Documentacion><scsp:Nombre>Sion</scsp:Nombre><scsp:Apellido1>Andreu</scsp:Apellido1></scsp:Titular></scsp:DatosGenericos>"
+			+ "<scsp:DatosEspecificos><de:Consulta><de:TituloFamiliaNumerosa><de:CodigoComunidadAutonoma>04</de:CodigoComunidadAutonoma></de:TituloFamiliaNumerosa></de:Consulta></scsp:DatosEspecificos>"
+			+ "</scsp:SolicitudTransmision></scsp:Solicitudes>"
+			+ "</scsp:Peticion>"
+			+ "</soapenv:Body></soapenv:Envelope>";
+
+		HttpResponse<String> response = post("/scsp/SVDSCTFNWS01/mallorca/no", requestXml);
+
+		assertEquals(200, response.statusCode());
+		assertTrue(response.body().contains("<CodigoEstado>7</CodigoEstado>"));
+		assertTrue(response.body().contains("trobat informació"));
+		assertFalse(response.body().contains("<TituloFamiliaNumerosaRetorno>"));
+		assertFalse(response.body().contains("<ListaBeneficiariosRetorno>"));
 	}
 
 	@Test

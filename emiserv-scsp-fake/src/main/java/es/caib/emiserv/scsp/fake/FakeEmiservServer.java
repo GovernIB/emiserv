@@ -58,6 +58,7 @@ public final class FakeEmiservServer {
 	private static final String DEFAULT_SCSP_NS = "http://intermediacion.redsara.es/scsp/esquemas/solicitudrespuesta";
 	private static final String SCSP_V3_PETICION_NS = "http://intermediacion.redsara.es/scsp/esquemas/V3/peticion";
 	private static final String SCSP_V3_RESPUESTA_NS = "http://intermediacion.redsara.es/scsp/esquemas/V3/respuesta";
+	private static final String SCSP_V3_SOAPFAULT_ATRIBUTOS_NS = "http://intermediacion.redsara.es/scsp/esquemas/V3/soapfaultatributos";
 	private static final String DATOS_ESPECIFICOS_NS = "http://intermediacion.redsara.es/scsp/esquemas/datosespecificos";
 	private static final String WSSE_NS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 	private static final String WSU_NS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
@@ -82,6 +83,7 @@ public final class FakeEmiservServer {
 		System.out.println("Fake Emiserv escoltant a http://" + host + ":" + port);
 		System.out.println("SCSP fake: POST http://" + host + ":" + port + "/scsp/<servei>/<entitat>");
 		System.out.println("SCSP fake error: POST http://" + host + ":" + port + "/scsp/<servei>/<entitat>/ko");
+		System.out.println("SCSP fake sense dades: POST http://" + host + ":" + port + "/scsp/<servei>/<entitat>/no");
 		System.out.println("Backoffice fake: POST http://" + host + ":" + port + BACKOFFICE_PATH);
 		System.out.println("Backoffice WSDL: GET  http://" + host + ":" + port + BACKOFFICE_PATH + "?wsdl");
 	}
@@ -151,7 +153,13 @@ public final class FakeEmiservServer {
 		private void handleScsp(HttpExchange exchange, RequestInfo requestInfo, String requestXml) throws IOException {
 			String xmlLower = requestXml.toLowerCase();
 			if (requestInfo.forceError || xmlLower.contains("<error") || xmlLower.contains(":error")) {
-				writeXml(exchange, 500, SoapTemplates.soapFault("Server", "Error forcat pel fake SCSP"));
+				writeXml(exchange, 500, signer.sign(
+					SoapTemplates.scspSoapFault(
+						requestInfo,
+						"Server",
+						"0101",
+						"Error forcat pel fake SCSP"),
+					requestInfo.signatureStyle));
 				return;
 			}
 			writeXml(exchange, 200, signer.sign(SoapTemplates.scspResponse(requestInfo), requestInfo.signatureStyle));
@@ -197,6 +205,7 @@ public final class FakeEmiservServer {
 				+ " servei=" + requestInfo.serviceCode
 				+ " entitat=" + requestInfo.entityCode
 				+ " forceError=" + requestInfo.forceError
+				+ " noData=" + requestInfo.noData
 				+ " idPeticion=" + requestInfo.idPeticion
 				+ " idSolicitudes=" + requestInfo.idSolicitudes);
 			System.out.println(requestXml);
@@ -204,7 +213,7 @@ public final class FakeEmiservServer {
 
 		private String statusBody() {
 			return "Fake Emiserv actiu\n"
-				+ "- SCSP POST /scsp/<servei>/<entitat> o /scsp/<servei>/<entitat>/ko\n"
+				+ "- SCSP POST /scsp/<servei>/<entitat> o /scsp/<servei>/<entitat>/ko o /scsp/<servei>/<entitat>/no\n"
 				+ "- Backoffice POST " + BACKOFFICE_PATH + "\n"
 				+ "- WSDL GET " + BACKOFFICE_PATH + "?wsdl\n";
 		}
@@ -216,6 +225,7 @@ public final class FakeEmiservServer {
 		private final String serviceCode;
 		private final String entityCode;
 		private final boolean forceError;
+		private final boolean noData;
 		private final SignatureStyle signatureStyle;
 		private final String idPeticion;
 		private final String numElementos;
@@ -245,6 +255,7 @@ public final class FakeEmiservServer {
 			String serviceCode,
 			String entityCode,
 			boolean forceError,
+			boolean noData,
 			SignatureStyle signatureStyle,
 			String idPeticion,
 			String numElementos,
@@ -272,6 +283,7 @@ public final class FakeEmiservServer {
 			this.serviceCode = serviceCode;
 			this.entityCode = entityCode;
 			this.forceError = forceError;
+			this.noData = noData;
 			this.signatureStyle = signatureStyle;
 			this.idPeticion = idPeticion;
 			this.numElementos = numElementos;
@@ -395,6 +407,7 @@ public final class FakeEmiservServer {
 					serviceCode,
 					null,
 					false,
+					false,
 					signatureStyle,
 					idPeticion,
 					numElementos,
@@ -433,6 +446,7 @@ public final class FakeEmiservServer {
 				effectiveServiceCode,
 				pathInfo.entityCode,
 				pathInfo.forceError,
+				pathInfo.noData,
 				signatureStyle,
 				idPeticion,
 				numElementos,
@@ -536,11 +550,13 @@ public final class FakeEmiservServer {
 		private final String serviceCode;
 		private final String entityCode;
 		private final boolean forceError;
+		private final boolean noData;
 
-		private ScspPathInfo(String serviceCode, String entityCode, boolean forceError) {
+		private ScspPathInfo(String serviceCode, String entityCode, boolean forceError, boolean noData) {
 			this.serviceCode = serviceCode;
 			this.entityCode = entityCode;
 			this.forceError = forceError;
+			this.noData = noData;
 		}
 
 		static ScspPathInfo fromPath(String path) {
@@ -560,7 +576,8 @@ public final class FakeEmiservServer {
 			String serviceCode = parts.get(1);
 			String entityCode = parts.get(2);
 			boolean forceError = parts.size() > 3 && "ko".equalsIgnoreCase(parts.get(3));
-			return new ScspPathInfo(serviceCode, entityCode, forceError);
+			boolean noData = parts.size() > 3 && "no".equalsIgnoreCase(parts.get(3));
+			return new ScspPathInfo(serviceCode, entityCode, forceError, noData);
 		}
 	}
 
@@ -687,6 +704,16 @@ public final class FakeEmiservServer {
 		}
 
 		private static String familiaNombrosaDatosEspecificos(RequestInfo requestInfo) {
+			if (requestInfo.noData) {
+				return "<DatosEspecificos xmlns=\"" + DATOS_ESPECIFICOS_NS + "\">"
+					+ "<Retorno>"
+					+ "<Estado>"
+					+ "<CodigoEstado>7</CodigoEstado>"
+					+ "<LiteralError>No s&apos;ha trobat informació</LiteralError>"
+					+ "</Estado>"
+					+ "</Retorno>"
+					+ "</DatosEspecificos>";
+			}
 			String entitat = defaultIfBlank(requestInfo.entityCode, "MALLORCA").toUpperCase();
 			String codiTitol = "TFN-" + entitat + "-" + sanitizeDigits(requestInfo.titularDocumentacio, "18225486") + "-2026";
 			return "<DatosEspecificos xmlns=\"" + DATOS_ESPECIFICOS_NS + "\">"
@@ -726,11 +753,42 @@ public final class FakeEmiservServer {
 			return defaultIfBlank(requestInfo.nifEmisor, "S2833002E");
 		}
 
+		private static String scspSoapFaultAtributosNs(RequestInfo requestInfo) {
+			if (requestInfo != null && SCSP_V3_RESPUESTA_NS.equals(requestInfo.scspResponseNamespace())) {
+				return SCSP_V3_SOAPFAULT_ATRIBUTOS_NS;
+			}
+			return SCSP_V3_SOAPFAULT_ATRIBUTOS_NS;
+		}
+
 		static String soapFault(String faultCode, String faultString) {
 			return envelope(
 				"<soapenv:Fault>"
 					+ "<faultcode>soapenv:" + esc(faultCode) + "</faultcode>"
 					+ "<faultstring>" + esc(faultString) + "</faultstring>"
+					+ "</soapenv:Fault>");
+		}
+
+		static String scspSoapFault(
+				RequestInfo requestInfo,
+				String faultCode,
+				String codigoEstado,
+				String literalError) {
+			return envelope(
+				"<soapenv:Fault>"
+					+ "<faultcode>soapenv:" + esc(faultCode) + "</faultcode>"
+					+ "<faultstring>" + esc(defaultIfBlank(literalError, "Error forcat pel fake SCSP")) + "</faultstring>"
+					+ "<detail>"
+					+ "<a:Atributos xmlns:a=\"" + scspSoapFaultAtributosNs(requestInfo) + "\">"
+					+ "<a:IdPeticion>" + esc(defaultIfBlank(requestInfo.idPeticion, "FAKE-PET")) + "</a:IdPeticion>"
+					+ "<a:NumElementos>" + esc(defaultIfBlank(requestInfo.numElementos, "1")) + "</a:NumElementos>"
+					+ "<a:TimeStamp>2026-04-27T10:00:00+02:00</a:TimeStamp>"
+					+ "<a:CodigoCertificado>" + esc(defaultIfBlank(requestInfo.serviceCode, "FAKE_CERT")) + "</a:CodigoCertificado>"
+					+ "<a:Estado>"
+					+ "<a:CodigoEstado>" + esc(defaultIfBlank(codigoEstado, "0101")) + "</a:CodigoEstado>"
+					+ "<a:LiteralError>" + esc(defaultIfBlank(literalError, "Error forcat pel fake SCSP")) + "</a:LiteralError>"
+					+ "</a:Estado>"
+					+ "</a:Atributos>"
+					+ "</detail>"
 					+ "</soapenv:Fault>");
 		}
 
