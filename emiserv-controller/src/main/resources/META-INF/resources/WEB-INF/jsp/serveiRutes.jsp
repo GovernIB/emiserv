@@ -90,6 +90,14 @@
 	}	
 
 </script>
+<style>
+#rutes td:last-child,
+#rutes th:last-child {
+	white-space: nowrap;
+	width: 96px;
+	min-width: 96px;
+}
+</style>
 </head>
 <body>
 	<c:if test="${not empty servei.urlPerDefecte}">
@@ -103,10 +111,12 @@
 	</form>
 	</c:if>
 	<form:form method="post" modelAttribute="serveiRutaDestiCommand" role="form">
-		<table id="rutes" 
-			data-toggle="datatable" 
+		<table id="rutes"
+			data-toggle="datatable"
 			data-url="<c:url value="/servei/${servei.id}/rutes/datatable"/>" 
 			data-editable="true" 
+			data-editable-button-mode="true"
+			data-updatable="true"
 			data-editable-auto="true" 
 			data-editable-sample-row=".ruta-nova" 
 			data-paging-enabled="true" 

@@ -124,8 +124,7 @@
 						$cell.empty().append('<a class="btn btn-default drag-handle" style="padding: 6px 4px;margin-right: 4px;cursor: move;cursor: -webkit-grabbing;">::</a>');
 					}
 					if (plugin.settings.editable) {
-						var deleteUrl = getBaseUrl() + '/' + data['DT_Id'] + '/delete';
-						$('td:last-child', row).html('<a href="' + deleteUrl + '" class="btn btn-default btn-sm"><i class="fa fa-trash-o"></i></a>')
+						renderEditableActionButtons($(row));
 					}
 					if (plugin.settings.rowInfo) {
 						$('td:last-child', row).html('<a href="#" class="btn btn-default btn-sm"><span class="fa fa-caret-down"></span></a>')
@@ -194,7 +193,7 @@
 							}
 						});
 					});
-					if (plugin.settings.editableSampleRow && plugin.settings.editable !== false) {
+					if (plugin.settings.editableSampleRow && plugin.settings.editable !== false && !plugin.settings.editableButtonMode) {
 						$('tbody tr', $taula).click(function(event) {
 							var $parentTbody = $(this).closest('tbody');
 							$parentTbody.attr('data-clicked', 'true');
@@ -245,12 +244,45 @@
 						}
 					}
 					if (plugin.settings.editable) {
-						$('tbody tr td:last-child a', $taula).click(function(e) {
-							if (confirm('Estau segur que voleu esborrar aquesta fila?')) {
-								editableAccioDelete($(this).attr('href'));
-							}
-							return false;
-						});
+						if (plugin.settings.editableButtonMode) {
+							$taula.off('click', 'tbody tr td:last-child .datatable-edit').on('click', 'tbody tr td:last-child .datatable-edit', function(e) {
+								var $row = $(this).closest('tr');
+								var $rowEditing = $('tbody tr[data-editing]', $taula);
+								if ($rowEditing.length > 0 && !$rowEditing.is($row)) {
+									editableNetejarEdicioRow($rowEditing, false);
+									renderEditableActionButtons($rowEditing);
+								}
+								var rowIndex = $taula.dataTable().api().row($row).index();
+								editableSeleccionarRow($row, rowIndex);
+								renderEditableActionButtons($row);
+								$(':input:enabled:visible:first', $row).focus().select();
+								return false;
+							});
+							$taula.off('click', 'tbody tr td:last-child .datatable-save').on('click', 'tbody tr td:last-child .datatable-save', function(e) {
+								var $row = $(this).closest('tr');
+								editableProcessarCanviRow($row);
+								return false;
+							});
+							$taula.off('click', 'tbody tr td:last-child .datatable-cancel').on('click', 'tbody tr td:last-child .datatable-cancel', function(e) {
+								var $row = $(this).closest('tr');
+								editableNetejarEdicioRow($row, false);
+								renderEditableActionButtons($row);
+								return false;
+							});
+							$taula.off('click', 'tbody tr td:last-child .datatable-delete').on('click', 'tbody tr td:last-child .datatable-delete', function(e) {
+								if (confirm('Estau segur que voleu esborrar aquesta fila?')) {
+									editableAccioDelete($(this).attr('href'));
+								}
+								return false;
+							});
+						} else {
+							$('tbody tr td:last-child a', $taula).click(function(e) {
+								if (confirm('Estau segur que voleu esborrar aquesta fila?')) {
+									editableAccioDelete($(this).attr('href'));
+								}
+								return false;
+							});
+						}
 					}
 					if (plugin.settings.rowInfo) {
 						$('tbody tr td:last-child a', $taula).click(function(e) {
@@ -509,89 +541,93 @@
 			}
 			// Configuració taula editable
 			if (plugin.settings.editableSampleRow && plugin.settings.editable !== false) {
-				dataTableOptions = $.extend({
-					keys: {
-						columns: (plugin.settings.selectionEnabled) ? ':not(:first-child)' : '',
-						keys: [38, 40, 9, 13] // ARROW_LEFT = 37, ARROW_UP = 38, ARROW_RIGHT = 39, ARROW_DOWN = 40, ENTER = 13, ESC = 27, TAB = 9,
-				    }
-				}, dataTableOptions);
+				if (!plugin.settings.editableButtonMode) {
+					dataTableOptions = $.extend({
+						keys: {
+							columns: (plugin.settings.selectionEnabled) ? ':not(:first-child)' : '',
+							keys: [38, 40, 9, 13] // ARROW_LEFT = 37, ARROW_UP = 38, ARROW_RIGHT = 39, ARROW_DOWN = 40, ENTER = 13, ESC = 27, TAB = 9,
+					    }
+					}, dataTableOptions);
+				}
 				$('tfoot tr th:last-child a', $taula).click(function(e) {
 					editableAccioCreate($(this).attr('href'), $(this).closest('tr'));
 					return false;
 				});
-				$taula.on('key-focus', function(e, datatable, cell) {
-					var $parentTbody = $(cell.node()).closest('tbody');
-					var $parentTr = $(cell.node()).closest('tr');
-					var $lastRow = $('tr[data-editing]', $parentTbody);
-					var currentRow = cell.index().row;
-					if (currentRow != $lastRow.index() && plugin.settings.updatable) {
-						var triggerOk = editableProcessarCanviRow($lastRow);
-						if (triggerOk) {
-							editableSeleccionarRow($parentTr, cell.index().row);
-							$taula.trigger(
-									'editablerowfocus.dataTable',
-									[$parentTr, datatable.row(currentRow).data()]);
-						}
-					}
-					var $currentInput = $('*:input:enabled', cell.node());
-					if ($currentInput.length) {
-						$currentInput.first().focus().select();
-					} else {
-						var shiftKey = false;
-						if ($parentTbody.attr('data-clicked')) {
-							$parentTbody.removeAttr('data-clicked');
-						} else {
-							if (currentRow < $lastRow.index()) {
-								shiftKey = true;
-							} else if (currentRow == $lastRow.index()) {
-								var lastCol = $parentTbody.attr('data-last-col');
-								var currentCol = cell.index().column;
-								shiftKey = currentCol < lastCol;
+				if (!plugin.settings.editableButtonMode) {
+					$taula.on('key-focus', function(e, datatable, cell) {
+						var $parentTbody = $(cell.node()).closest('tbody');
+						var $parentTr = $(cell.node()).closest('tr');
+						var $lastRow = $('tr[data-editing]', $parentTbody);
+						var currentRow = cell.index().row;
+						if (currentRow != $lastRow.index() && plugin.settings.updatable) {
+							var triggerOk = editableProcessarCanviRow($lastRow);
+							if (triggerOk) {
+								editableSeleccionarRow($parentTr, cell.index().row);
+								$taula.trigger(
+										'editablerowfocus.dataTable',
+										[$parentTr, datatable.row(currentRow).data()]);
 							}
 						}
-						var keydownEvent = jQuery.Event('keydown.keyTable');
-						keydownEvent.keyCode = 9;
-						if (shiftKey) {
-							keydownEvent.shiftKey = 'left';
+						var $currentInput = $('*:input:enabled', cell.node());
+						if ($currentInput.length) {
+							$currentInput.first().focus().select();
+						} else {
+							var shiftKey = false;
+							if ($parentTbody.attr('data-clicked')) {
+								$parentTbody.removeAttr('data-clicked');
+							} else {
+								if (currentRow < $lastRow.index()) {
+									shiftKey = true;
+								} else if (currentRow == $lastRow.index()) {
+									var lastCol = $parentTbody.attr('data-last-col');
+									var currentCol = cell.index().column;
+									shiftKey = currentCol < lastCol;
+								}
+							}
+							var keydownEvent = jQuery.Event('keydown.keyTable');
+							keydownEvent.keyCode = 9;
+							if (shiftKey) {
+								keydownEvent.shiftKey = 'left';
+							}
+							$taula.trigger(keydownEvent);
 						}
-						$taula.trigger(keydownEvent);
-					}
-				});
-				$taula.on('key-blur', function(e, datatable, cell) {
-					var currentRow = cell.index().row;
-					var currentCol = cell.index().column;
-					var $parentTbody = $(cell.node()).closest('tbody');
-					$parentTbody.attr('data-last-row', currentRow);
-					$parentTbody.attr('data-last-col', currentCol);
-					var $cellNode = $(cell.node());
-					var dataTableCell = $taula.dataTable().api().cell(cell.node());
-					var rowEditat = $(currentRow).attr('data-edited');
-					$taula.trigger(
-							'editablerowblur.dataTable',
-							[$(currentRow), editableGetRowData($(currentRow)), rowEditat]);
-				});
-				$taula.on('keydown', function(e) {
-					if (e.keyCode == 13) {
-						if ($(e.target).data('toggle') != 'lov') {
-							e.preventDefault();
-							e.stopPropagation();
+					});
+					$taula.on('key-blur', function(e, datatable, cell) {
+						var currentRow = cell.index().row;
+						var currentCol = cell.index().column;
+						var $parentTbody = $(cell.node()).closest('tbody');
+						$parentTbody.attr('data-last-row', currentRow);
+						$parentTbody.attr('data-last-col', currentCol);
+						var $cellNode = $(cell.node());
+						var dataTableCell = $taula.dataTable().api().cell(cell.node());
+						var rowEditat = $(currentRow).attr('data-edited');
+						$taula.trigger(
+								'editablerowblur.dataTable',
+								[$(currentRow), editableGetRowData($(currentRow)), rowEditat]);
+					});
+					$taula.on('keydown', function(e) {
+						if (e.keyCode == 13) {
+							if ($(e.target).data('toggle') != 'lov') {
+								e.preventDefault();
+								e.stopPropagation();
+							}
+						} else if (e.keyCode == 27) {
+							$taula.dataTable().api().cell.blur();
+							var $currentRow = $(e.target).closest('tr');
+							if ($currentRow.data('camps-addicionals'))
+								$currentRow = $currentRow.prev();
+							editableNetejarEdicioRow($currentRow, false);
 						}
-					} else if (e.keyCode == 27) {
-						$taula.dataTable().api().cell.blur();
-						var $currentRow = $(e.target).closest('tr');
-						if ($currentRow.data('camps-addicionals'))
-							$currentRow = $currentRow.prev();
-						editableNetejarEdicioRow($currentRow, false);
-					}
-				});
-				$(':input', getEditableSampleRow()).on('focus', function() {
-					if ($(this).closest('tfoot').length > 0) {
-						var $rowEditing = $($taula.dataTable().api().row('[data-editing]').node());
-						if ($rowEditing.length > 0) {
-							editableNetejarEdicioRow($rowEditing, false);
+					});
+					$(':input', getEditableSampleRow()).on('focus', function() {
+						if ($(this).closest('tfoot').length > 0) {
+							var $rowEditing = $($taula.dataTable().api().row('[data-editing]').node());
+							if ($rowEditing.length > 0) {
+								editableNetejarEdicioRow($rowEditing, false);
+							}
 						}
-					}
-				});
+					});
+				}
 				if (plugin.settings.campsAddicionals) {
 					$(plugin.settings.campsAddicionals).css('display', 'none');
 					$(':input', plugin.settings.campsAddicionals).each(function() {
@@ -744,6 +780,26 @@
 		var getEditableSampleRow = function() {
 			return $(plugin.settings.editableSampleRow).last();
 		}
+		var renderEditableActionButtons = function($row) {
+			var rowData = $taula.dataTable().api().row($row).data();
+			if (!rowData) {
+				return;
+			}
+			var deleteUrl = getBaseUrl() + '/' + rowData['DT_Id'] + '/delete';
+			var html;
+			if (plugin.settings.editableButtonMode && $row.attr('data-editing')) {
+				html = ''
+					+ '<a href="#" class="btn btn-primary btn-sm datatable-save" style="margin-right:4px"><i class="fa fa-save"></i></a>'
+					+ '<a href="#" class="btn btn-default btn-sm datatable-cancel"><i class="fa fa-times"></i></a>';
+			} else if (plugin.settings.editableButtonMode) {
+				html = ''
+					+ '<a href="#" class="btn btn-default btn-sm datatable-edit" style="margin-right:4px"><i class="fa fa-pencil"></i></a>'
+					+ '<a href="' + deleteUrl + '" class="btn btn-default btn-sm datatable-delete"><i class="fa fa-trash-o"></i></a>';
+			} else {
+				html = '<a href="' + deleteUrl + '" class="btn btn-default btn-sm"><i class="fa fa-trash-o"></i></a>';
+			}
+			$('td:last-child', $row).html(html);
+		}
 		var editableCellChange = function() {
 			var $currentRow = $('tr[data-editing]', $('tbody', $taula));
 			$currentRow.attr('data-edited', 'true');
@@ -799,6 +855,9 @@
 						'change',
 						editableCellChange);
 			}
+			if (plugin.settings.editable) {
+				renderEditableActionButtons($row);
+			}
 		}
 		var editableNetejarEdicioRow = function($row, actualitzarData) {
 			$row.removeAttr('data-editing');
@@ -835,6 +894,9 @@
 				});
 				$('td:first', $rowCampsAddicionals).children().appendTo($(plugin.settings.campsAddicionals));
 				$rowCampsAddicionals.remove();
+			}
+			if (plugin.settings.editable) {
+				renderEditableActionButtons($row);
 			}
 		}
 		var editableProcessarCanviRow = function($row) {
