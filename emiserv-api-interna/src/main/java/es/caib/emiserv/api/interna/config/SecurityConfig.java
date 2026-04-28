@@ -46,7 +46,7 @@ import java.util.Set;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-	@Value("${es.caib.emiserv.security.mappableRoles:EMS_ADMIN,EMS_REPORT}")
+	@Value("${es.caib.emiserv.security.mappableRoles:EMS_ADMIN,EMS_REPORT,EMS_COM}")
 	private String mappableRoles;
 	@Value("${es.caib.emiserv.security.useResourceRoleMappings:false}")
 	private boolean useResourceRoleMappings;

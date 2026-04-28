@@ -46,7 +46,7 @@ public class EstadistiquesApiV1Controller {
 
 
     @GetMapping("/info")
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(operationId = "estadistiquesInfo",
             summary = "Obtenir informació de 'estructura de les estadístiques",
@@ -68,7 +68,7 @@ public class EstadistiquesApiV1Controller {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(operationId = "estadistiques",
             summary = "Obtenir darreres estadístiques diàries disponibles",
@@ -87,7 +87,7 @@ public class EstadistiquesApiV1Controller {
     }
 
     @GetMapping("/of/{data}")
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(operationId = "estadistiquesPerData",
             summary = "Obtenir estadístiques d'una data concreta",
@@ -110,7 +110,7 @@ public class EstadistiquesApiV1Controller {
     }
 
     @GetMapping("/from/{dataInici}/to/{dataFi}")
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(operationId = "estadistiquesPerRang",
             summary = "Obtenir les estadístiques d'un interval donat",

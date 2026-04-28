@@ -45,7 +45,7 @@ public class LogApiController {
     private final AplicacioService aplicacioService;
 
     @GetMapping()
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(
             operationId = "llistarFitxers",
@@ -64,7 +64,7 @@ public class LogApiController {
     }
 
     @GetMapping("/{nomFitxer}")
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(
             operationId = "getFitxerByNom",
@@ -87,7 +87,7 @@ public class LogApiController {
             value = "/{nomFitxer}/directe",
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE
     )
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(
             operationId = "descarregarFitxerDirecte",
@@ -144,7 +144,7 @@ public class LogApiController {
 
 
     @GetMapping("/{nomFitxer}/linies/{nLinies}")
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(
             operationId = "llegitUltimesLinies",

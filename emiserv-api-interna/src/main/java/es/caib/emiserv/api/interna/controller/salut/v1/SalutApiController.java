@@ -1,10 +1,6 @@
 package es.caib.emiserv.api.interna.controller.salut.v1;
 
-import es.caib.comanda.model.server.monitoring.AppInfo;
-import es.caib.comanda.model.server.monitoring.EstatSalut;
-import es.caib.comanda.model.server.monitoring.EstatSalutEnum;
-import es.caib.comanda.model.server.monitoring.InformacioSistema;
-import es.caib.comanda.model.server.monitoring.SalutInfo;
+import es.caib.comanda.model.server.monitoring.*;
 import es.caib.comanda.ms.salut.helper.MonitorHelper;
 import es.caib.comanda.ms.salut.helper.SalutHelper;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
@@ -47,7 +43,7 @@ public class SalutApiController {
     private final AplicacioService aplicacioService;
 
     @GetMapping("/info")
-    @PreAuthorize("hasRole(EMS_COM)")
+    @PreAuthorize("hasRole('EMS_COM')")
     @SecurityRequirement(name = SECURITY_NAME)
     @Operation(operationId = "salutInfo",
             summary = "Obtenir informació de l'aplicació",

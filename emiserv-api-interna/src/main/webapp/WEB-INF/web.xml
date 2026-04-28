@@ -15,6 +15,10 @@
         <description>Usuaris per consulta rest</description>
         <role-name>EMS_REPORT</role-name>
     </security-role>
+    <security-role>
+        <description>Usuaris per integracio amb Comanda</description>
+        <role-name>EMS_COM</role-name>
+    </security-role>
     <security-constraint>
         <display-name>Unauthenticated areas</display-name>
         <web-resource-collection>
