@@ -51,7 +51,7 @@
 	<modules>
 		<module>emiserv-controller</module>
 		<module>emiserv-scsp</module>
-		<module>emiserv-scsp-fake</module>
+<!--		<module>emiserv-scsp-fake</module>-->
 		<module>emiserv-back</module>
 		<module>emiserv-boot</module>
 		<module>emiserv-ear</module>
