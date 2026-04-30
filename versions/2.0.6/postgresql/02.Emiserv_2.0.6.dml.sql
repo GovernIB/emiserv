@@ -1,0 +1,1 @@
+INSERT INTO ems_config (key, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.log.dir', 'propietat.log.dir', 'GENERAL', '11', 'DATABASE', 'TEXT');
