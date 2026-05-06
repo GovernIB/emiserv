@@ -351,39 +351,27 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 
 	@Override
 	public List<DimensioDesc> getDimensions() {
-		List<String> entitatNoms = entitatRepository.findAllNoms();
-		List<String> serveisCodis = serveiRepository.findAllCodis();
-		List<String> tipus = Arrays.stream(ServeiTipusEnumDto.values()).map(Enum::name).sorted().collect(Collectors.toList());
+		List<String> entitatNoms = valorsOrdenats(entitatRepository.findAllNoms().stream());
+		List<String> serveisCodis = valorsOrdenats(serveiRepository.findAllCodis().stream());
+		List<String> tipus = valorsOrdenats(Arrays.stream(ServeiTipusEnumDto.values()).map(Enum::name));
 		// Procediments
 		List<String> procedimentsBack = scspCoreTransmisionRepository.findAllProcediments();
 		List<String> procedimentsEnrut = redireccioPeticioRepository.findAllProcediments();
-		List<String> procediments = Stream.concat(
-						procedimentsBack.stream(),
-						procedimentsEnrut.stream()
-				)
-				.distinct()
-				.sorted()
-				.collect(Collectors.toList());
+		List<String> procediments = valorsOrdenats(Stream.concat(
+				procedimentsBack.stream(),
+				procedimentsEnrut.stream()));
 		// Departaments
 		List<String> departamentsBack = scspCoreTransmisionRepository.findAllDepartaments();
 		List<String> departamentsEnrut = redireccioPeticioRepository.findAllDepartaments();
-		List<String> departaments = Stream.concat(
-						departamentsBack.stream(),
-						departamentsEnrut.stream()
-				)
-				.distinct()
-				.sorted()
-				.collect(Collectors.toList());
+		List<String> departaments = valorsOrdenats(Stream.concat(
+				departamentsBack.stream(),
+				departamentsEnrut.stream()));
 		// Emissors
 		List<String> emisorsBack = scspCoreEmisorCertificadoRepository.findAllEmisors();
 		List<String> emisorsEnrut = redireccioPeticioRepository.findAllEmisors();
-		List<String> emisors = Stream.concat(
-						emisorsBack.stream(),
-						emisorsEnrut.stream()
-				)
-				.distinct()
-				.sorted()
-				.collect(Collectors.toList());
+		List<String> emisors = valorsOrdenats(Stream.concat(
+				emisorsBack.stream(),
+				emisorsEnrut.stream()));
 
 		return List.of(
 				new DimensioDesc().codi(DimEnum.ENT.name()).nom(DimEnum.ENT.getNom()).descripcio(DimEnum.ENT.getDescripcio()).valors(entitatNoms),
@@ -393,6 +381,13 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 				new DimensioDesc().codi(EMI.name()).nom(EMI.getNom()).descripcio(EMI.getDescripcio()).valors(emisors),
 				new DimensioDesc().codi(TIP.name()).nom(TIP.getNom()).descripcio(TIP.getDescripcio()).valors(tipus)
 		);
+	}
+
+	private static List<String> valorsOrdenats(Stream<String> valors) {
+		return valors
+				.distinct()
+				.sorted(Comparator.nullsLast(Comparator.naturalOrder()))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -444,7 +439,7 @@ public class ExplotacioServiceImpl implements ExplotacioService {
 		m.put(SRV.name(), est.getServeiCodi());
 		m.put(DEP.name(), est.getDepartamentNom());
 		m.put(EMI.name(), est.getEmisor());
-		m.put(TIP.name(), est.getServeiTipus().name());
+		m.put(TIP.name(), est.getServeiTipus() != null ? est.getServeiTipus().name() : null);
 		return m;
 	};
 
