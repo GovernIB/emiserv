@@ -17,6 +17,7 @@ import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -64,6 +65,18 @@ public class AplicacioService extends AbstractService<es.caib.emiserv.logic.intf
         getDelegateService().addSubsistemaError(subsistema);
     }
 
+	@Override
+	@PermitAll
+	public void addIntegracioExit(String solicitantId, String serveiCodi, long duracioMs) {
+		getDelegateService().addIntegracioExit(solicitantId, serveiCodi, duracioMs);
+	}
+
+	@Override
+	@PermitAll
+	public void addIntegracioError(String solicitantId, String serveiCodi) {
+		getDelegateService().addIntegracioError(solicitantId, serveiCodi);
+	}
+
     @Override
 	@RolesAllowed({"EMS_COM"})
     public List<IntegracioInfo> getIntegracionsInfo() {
@@ -74,6 +87,12 @@ public class AplicacioService extends AbstractService<es.caib.emiserv.logic.intf
 	@PermitAll
 	public List<IntegracioSalut> getIntegracionsSalut() {
 		return getDelegateService().getIntegracionsSalut();
+	}
+
+	@Override
+	@PermitAll
+	public List<IntegracioSalut> getIntegracionsSalut(OffsetDateTime dataPeriode, OffsetDateTime dataTotal) {
+		return getDelegateService().getIntegracionsSalut(dataPeriode, dataTotal);
 	}
 
 	@Override

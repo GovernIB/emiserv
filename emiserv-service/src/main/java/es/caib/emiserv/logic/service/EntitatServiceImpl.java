@@ -130,17 +130,17 @@ public class EntitatServiceImpl implements EntitatService {
             throw new SistemaExternException("entitat.controller.sincronitzar.propietats");
         }
         try {
+            long startTime = System.currentTimeMillis();
             var urlAmbMetode = url + (url.endsWith("/") ? "" : "/") + "interna/api/entitats";
             Client jerseyClient = crearClient(usuari, contrasenya);
             WebTarget webTarget = jerseyClient.target(urlAmbMetode);
             String json = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
 
             entitats = getMapper().readValue(json, new TypeReference<List<EntitatDto>>() {});
-
-//            Object response = webTarget.request(MediaType.APPLICATION_JSON).get(Object.class);
-//            entitats = new ArrayList<>();
+//            SalutHelper.addIntegracioExit(IntegracioApp.PBL.getCodi(), System.currentTimeMillis() - startTime);
         } catch (Exception e) {
-           log.error("No s'han pogut obtenir les entitats de Pinbal", e);
+            log.error("No s'han pogut obtenir les entitats de Pinbal", e);
+//            SalutHelper.addIntegracioError(IntegracioApp.PBL.getCodi(), "");
             throw new SistemaExternException("entitat.controller.sincronitzar.error", e);
         }
 

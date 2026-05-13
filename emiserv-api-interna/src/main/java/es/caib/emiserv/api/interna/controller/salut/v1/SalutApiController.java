@@ -123,7 +123,7 @@ public class SalutApiController {
                 .estatGlobal(new EstatSalut().estat(EstatSalutEnum.UP).latencia(latencia))
                 .estatBaseDeDades(new EstatSalut().estat(EstatSalutEnum.UP).latencia(latenciaDb))
                 .informacioSistema(infoSistema)
-                .integracions(aplicacioService.getIntegracionsSalut())
+                .integracions(aplicacioService.getIntegracionsSalut(dataPeriode, dataTotal))
                 .missatges(aplicacioService.getMissatgesSalut())
                 .subsistemes(aplicacioService.getSubsistemesSalut());
     }

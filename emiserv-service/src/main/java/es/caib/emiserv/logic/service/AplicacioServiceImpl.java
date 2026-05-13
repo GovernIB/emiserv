@@ -3,25 +3,24 @@
  */
 package es.caib.emiserv.logic.service;
 
-import es.caib.comanda.model.server.monitoring.ContextInfo;
-import es.caib.comanda.model.server.monitoring.FitxerContingut;
-import es.caib.comanda.model.server.monitoring.FitxerInfo;
-import es.caib.comanda.model.server.monitoring.IntegracioInfo;
-import es.caib.comanda.model.server.monitoring.IntegracioSalut;
-import es.caib.comanda.model.server.monitoring.Manual;
-import es.caib.comanda.model.server.monitoring.MissatgeSalut;
-import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
-import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
+import es.caib.comanda.model.server.monitoring.*;
 import es.caib.comanda.ms.log.helper.LogFileStream;
 import es.caib.comanda.ms.log.helper.LogHelper;
+import es.caib.comanda.ms.salut.helper.EstatHelper;
 import es.caib.emiserv.logic.helper.PropertiesHelper;
 import es.caib.emiserv.logic.helper.SalutHelper;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.UsuariEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAplicacionEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionCertificadoEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionOrganismoEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 import es.caib.emiserv.persist.repository.ServeiRepository;
 import es.caib.emiserv.persist.repository.UsuariRepository;
+import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAplicacionRepository;
+import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionCertificadoRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +32,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.Clock;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -55,12 +53,19 @@ public class AplicacioServiceImpl implements AplicacioService {
 	private PropertiesHelper propertiesHelper;
 	@Autowired
 	private ServeiRepository serveiRepository;
-
+	@Autowired
+	private ScspCoreEmAplicacionRepository scspCoreEmAplicacionRepository;
+	@Autowired
+	private ScspCoreEmAutorizacionCertificadoRepository scspCoreEmAutorizacionCertificadoRepository;
 	@Autowired
 	private Environment environment;
 
-    @PersistenceContext
+	@PersistenceContext
     private EntityManager em;
+
+	private Clock clock = Clock.systemDefaultZone();
+	private OffsetDateTime dataArrencada = OffsetDateTime.now(clock);
+	private final AtomicReference<OffsetDateTime> darreraConsultaSalut = new AtomicReference<>();
 
 	@Override
 	@Transactional(readOnly = true)
@@ -117,14 +122,216 @@ public class AplicacioServiceImpl implements AplicacioService {
         SalutHelper.addSubsistemaError(subsistema);
     }
 
-    @Override
-	public List<IntegracioInfo> getIntegracionsInfo() {
-		return Collections.emptyList();
+	@Override
+	public void addIntegracioExit(String solicitantId, String serveiCodi, long duracioMs) {
+		SalutHelper.addIntegracioExit(solicitantId, serveiCodi, duracioMs);
 	}
 
 	@Override
+	public void addIntegracioError(String solicitantId, String serveiCodi) {
+		SalutHelper.addIntegracioError(solicitantId, serveiCodi);
+	}
+
+    @Override
+	@Transactional(readOnly = true)
+	public List<IntegracioInfo> getIntegracionsInfo() {
+		return getAplicacionsConfigurades().stream()
+				.map(aplicacio -> new IntegracioInfo()
+						.codi(getIntegracioCodi(aplicacio))
+						.nom(limitaText(getIntegracioNom(aplicacio), 255)))
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public List<IntegracioSalut> getIntegracionsSalut() {
-		return Collections.emptyList();
+		return getIntegracionsSalut(null, null);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<IntegracioSalut> getIntegracionsSalut(OffsetDateTime dataPeriode, OffsetDateTime dataTotal) {
+		darreraConsultaSalut.getAndSet(OffsetDateTime.now(clock));
+
+		Map<Integer, IntegracioSalut> integracions = new LinkedHashMap<>();
+		Map<Integer, IntegracioPeticions> peticionsPerAplicacio = new LinkedHashMap<>();
+
+		for (ScspCoreEmAplicacionEntity aplicacio : getAplicacionsConfigurades()) {
+			IntegracioPeticions peticions = creaPeticionsBuides(null);
+			peticionsPerAplicacio.put(aplicacio.getIdAplicacion(), peticions);
+			integracions.put(
+					aplicacio.getIdAplicacion(),
+					new IntegracioSalut()
+							.codi(getIntegracioCodi(aplicacio))
+							.estat(EstatSalutEnum.UNKNOWN)
+							.peticions(peticions));
+		}
+
+		List<ScspCoreEmAutorizacionCertificadoEntity> autoritzacions = scspCoreEmAutorizacionCertificadoRepository.findAll();
+		afegeixEntornsConfigurats(peticionsPerAplicacio, autoritzacions);
+		aplicaIntegracioStatsMemoria(peticionsPerAplicacio, autoritzacions);
+
+		for (IntegracioSalut integracio : integracions.values()) {
+			integracio.estat(calculaEstatIntegracio(integracio.getPeticions()));
+		}
+
+		return new ArrayList<>(integracions.values());
+	}
+
+	private void afegeixEntornsConfigurats(
+			Map<Integer, IntegracioPeticions> peticionsPerAplicacio,
+			List<ScspCoreEmAutorizacionCertificadoEntity> autoritzacions) {
+		autoritzacions.stream()
+				.sorted(Comparator
+						.comparing(this::getAutoritzacioAplicacioId, Comparator.nullsLast(Integer::compareTo))
+						.thenComparing(this::getAutoritzacioServeiCodi, Comparator.nullsLast(String::compareTo)))
+				.forEach(autoritzacio -> {
+					Integer aplicacioId = getAutoritzacioAplicacioId(autoritzacio);
+					ScspCoreServicioEntity servei = autoritzacio.getServicio();
+					ScspCoreEmAutorizacionOrganismoEntity organismo = autoritzacio.getOrganismo();
+					if (aplicacioId == null || servei == null || !teText(servei.getCodigoCertificado())) {
+						return;
+					}
+					afegeixEntorn(
+							peticionsPerAplicacio.get(aplicacioId),
+							organismo.getNombreOrganismo() + "|" + servei.getCodigoCertificado(),
+							getServeiEndpoint(servei.getUrlSincrona(), servei.getUrlAsincrona(), servei.getCodigoCertificado()));
+				});
+	}
+
+	private void aplicaIntegracioStatsMemoria(
+			Map<Integer, IntegracioPeticions> peticionsPerAplicacio,
+			List<ScspCoreEmAutorizacionCertificadoEntity> autoritzacions) {
+		// Construeix mapes indexats per "solicitantId|serveiCodi" (clau usada per SalutHelper).
+		Map<String, Integer> statKeyToAplicacioId = new HashMap<>();
+		Map<String, String> statKeyToEntornKey = new HashMap<>();
+		for (ScspCoreEmAutorizacionCertificadoEntity scac : autoritzacions) {
+			Integer aplicacioId = getAutoritzacioAplicacioId(scac);
+			String serveiCodi = getAutoritzacioServeiCodi(scac);
+			String organismeNom = scac.getOrganismo() != null ? scac.getOrganismo().getNombreOrganismo() : null;
+			String solicitantId = scac.getOrganismo() != null ? scac.getOrganismo().getIdorganismo() : null;
+			if (aplicacioId != null && teText(serveiCodi) && teText(solicitantId)) {
+				String statKey = solicitantId + "|" + serveiCodi;
+				statKeyToAplicacioId.put(statKey, aplicacioId);
+				statKeyToEntornKey.put(statKey, organismeNom + "|" + serveiCodi);
+			}
+		}
+		// Aplica les estadístiques en memòria
+		for (SubsistemaSalut stat : SalutHelper.getIntegracioStats()) {
+			String key = stat.getCodi(); // "solicitantId|serveiCodi"
+			Integer aplicacioId = statKeyToAplicacioId.get(key);
+			if (aplicacioId == null) continue;
+			IntegracioPeticions peticions = peticionsPerAplicacio.get(aplicacioId);
+			if (peticions == null) continue;
+			String entornKey = statKeyToEntornKey.get(key);
+			IntegracioPeticions entorn = afegeixEntorn(peticions, entornKey, null);
+			afegeixTotals(peticions, stat.getTotalOk(), stat.getTotalError());
+			afegeixTotals(entorn, stat.getTotalOk(), stat.getTotalError());
+			afegeixPeriode(peticions, stat.getPeticionsOkUltimPeriode(), stat.getPeticionsErrorUltimPeriode());
+			afegeixPeriode(entorn, stat.getPeticionsOkUltimPeriode(), stat.getPeticionsErrorUltimPeriode());
+		}
+	}
+
+	private IntegracioPeticions afegeixEntorn(IntegracioPeticions peticions, String serveiCodi, String endpoint) {
+		if (peticions == null) {
+			return null;
+		}
+		IntegracioPeticions entorn = peticions.getPeticionsPerEntorn().get(serveiCodi);
+		if (entorn == null) {
+			entorn = creaPeticionsBuides(endpoint);
+			peticions.putPeticionsPerEntornItem(serveiCodi, entorn);
+		}
+		return entorn;
+	}
+
+	private IntegracioPeticions creaPeticionsBuides(String endpoint) {
+		return new IntegracioPeticions()
+				.totalOk(0L)
+				.totalError(0L)
+				.totalTempsMig(0)
+				.peticionsOkUltimPeriode(0L)
+				.peticionsErrorUltimPeriode(0L)
+				.tempsMigUltimPeriode(0)
+				.endpoint(limitaText(endpoint, 255))
+				.peticionsPerEntorn(new LinkedHashMap<>());
+	}
+
+	private void afegeixTotals(IntegracioPeticions peticions, long ok, long error) {
+		peticions.totalOk(peticions.getTotalOk() + ok);
+		peticions.totalError(peticions.getTotalError() + error);
+	}
+
+	private void afegeixPeriode(IntegracioPeticions peticions, long ok, long error) {
+		peticions.peticionsOkUltimPeriode(peticions.getPeticionsOkUltimPeriode() + ok);
+		peticions.peticionsErrorUltimPeriode(peticions.getPeticionsErrorUltimPeriode() + error);
+	}
+
+	private EstatSalutEnum calculaEstatIntegracio(IntegracioPeticions peticions) {
+		long peticionsPeriode = peticions.getPeticionsOkUltimPeriode() + peticions.getPeticionsErrorUltimPeriode();
+		if (peticionsPeriode > 0) {
+			return EstatHelper.calculaEstat(peticions.getPeticionsOkUltimPeriode(), peticions.getPeticionsErrorUltimPeriode());
+		}
+
+		long peticionsTotals = peticions.getTotalOk() + peticions.getTotalError();
+		if (peticionsTotals > 0) {
+			return EstatHelper.calculaEstat(peticions.getTotalOk(), peticions.getTotalError());
+		}
+
+		return EstatSalutEnum.UNKNOWN;
+	}
+
+	private Integer getAutoritzacioAplicacioId(ScspCoreEmAutorizacionCertificadoEntity autoritzacio) {
+		return autoritzacio.getAplicacion() != null ? autoritzacio.getAplicacion().getIdAplicacion() : null;
+	}
+
+	private String getAutoritzacioServeiCodi(ScspCoreEmAutorizacionCertificadoEntity autoritzacio) {
+		return autoritzacio.getServicio() != null ? autoritzacio.getServicio().getCodigoCertificado() : null;
+	}
+
+	private String getServeiEndpoint(String urlSincrona, String urlAsincrona, String serveiCodi) {
+		if (teText(urlSincrona)) {
+			return urlSincrona;
+		}
+		if (teText(urlAsincrona)) {
+			return urlAsincrona;
+		}
+		return serveiCodi;
+	}
+
+	private List<ScspCoreEmAplicacionEntity> getAplicacionsConfigurades() {
+		return scspCoreEmAplicacionRepository.findAll().stream()
+				.filter(aplicacio -> aplicacio.getIdAplicacion() != null)
+				.sorted(Comparator.comparing(ScspCoreEmAplicacionEntity::getIdAplicacion))
+				.collect(Collectors.toList());
+	}
+
+	private String getIntegracioCodi(ScspCoreEmAplicacionEntity aplicacio) {
+		try {
+			if (teText(aplicacio.getCn())) {
+				String nom = aplicacio.getCn();
+				if (nom.contains("PLATAFORMA DE INTERMEDIACION")) {
+					return "PID";
+				}
+				if (nom.contains("PLATAFORMA D'INTEROPERABILITAT DE LES ILLES BALEARS")) {
+					return "PBL";
+				}
+			}
+		} catch (Exception e) {}
+		return "APP-" + aplicacio.getIdAplicacion();
+	}
+
+	private String getIntegracioNom(ScspCoreEmAplicacionEntity aplicacio) {
+		if (teText(aplicacio.getCn())) {
+			return aplicacio.getCn();
+		}
+		if (teText(aplicacio.getNifCertificado())) {
+			return aplicacio.getNifCertificado();
+		}
+		return getIntegracioCodi(aplicacio);
+	}
+
+	private boolean teText(String text) {
+		return text != null && !text.trim().isEmpty();
 	}
 
 	@Override
@@ -140,9 +347,27 @@ public class AplicacioServiceImpl implements AplicacioService {
 		// Un subsistema per servei actiu
 		List<ServeiEntity> serveisActius = serveiRepository.findByActiuTrue();
 		for (ServeiEntity servei : serveisActius) {
-			subsistemes.add(new SubsistemaInfo().codi(servei.getCodi()).nom(servei.getNom()));
+			subsistemes.add(new SubsistemaInfo()
+					.codi(servei.getCodi())
+					.nom(limitaText(servei.getNom(), 250)));
 		}
 		return subsistemes;
+	}
+
+	public static String limitaText(String text, int maxCaracters) {
+		if (text == null) return null;
+		if (maxCaracters <= 0) return "";
+
+		if (text.length() <= maxCaracters) {
+			return text;
+		}
+
+		// Si no hi ha espai per afegir "...", retalla només al màxim possible
+		if (maxCaracters <= 3) {
+			return text.substring(0, maxCaracters);
+		}
+
+		return text.substring(0, maxCaracters - 3) + "...";
 	}
 
 	@Override
@@ -174,9 +399,6 @@ public class AplicacioServiceImpl implements AplicacioService {
 						.codi("EXT")
 						.nom("API externa")
 						.path(baseUrl + "/emiservapi/externa")
-						.manuals(List.of(
-								new Manual().nom("Manual d'integració").path("https://github.com/GovernIB/emiserv/raw/emiserv-dev/doc/pdf/03_emiserv_integracio.pdf")
-								))
 						.api(baseUrl + "/emiservapi/externa/swagger-ui/index.html")
 		);
 	}
@@ -245,36 +467,5 @@ public class AplicacioServiceImpl implements AplicacioService {
 		}
 		return logDir;
 	}
-
-//	@Override
-//	public Map<String, String> readProperties() {
-//		Map<String, String> properties = new HashMap<>();
-//
-//		properties.put("es.caib.emiserv.backoffice.caib.auth.password", environment.getProperty("es.caib.emiserv.backoffice.caib.auth.password"));
-//		properties.put("es.caib.emiserv.backoffice.caib.auth.username", environment.getProperty("es.caib.emiserv.backoffice.caib.auth.username"));
-//		properties.put("es.caib.emiserv.backoffice.caib.soap.action", environment.getProperty("es.caib.emiserv.backoffice.caib.soap.action"));
-//		properties.put("es.caib.emiserv.backoffice.jar.path", environment.getProperty("es.caib.emiserv.backoffice.jar.path"));
-//		properties.put("es.caib.emiserv.backoffice.mock", environment.getProperty("es.caib.emiserv.backoffice.mock"));
-//		properties.put("es.caib.emiserv.backoffice.processar.datos.especificos.peticio", environment.getProperty("es.caib.emiserv.backoffice.processar.datos.especificos.peticio"));
-//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.auth.password", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.auth.password"));
-//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.auth.username", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.auth.username"));
-//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.soap.action", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPASWS01.caib.soap.action"));
-//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPASWS01.processar.datos.especificos.peticio", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPASWS01.processar.datos.especificos.peticio"));
-//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.auth.password", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.auth.password"));
-//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.auth.username", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.auth.username"));
-//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.soap.action", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPCWS01.caib.soap.action"));
-//		properties.put("es.caib.emiserv.backoffice.SVDCCAACPCWS01.processar.datos.especificos.peticio", environment.getProperty("es.caib.emiserv.backoffice.SVDCCAACPCWS01.processar.datos.especificos.peticio"));
-//		properties.put("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.auth.password", environment.getProperty("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.auth.password"));
-//		properties.put("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.auth.username", environment.getProperty("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.auth.username"));
-//		properties.put("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.soap.action", environment.getProperty("es.caib.emiserv.backoffice.SVDSCDDWS01.caib.soap.action"));
-//		properties.put("es.caib.emiserv.backoffice.SVDSCDDWS01.processar.datos.especificos.peticio", environment.getProperty("es.caib.emiserv.backoffice.SVDSCDDWS01.processar.datos.especificos.peticio"));
-//		properties.put("es.caib.emiserv.default.auditor", environment.getProperty("es.caib.emiserv.default.auditor"));
-//		properties.put("es.caib.emiserv.security.mappableRoles", environment.getProperty("es.caib.emiserv.security.mappableRoles"));
-//		properties.put("es.caib.emiserv.security.useResourceRoleMappings", environment.getProperty("es.caib.emiserv.security.useResourceRoleMappings"));
-//		properties.put("es.caib.emiserv.tasca.backoffice.async.processar.pendents", environment.getProperty("es.caib.emiserv.tasca.backoffice.async.processar.pendents"));
-//		properties.put("es.caib.emiserv.xsd.base.path", environment.getProperty("es.caib.emiserv.xsd.base.path"));
-//
-//		return properties;
-//	}
 
 }

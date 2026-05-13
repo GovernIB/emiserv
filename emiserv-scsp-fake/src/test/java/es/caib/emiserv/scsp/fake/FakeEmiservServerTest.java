@@ -64,6 +64,33 @@ class FakeEmiservServerTest {
 		assertTrue(response.body().contains("peticionSincronaResponse"));
 		assertTrue(response.body().contains("<idPeticion>PET-1</idPeticion>"));
 		assertTrue(response.body().contains("<codigoCertificado>SVDTEST</codigoCertificado>"));
+		assertTrue(response.body().contains("<emisor>"));
+		assertTrue(response.body().contains("<solicitante>"));
+		assertTrue(response.body().contains("<titular>"));
+		assertTrue(response.body().contains("<Retorno>"));
+	}
+
+	@Test
+	void backofficeKoReturnsErrorStatusResponse() throws Exception {
+		server = FakeEmiservServer.createServer("127.0.0.1", 0);
+		server.start();
+
+		String requestXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+			+ "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tns=\"http://caib.es/emiserv/backoffice\">"
+			+ "<soapenv:Body>"
+			+ "<tns:peticionSincrona><peticion><atributos><codigoCertificado>SVDTEST</codigoCertificado><idPeticion>PET-KO-1</idPeticion></atributos></peticion></tns:peticionSincrona>"
+			+ "</soapenv:Body></soapenv:Envelope>";
+
+		HttpResponse<String> response = post("/ws/EmiservBackoffice/ko", requestXml);
+
+		assertEquals(200, response.statusCode());
+		assertTrue(response.body().contains("peticionSincronaResponse"));
+		assertTrue(response.body().contains("<idPeticion>PET-KO-1</idPeticion>"));
+		assertTrue(response.body().contains("<codigoEstado>0101</codigoEstado>"));
+		assertTrue(response.body().contains("<literalError>Error forcat pel fake backoffice</literalError>"));
+		assertTrue(response.body().contains("<numElementos>0</numElementos>"));
+		assertFalse(response.body().contains("Fault"));
+		assertFalse(response.body().contains("<transmisiones>"));
 	}
 
 	@Test

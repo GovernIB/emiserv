@@ -442,32 +442,21 @@ public class BackofficeServiceImpl implements BackofficeService {
 	@Override
 	public Respuesta peticioBackofficeSincrona(
 			Peticion peticion) {
-		/*es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionBackoffice = conversioTipusHelper.convertir(
-				peticion,
-				es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion.class);*/
-		/*copiarDatosEspecificosPeticion(
-				peticion,
-				peticionBackoffice);*/
 		long inici = System.currentTimeMillis();
 		try {
 			RespuestaAmbException respuestaAmbException = backofficeHelper.peticioSincrona(peticion/*peticionBackoffice*/);
 			if (respuestaAmbException.getException() != null) {
-				SalutHelper.addSubsistemaError(SubsistemesEnum.BCK_SYN, peticion.getAtributos().getCodigoCertificado());
 				throw new BackofficeException(
 						"Error processant petició síncrona: " +  ExceptionUtils.getRootCauseMessage(respuestaAmbException.getException()),
 						respuestaAmbException.getException());
 			} else {
-				/*Respuesta respuesta = conversioTipusHelper.convertir(
-						respuestaAmbException.getRespuesta(),
-						Respuesta.class);*/
-				/*copiarDatosEspecificosRespuesta(
-						respuestaAmbException.getRespuesta(),
-						respuesta);*/
 				SalutHelper.addSubsistemaExit(SubsistemesEnum.BCK_SYN, peticion.getAtributos().getCodigoCertificado(), System.currentTimeMillis() - inici);
+				SalutHelper.addIntegracioExit(getSolicitantId(peticion), peticion.getAtributos().getCodigoCertificado(), System.currentTimeMillis() - inici);
 				return respuestaAmbException.getRespuesta();
 			}
 		} catch (Exception e) {
 			SalutHelper.addSubsistemaError(SubsistemesEnum.BCK_SYN, peticion.getAtributos().getCodigoCertificado());
+			SalutHelper.addIntegracioError(getSolicitantId(peticion), peticion.getAtributos().getCodigoCertificado());
 			throw e;
 		}
 	}
@@ -475,28 +464,23 @@ public class BackofficeServiceImpl implements BackofficeService {
 	@Override
 	public ConfirmacionPeticion peticioBackofficeAsincrona(
 			Peticion peticion) {
-		/*es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion peticionBackoffice = conversioTipusHelper.convertir(
-				peticion,
-				es.caib.emiserv.logic.intf.service.ws.backoffice.Peticion.class);
-		copiarDatosEspecificosPeticion(
-				peticion,
-				peticionBackoffice);*/
 		long inici = System.currentTimeMillis();
 		try {
 			ConfirmacionPeticionAmbException confirmacionPeticionAmbException = backofficeHelper.peticioAsincrona(peticion/*peticionBackoffice*/);
 			if (confirmacionPeticionAmbException.getException() != null) {
-				SalutHelper.addSubsistemaError(SubsistemesEnum.BCK_AS, peticion.getAtributos().getCodigoCertificado());
 				throw new BackofficeException(
 						"Error processant petició asíncrona: " + ExceptionUtils.getRootCauseMessage(confirmacionPeticionAmbException.getException()),
 						confirmacionPeticionAmbException.getException());
 			} else {
 				SalutHelper.addSubsistemaExit(SubsistemesEnum.BCK_AS, peticion.getAtributos().getCodigoCertificado(), System.currentTimeMillis() - inici);
+				SalutHelper.addIntegracioExit(getSolicitantId(peticion), peticion.getAtributos().getCodigoCertificado(), System.currentTimeMillis() - inici);
 				return conversioTipusHelper.convertir(
 						confirmacionPeticionAmbException.getConfirmacionPeticion(),
 						ConfirmacionPeticion.class);
 			}
 		} catch (Exception e) {
 			SalutHelper.addSubsistemaError(SubsistemesEnum.BCK_AS, peticion.getAtributos().getCodigoCertificado());
+			SalutHelper.addIntegracioError(getSolicitantId(peticion), peticion.getAtributos().getCodigoCertificado());
 			throw e;
 		}
 	}
@@ -506,22 +490,12 @@ public class BackofficeServiceImpl implements BackofficeService {
 			SolicitudRespuesta solicitudRespuesta) {
 		long inici = System.currentTimeMillis();
 		try {
-			RespuestaAmbException respuestaAmbException = backofficeHelper.solicitudResposta(solicitudRespuesta/*
-					conversioTipusHelper.convertir(
-							solicitudRespuesta,
-							es.caib.emiserv.logic.intf.service.ws.backoffice.SolicitudRespuesta.class)*/);
+			RespuestaAmbException respuestaAmbException = backofficeHelper.solicitudResposta(solicitudRespuesta);
 			if (respuestaAmbException.getException() != null) {
-				SalutHelper.addSubsistemaError(SubsistemesEnum.BCK_SR, solicitudRespuesta.getAtributos().getCodigoCertificado());
 				throw new BackofficeException(
 						"Error processant sol·licitud de resposta: " +  ExceptionUtils.getRootCauseMessage(respuestaAmbException.getException()),
 						respuestaAmbException.getException());
 			} else {
-				/*Respuesta respuesta = conversioTipusHelper.convertir(
-						respuestaAmbException.getRespuesta(),
-						Respuesta.class);*/
-				/*copiarDatosEspecificosRespuesta(
-						respuestaAmbException.getRespuesta(),
-						respuesta);*/
 				SalutHelper.addSubsistemaExit(SubsistemesEnum.BCK_SR, solicitudRespuesta.getAtributos().getCodigoCertificado(), System.currentTimeMillis() - inici);
 				return respuestaAmbException.getRespuesta();
 			}
@@ -723,4 +697,13 @@ public class BackofficeServiceImpl implements BackofficeService {
 		}
 	}*/
 
+
+	private String getSolicitantId(Peticion peticion) {
+		if (peticion.getSolicitudes() == null) return null;
+		var sols = peticion.getSolicitudes().getSolicitudTransmision();
+		if (sols == null || sols.isEmpty()) return null;
+		var dg = sols.get(0).getDatosGenericos();
+		if (dg == null || dg.getSolicitante() == null) return null;
+		return dg.getSolicitante().getIdentificadorSolicitante();
+	}
 }

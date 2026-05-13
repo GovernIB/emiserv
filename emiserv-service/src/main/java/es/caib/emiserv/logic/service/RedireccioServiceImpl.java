@@ -452,6 +452,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 							resposta.getErrorDescripcio());
 					redireccioMissatgeRepository.save(redireccioMissatgeFault);
 				}
+				resposta.setSolicitantId(solicitantId);
 			} else {
 				log.error("No s'ha pogut obtenir la versió de protocol SCSP de la petició");
 				resposta = new RedireccioProcessarResultatDto(

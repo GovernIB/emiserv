@@ -121,7 +121,7 @@ public final class FakeEmiservServer {
 				log(exchange, requestInfo, requestXml);
 
 				if (isBackofficePath(path)) {
-					handleBackoffice(exchange, requestInfo);
+					handleBackoffice(exchange, requestInfo, isBackofficeKoPath(path));
 				} else {
 					handleScsp(exchange, requestInfo, requestXml);
 				}
@@ -133,18 +133,18 @@ public final class FakeEmiservServer {
 			}
 		}
 
-		private void handleBackoffice(HttpExchange exchange, RequestInfo requestInfo) throws IOException {
+		private void handleBackoffice(HttpExchange exchange, RequestInfo requestInfo, boolean forceError) throws IOException {
 			String operation = requestInfo.bodyRoot;
 			if ("peticionSincrona".equals(operation)) {
-				writeXml(exchange, 200, SoapTemplates.backofficeSyncResponse(requestInfo));
+				writeXml(exchange, 200, SoapTemplates.backofficeSyncResponse(requestInfo, forceError));
 				return;
 			}
 			if ("solicitarRespuesta".equals(operation)) {
-				writeXml(exchange, 200, SoapTemplates.backofficeSolicitudResponse(requestInfo));
+				writeXml(exchange, 200, SoapTemplates.backofficeSolicitudResponse(requestInfo, forceError));
 				return;
 			}
 			if ("peticionAsincrona".equals(operation)) {
-				writeXml(exchange, 200, SoapTemplates.backofficeAsyncResponse(requestInfo));
+				writeXml(exchange, 200, SoapTemplates.backofficeAsyncResponse(requestInfo, forceError));
 				return;
 			}
 			writeXml(exchange, 500, SoapTemplates.soapFault("Server", "Operacio backoffice no suportada: " + operation));
@@ -187,7 +187,17 @@ public final class FakeEmiservServer {
 		}
 
 		private boolean isBackofficePath(String path) {
+			return isBackofficeBasePath(path) || isBackofficeKoPath(path);
+		}
+
+		private boolean isBackofficeBasePath(String path) {
 			return BACKOFFICE_PATH.equals(path) || "/backoffice".equals(path) || "/backoffice/EmiservBackoffice".equals(path);
+		}
+
+		private boolean isBackofficeKoPath(String path) {
+			return (BACKOFFICE_PATH + "/ko").equals(path)
+				|| "/backoffice/ko".equals(path)
+				|| "/backoffice/EmiservBackoffice/ko".equals(path);
 		}
 
 		private String resolveBaseUrl(HttpExchange exchange) {
@@ -592,34 +602,40 @@ public final class FakeEmiservServer {
 		}
 
 		static String backofficeSyncResponse(RequestInfo requestInfo) {
+			return backofficeSyncResponse(requestInfo, false);
+		}
+
+		static String backofficeSyncResponse(RequestInfo requestInfo, boolean error) {
 			return envelope(
 				"<tns:peticionSincronaResponse xmlns:tns=\"" + BACKOFFICE_NS + "\">"
 					+ "<respuesta>"
-					+ backofficeRespuestaBody(requestInfo)
+					+ backofficeRespuestaBody(requestInfo, error)
 					+ "</respuesta>"
 					+ "</tns:peticionSincronaResponse>");
 		}
 
 		static String backofficeSolicitudResponse(RequestInfo requestInfo) {
+			return backofficeSolicitudResponse(requestInfo, false);
+		}
+
+		static String backofficeSolicitudResponse(RequestInfo requestInfo, boolean error) {
 			return envelope(
 				"<tns:solicitarRespuestaResponse xmlns:tns=\"" + BACKOFFICE_NS + "\">"
 					+ "<respuesta>"
-					+ backofficeRespuestaBody(requestInfo)
+					+ backofficeRespuestaBody(requestInfo, error)
 					+ "</respuesta>"
 					+ "</tns:solicitarRespuestaResponse>");
 		}
 
 		static String backofficeAsyncResponse(RequestInfo requestInfo) {
+			return backofficeAsyncResponse(requestInfo, false);
+		}
+
+		static String backofficeAsyncResponse(RequestInfo requestInfo, boolean error) {
 			return envelope(
 				"<tns:peticionAsincronaResponse xmlns:tns=\"" + BACKOFFICE_NS + "\">"
 					+ "<respuesta>"
-					+ "<atributos>"
-					+ "<codigoCertificado>" + esc(requestInfo.serviceCode) + "</codigoCertificado>"
-					+ "<estado><codigoEstado>0003</codigoEstado><literalError>OK</literalError><tiempoEstimadoRespuesta>0</tiempoEstimadoRespuesta></estado>"
-					+ "<idPeticion>" + esc(requestInfo.idPeticion) + "</idPeticion>"
-					+ "<numElementos>" + esc(requestInfo.numElementos) + "</numElementos>"
-					+ "<timeStamp>2026-04-27T10:00:00+02:00</timeStamp>"
-					+ "</atributos>"
+					+ backofficeAtributos(requestInfo, error)
 					+ "</respuesta>"
 					+ "</tns:peticionAsincronaResponse>");
 		}
@@ -792,12 +808,42 @@ public final class FakeEmiservServer {
 					+ "</soapenv:Fault>");
 		}
 
-		private static String backofficeRespuestaBody(RequestInfo requestInfo) {
+		private static String backofficeRespuestaBody(RequestInfo requestInfo, boolean error) {
+			if (error) {
+				return backofficeAtributos(requestInfo, true);
+			}
 			StringBuilder transmissions = new StringBuilder();
 			int counter = 1;
 			for (String idSolicitud : requestInfo.effectiveSolicitudIds()) {
 				transmissions.append("<transmisionDatos>")
 					.append("<datosGenericos>")
+					.append("<emisor>")
+					.append("<nifEmisor>").append(esc(backofficeNifEmisor(requestInfo))).append("</nifEmisor>")
+					.append("<nombreEmisor>").append(esc(backofficeNombreEmisor(requestInfo))).append("</nombreEmisor>")
+					.append("</emisor>")
+					.append("<solicitante>")
+					.append("<identificadorSolicitante>").append(esc(backofficeIdentificadorSolicitante(requestInfo))).append("</identificadorSolicitante>")
+					.append("<nombreSolicitante>").append(esc(shortDefault(requestInfo.nomSolicitant, "Limit Tecnologies", 50))).append("</nombreSolicitante>")
+					.append("<unidadTramitadora>").append(esc(shortDefault(requestInfo.unitatTramitadora, "Dept.", 250))).append("</unidadTramitadora>")
+					.append("<procedimiento>")
+					.append("<codProcedimiento>").append(esc(shortDefault(requestInfo.codiProcediment, "TEST", 20))).append("</codProcedimiento>")
+					.append("<nombreProcedimiento>").append(esc(shortDefault(requestInfo.nomProcediment, "Procediment de test", 100))).append("</nombreProcedimiento>")
+					.append("</procedimiento>")
+					.append("<finalidad>").append(esc(shortDefault(requestInfo.finalitat, "Finalitat de prova", 250))).append("</finalidad>")
+					.append("<consentimiento>").append(esc(backofficeConsentimiento(requestInfo))).append("</consentimiento>")
+					.append("<funcionario>")
+					.append("<nombreCompletoFuncionario>").append(esc(shortDefault(requestInfo.nomCompletFuncionari, "Admin Test", 122))).append("</nombreCompletoFuncionario>")
+					.append("<nifFuncionario>").append(esc(backofficeNifFuncionario(requestInfo))).append("</nifFuncionario>")
+					.append("</funcionario>")
+					.append(optionalLowerTag("idExpediente", shortDefault(null, "EXP-FAKE", 25)))
+					.append("</solicitante>")
+					.append("<titular>")
+					.append("<tipoDocumentacion>").append(esc(backofficeTipoDocumentacion(requestInfo))).append("</tipoDocumentacion>")
+					.append("<documentacion>").append(esc(shortDefault(requestInfo.titularDocumentacio, "12345678Z", 14))).append("</documentacion>")
+					.append(optionalLowerTag("nombre", shortDefault(requestInfo.titularNom, "Sion", 40)))
+					.append(optionalLowerTag("apellido1", shortDefault(requestInfo.titularLlinatge1, "Andreu", 40)))
+					.append(optionalLowerTag("apellido2", shortDefault(requestInfo.titularLlinatge2, "Test", 40)))
+					.append("</titular>")
 					.append("<transmision>")
 					.append("<codigoCertificado>").append(esc(requestInfo.serviceCode)).append("</codigoCertificado>")
 					.append("<fechaGeneracion>2026-04-27T10:00:00+02:00</fechaGeneracion>")
@@ -805,18 +851,103 @@ public final class FakeEmiservServer {
 					.append("<idTransmision>").append(esc(requestInfo.idPeticion)).append("-").append(counter).append("</idTransmision>")
 					.append("</transmision>")
 					.append("</datosGenericos>")
-					.append("<datosEspecificos><resultado>Resposta fake backoffice</resultado></datosEspecificos>")
+					.append(backofficeDatosEspecificos())
 					.append("</transmisionDatos>");
 				counter++;
 			}
+			return backofficeAtributos(requestInfo, false)
+				+ "<transmisiones>" + transmissions + "</transmisiones>";
+		}
+
+		private static String backofficeAtributos(RequestInfo requestInfo, boolean error) {
+			String codigoEstado = error ? "0101" : "0003";
+			String literalError = error ? "Error forcat pel fake backoffice" : "OK";
+			String numElementos = error ? "0" : requestInfo.numElementos;
 			return "<atributos>"
 				+ "<codigoCertificado>" + esc(requestInfo.serviceCode) + "</codigoCertificado>"
-				+ "<estado><codigoEstado>0003</codigoEstado><literalError>OK</literalError><tiempoEstimadoRespuesta>0</tiempoEstimadoRespuesta></estado>"
+				+ "<estado>"
+				+ "<codigoEstado>" + esc(codigoEstado) + "</codigoEstado>"
+				+ "<literalError>" + esc(literalError) + "</literalError>"
+				+ "<tiempoEstimadoRespuesta>0</tiempoEstimadoRespuesta>"
+				+ "</estado>"
 				+ "<idPeticion>" + esc(requestInfo.idPeticion) + "</idPeticion>"
-				+ "<numElementos>" + esc(requestInfo.numElementos) + "</numElementos>"
+				+ "<numElementos>" + esc(numElementos) + "</numElementos>"
 				+ "<timeStamp>2026-04-27T10:00:00+02:00</timeStamp>"
-				+ "</atributos>"
-				+ "<transmisiones>" + transmissions + "</transmisiones>";
+				+ "</atributos>";
+		}
+
+		private static String backofficeDatosEspecificos() {
+			return "<datosEspecificos>"
+				+ "<Retorno>"
+				+ "<Estado>"
+				+ "<CodigoEstado>0</CodigoEstado>"
+				+ "<LiteralError>Resposta fake backoffice</LiteralError>"
+				+ "</Estado>"
+				+ "</Retorno>"
+				+ "</datosEspecificos>";
+		}
+
+		private static String backofficeNifEmisor(RequestInfo requestInfo) {
+			if ("SVDCCAACPASWS01".equalsIgnoreCase(requestInfo.serviceCode)
+					|| "SVDCCAACPCWS01".equalsIgnoreCase(requestInfo.serviceCode)) {
+				return "S2833002E";
+			}
+			return shortDefault(requestInfo.nifEmisor, "S2833002E", 10);
+		}
+
+		private static String backofficeNombreEmisor(RequestInfo requestInfo) {
+			if ("SVDCCAACPASWS01".equalsIgnoreCase(requestInfo.serviceCode)
+					|| "SVDCCAACPCWS01".equalsIgnoreCase(requestInfo.serviceCode)) {
+				return "MINHAP";
+			}
+			return shortDefault(requestInfo.nomEmisor, "Govern de les Illes Balears", 50);
+		}
+
+		private static String backofficeIdentificadorSolicitante(RequestInfo requestInfo) {
+			String value = defaultIfBlank(requestInfo.identificadorSolicitant, "S2816015H");
+			if (value.matches("[A-Za-z][0-9]{7}[0-9A-Za-z]")) {
+				return value;
+			}
+			return "S2816015H";
+		}
+
+		private static String backofficeConsentimiento(RequestInfo requestInfo) {
+			String value = defaultIfBlank(requestInfo.consentiment, "Si");
+			if ("Ley".equals(value) || "Si".equals(value)) {
+				return value;
+			}
+			return "Si";
+		}
+
+		private static String backofficeTipoDocumentacion(RequestInfo requestInfo) {
+			String value = defaultIfBlank(requestInfo.tipusDocumentacio, "NIF");
+			if ("CIF".equals(value) || "NIF".equals(value) || "DNI".equals(value) || "NIE".equals(value)) {
+				return value;
+			}
+			return "NIF";
+		}
+
+		private static String backofficeNifFuncionario(RequestInfo requestInfo) {
+			String value = defaultIfBlank(requestInfo.nifFuncionari, "12345678Z");
+			if (value.matches("(([XxYyZz][0-9]{7}[A-Za-z])|([0-9]{8}[A-Za-z]))")) {
+				return value;
+			}
+			return "12345678Z";
+		}
+
+		private static String optionalLowerTag(String tagName, String value) {
+			if (value == null || value.isBlank()) {
+				return "";
+			}
+			return "<" + tagName + ">" + esc(value) + "</" + tagName + ">";
+		}
+
+		private static String shortDefault(String value, String defaultValue, int maxLength) {
+			String result = defaultIfBlank(value, defaultValue);
+			if (result.length() <= maxLength) {
+				return result;
+			}
+			return result.substring(0, maxLength);
 		}
 
 		private static String envelope(String body) {

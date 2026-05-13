@@ -15,6 +15,7 @@ import es.caib.comanda.ms.log.helper.LogFileStream;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -56,10 +57,17 @@ public interface AplicacioService {
 	public void addSubsistemaError(SubsistemesEnum subsistema, String serveiCodi);
 	public void addSubsistemaError(SubsistemesEnum subsistema);
 
+	public void addIntegracioExit(String solicitantId, String serveiCodi, long duracioMs);
+	public void addIntegracioError(String solicitantId, String serveiCodi);
+
 	@PreAuthorize("hasRole('EMS_COM')")
 	public List<IntegracioInfo> getIntegracionsInfo();
 
-	public List<IntegracioSalut> getIntegracionsSalut();
+	public default List<IntegracioSalut> getIntegracionsSalut() {
+		return getIntegracionsSalut(null, null);
+	}
+
+	public List<IntegracioSalut> getIntegracionsSalut(OffsetDateTime dataPeriode, OffsetDateTime dataTotal);
 
 	@PreAuthorize("hasRole('EMS_COM')")
 	public List<SubsistemaInfo> getSubsistemesInfo();

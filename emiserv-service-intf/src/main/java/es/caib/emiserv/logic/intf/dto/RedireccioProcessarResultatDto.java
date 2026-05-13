@@ -34,6 +34,8 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 	private String atributTimestamp;
 	private String atributCodigoCertificado;
 
+	private String solicitantId;
+
 	// Atributs per montar un SoapFault
 	private FaultCodeEnum faultCode;
 	private String faultErrorCode;
@@ -142,7 +144,8 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 		copy.setFaultErrorCode(this.faultErrorCode);
 		copy.setFaultErrorString(this.faultErrorString);
 		copy.setNumElements(this.numElements);
-		
+		copy.setSolicitantId(this.solicitantId);
+
 		return copy;
 	}
 
