@@ -62,6 +62,25 @@ class AplicacioServiceImplTest {
 	}
 
 	@Test
+	void getIntegracionsInfoAfegeixSufixNumericAlsCodisDuplicats() {
+		AplicacioServiceImpl service = new AplicacioServiceImpl();
+		ScspCoreEmAplicacionRepository repository = mock(ScspCoreEmAplicacionRepository.class);
+		ReflectionTestUtils.setField(service, "scspCoreEmAplicacionRepository", repository);
+
+		when(repository.findAll()).thenReturn(Arrays.asList(
+				aplicacio(30, "C12345678", "PLATAFORMA DE INTERMEDIACION - C"),
+				aplicacio(10, "A12345678", "PLATAFORMA DE INTERMEDIACION - A"),
+				aplicacio(20, "B12345678", "PLATAFORMA DE INTERMEDIACION - B")));
+
+		List<IntegracioInfo> integracions = service.getIntegracionsInfo();
+
+		assertEquals(Arrays.asList("PID", "PID2", "PID3"), Arrays.asList(
+				integracions.get(0).getCodi(),
+				integracions.get(1).getCodi(),
+				integracions.get(2).getCodi()));
+	}
+
+	@Test
 	void getIntegracionsSalutCalculaPeticionsTotalsIPerEntorn() {
 		AplicacioServiceImpl service = new AplicacioServiceImpl();
 		ScspCoreEmAplicacionRepository aplicacioRepository = mock(ScspCoreEmAplicacionRepository.class);
@@ -105,6 +124,28 @@ class AplicacioServiceImplTest {
 		assertEquals(EstatSalutEnum.UNKNOWN, integracions.get(1).getEstat());
 		assertTrue(peticionsB.getPeticionsPerEntorn().containsKey("Organisme|SRV_B"));
 		assertEquals("SRV_B", peticionsB.getPeticionsPerEntorn().get("Organisme|SRV_B").getEndpoint());
+	}
+
+	@Test
+	void getIntegracionsSalutAfegeixSufixNumericAlsCodisDuplicats() {
+		AplicacioServiceImpl service = new AplicacioServiceImpl();
+		ScspCoreEmAplicacionRepository aplicacioRepository = mock(ScspCoreEmAplicacionRepository.class);
+		ScspCoreEmAutorizacionCertificadoRepository autoritzacioRepository = mock(ScspCoreEmAutorizacionCertificadoRepository.class);
+		ReflectionTestUtils.setField(service, "scspCoreEmAplicacionRepository", aplicacioRepository);
+		ReflectionTestUtils.setField(service, "scspCoreEmAutorizacionCertificadoRepository", autoritzacioRepository);
+
+		when(aplicacioRepository.findAll()).thenReturn(Arrays.asList(
+				aplicacio(30, "C12345678", "PLATAFORMA DE INTERMEDIACION - C"),
+				aplicacio(10, "A12345678", "PLATAFORMA DE INTERMEDIACION - A"),
+				aplicacio(20, "B12345678", "PLATAFORMA DE INTERMEDIACION - B")));
+		when(autoritzacioRepository.findAll()).thenReturn(Collections.emptyList());
+
+		List<IntegracioSalut> integracions = service.getIntegracionsSalut();
+
+		assertEquals(Arrays.asList("PID", "PID2", "PID3"), Arrays.asList(
+				integracions.get(0).getCodi(),
+				integracions.get(1).getCodi(),
+				integracions.get(2).getCodi()));
 	}
 
 	private ScspCoreEmAplicacionEntity aplicacio(Integer id, String nif, String cn) {

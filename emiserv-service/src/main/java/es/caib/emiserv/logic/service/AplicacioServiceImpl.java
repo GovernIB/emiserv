@@ -132,12 +132,14 @@ public class AplicacioServiceImpl implements AplicacioService {
 		SalutHelper.addIntegracioError(solicitantId, serveiCodi);
 	}
 
-    @Override
+	@Override
 	@Transactional(readOnly = true)
 	public List<IntegracioInfo> getIntegracionsInfo() {
-		return getAplicacionsConfigurades().stream()
+		List<ScspCoreEmAplicacionEntity> aplicacions = getAplicacionsConfigurades();
+		Map<Integer, String> codisPerAplicacio = getIntegracioCodisUnics(aplicacions);
+		return aplicacions.stream()
 				.map(aplicacio -> new IntegracioInfo()
-						.codi(getIntegracioCodi(aplicacio))
+						.codi(codisPerAplicacio.get(aplicacio.getIdAplicacion()))
 						.nom(limitaText(getIntegracioNom(aplicacio), 255)))
 				.collect(Collectors.toList());
 	}
@@ -155,14 +157,16 @@ public class AplicacioServiceImpl implements AplicacioService {
 
 		Map<Integer, IntegracioSalut> integracions = new LinkedHashMap<>();
 		Map<Integer, IntegracioPeticions> peticionsPerAplicacio = new LinkedHashMap<>();
+		List<ScspCoreEmAplicacionEntity> aplicacions = getAplicacionsConfigurades();
+		Map<Integer, String> codisPerAplicacio = getIntegracioCodisUnics(aplicacions);
 
-		for (ScspCoreEmAplicacionEntity aplicacio : getAplicacionsConfigurades()) {
+		for (ScspCoreEmAplicacionEntity aplicacio : aplicacions) {
 			IntegracioPeticions peticions = creaPeticionsBuides(null);
 			peticionsPerAplicacio.put(aplicacio.getIdAplicacion(), peticions);
 			integracions.put(
 					aplicacio.getIdAplicacion(),
 					new IntegracioSalut()
-							.codi(getIntegracioCodi(aplicacio))
+							.codi(codisPerAplicacio.get(aplicacio.getIdAplicacion()))
 							.estat(EstatSalutEnum.UNKNOWN)
 							.peticions(peticions));
 		}
@@ -318,6 +322,26 @@ public class AplicacioServiceImpl implements AplicacioService {
 			}
 		} catch (Exception e) {}
 		return "APP-" + aplicacio.getIdAplicacion();
+	}
+
+	private Map<Integer, String> getIntegracioCodisUnics(List<ScspCoreEmAplicacionEntity> aplicacions) {
+		Map<Integer, String> codisPerAplicacio = new LinkedHashMap<>();
+		Map<String, Integer> comptadorCodis = new HashMap<>();
+		for (ScspCoreEmAplicacionEntity aplicacio : aplicacions) {
+			String codiBase = getIntegracioCodi(aplicacio);
+			String codiUnic = getIntegracioCodiUnic(codiBase, comptadorCodis);
+			codisPerAplicacio.put(aplicacio.getIdAplicacion(), codiUnic);
+		}
+		return codisPerAplicacio;
+	}
+
+	private String getIntegracioCodiUnic(
+			String codiBase,
+			Map<String, Integer> comptadorCodis) {
+		int ocurrencia = comptadorCodis.getOrDefault(codiBase, 0) + 1;
+		String codi = ocurrencia == 1 ? codiBase : codiBase + ocurrencia;
+		comptadorCodis.put(codiBase, ocurrencia);
+		return codi;
 	}
 
 	private String getIntegracioNom(ScspCoreEmAplicacionEntity aplicacio) {
