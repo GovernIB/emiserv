@@ -3,6 +3,7 @@ package es.caib.emiserv.api.interna.controller.salut.v1;
 import es.caib.comanda.model.server.monitoring.*;
 import es.caib.comanda.ms.salut.helper.MonitorHelper;
 import es.caib.comanda.ms.salut.helper.SalutHelper;
+import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,6 +26,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import static es.caib.emiserv.api.interna.config.OpenApiConfig.SECURITY_NAME;
 import static es.caib.emiserv.api.interna.config.OpenApiConfig.SECURITY_SCHEME;
@@ -116,16 +118,83 @@ public class SalutApiController {
         Integer latenciaDb = aplicacioService.measureDbLatencyMs();
         Integer latencia = (int) (System.currentTimeMillis() - startTime);
 
+        EstatSalutEnum estatDb = latenciaDb != null ? EstatSalutEnum.UP : EstatSalutEnum.DOWN;
+        EstatSalutEnum estat = EstatSalutEnum.DOWN.equals(estatDb) ? EstatSalutEnum.ERROR : EstatSalutEnum.UP;
+
+        EstatSalut estatSalutDb = new EstatSalut().estat(estatDb).latencia(latenciaDb);
+        EstatSalut estatSalut = new EstatSalut().estat(estat).latencia(latencia);
+
+        // Si l'estat dels subsistemes no és UP, llavors l'estat de l'aplicació tampoc ho serà
+        List<SubsistemaSalut> subsistemesSalut = aplicacioService.getSubsistemesSalut();
+        EstatSalutEnum estatSubsistemes = calculaEstatSubsistemes(subsistemesSalut);
+        if (EstatSalutEnum.UP.equals(estat) && !EstatSalutEnum.UP.equals(estatSubsistemes) && !EstatSalutEnum.UNKNOWN.equals(estatSubsistemes)) {
+            estatSalut.setEstat(estatSubsistemes);
+        }
+
         return new SalutInfo()
                 .codi("EMS")
                 .data(buildInfo.getBuildDate())
                 .versio(buildInfo.getVersion())
-                .estatGlobal(new EstatSalut().estat(EstatSalutEnum.UP).latencia(latencia))
-                .estatBaseDeDades(new EstatSalut().estat(EstatSalutEnum.UP).latencia(latenciaDb))
+                .estatGlobal(estatSalut)
+                .estatBaseDeDades(estatSalutDb)
                 .informacioSistema(infoSistema)
                 .integracions(aplicacioService.getIntegracionsSalut(dataPeriode, dataTotal))
                 .missatges(aplicacioService.getMissatgesSalut())
-                .subsistemes(aplicacioService.getSubsistemesSalut());
+                .subsistemes(subsistemesSalut);
+    }
+
+    private EstatSalutEnum calculaEstatSubsistemes(List<SubsistemaSalut> subsistemesSalut) {
+
+        EstatSalutEnum estatSubsistemes = EstatSalutEnum.UNKNOWN;
+        boolean anyDown = false;
+        boolean anyError = false;
+        boolean anyDegraded = false;
+        boolean anyWarn = false;
+        boolean anyUp = false;
+
+        for (SubsistemaSalut subsistemaSalut : subsistemesSalut) {
+            SubsistemesEnum subsistemaEnum = SubsistemesEnum.valueOfCodi(subsistemaSalut.getCodi());
+            if (subsistemaEnum == null) {
+                continue;
+            }
+            boolean critic = subsistemaEnum.isSistemaCritic();
+
+            switch (subsistemaSalut.getEstat()) {
+                case UP:
+                    anyUp = true;
+                    break;
+                case WARN:
+                    anyWarn = true;
+                    break;
+                case DEGRADED:
+                    if (critic) anyDegraded = true;
+                    else anyWarn = true;
+                    break;
+                case ERROR:
+                    if (critic) anyError = true;
+                    else anyWarn = true;
+                    break;
+                case DOWN:
+                    if (critic) anyDown = true;
+                    else anyWarn = true;
+                    break;
+                default:
+                    // UNKNOWN o altres
+            }
+
+            if (anyDown || anyError) {
+                estatSubsistemes = EstatSalutEnum.ERROR;
+            } else if(anyDegraded) {
+                estatSubsistemes = EstatSalutEnum.DEGRADED;
+            } else if (anyWarn) {
+                estatSubsistemes = EstatSalutEnum.WARN;
+            } else if (anyUp) {
+                estatSubsistemes = EstatSalutEnum.UP;
+            } else {
+                estatSubsistemes = EstatSalutEnum.UNKNOWN;
+            }
+        }
+        return estatSubsistemes;
     }
 
 }

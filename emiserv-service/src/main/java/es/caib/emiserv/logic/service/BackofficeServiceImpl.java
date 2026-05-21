@@ -35,6 +35,7 @@ import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCorePeticionRespuestaEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreTokenDataEntity;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreTransmisionEntity;
 import es.caib.emiserv.persist.repository.BackofficePeticioRepository;
 import es.caib.emiserv.persist.repository.BackofficeSolicitudRepository;
 import es.caib.emiserv.persist.repository.ServeiRepository;
@@ -496,11 +497,14 @@ public class BackofficeServiceImpl implements BackofficeService {
 						"Error processant sol·licitud de resposta: " +  ExceptionUtils.getRootCauseMessage(respuestaAmbException.getException()),
 						respuestaAmbException.getException());
 			} else {
-				SalutHelper.addSubsistemaExit(SubsistemesEnum.BCK_SR, solicitudRespuesta.getAtributos().getCodigoCertificado(), System.currentTimeMillis() - inici);
+				long duracioMs = System.currentTimeMillis() - inici;
+				SalutHelper.addSubsistemaExit(SubsistemesEnum.BCK_SR, solicitudRespuesta.getAtributos().getCodigoCertificado(), duracioMs);
+				SalutHelper.addIntegracioExit(getSolicitantId(solicitudRespuesta), solicitudRespuesta.getAtributos().getCodigoCertificado(), duracioMs);
 				return respuestaAmbException.getRespuesta();
 			}
 		} catch (Exception e) {
 			SalutHelper.addSubsistemaError(SubsistemesEnum.BCK_SR, solicitudRespuesta.getAtributos().getCodigoCertificado());
+			SalutHelper.addIntegracioError(getSolicitantId(solicitudRespuesta), solicitudRespuesta.getAtributos().getCodigoCertificado());
 			throw e;
 		}
 	}
@@ -705,5 +709,14 @@ public class BackofficeServiceImpl implements BackofficeService {
 		var dg = sols.get(0).getDatosGenericos();
 		if (dg == null || dg.getSolicitante() == null) return null;
 		return dg.getSolicitante().getIdentificadorSolicitante();
+	}
+
+	private String getSolicitantId(SolicitudRespuesta solicitudRespuesta) {
+		if (solicitudRespuesta.getAtributos() == null || solicitudRespuesta.getAtributos().getIdPeticion() == null) {
+			return null;
+		}
+		List<ScspCoreTransmisionEntity> transmissions = scspCoreTransmisionRepository.findByPeticionIdOrderBySolicitudIdAsc(
+				solicitudRespuesta.getAtributos().getIdPeticion());
+		return transmissions.isEmpty() ? null : transmissions.get(0).getSolicitanteId();
 	}
 }

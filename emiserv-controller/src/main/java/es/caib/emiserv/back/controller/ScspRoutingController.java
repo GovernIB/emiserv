@@ -167,9 +167,9 @@ public class ScspRoutingController extends BaseController {
 								postMethod,
 								resultat);
 						if (proxyResponseCode == 200) {
-							aplicacioService.addSubsistemaExit(SubsistemesEnum.ENR_S, resultat.getAtributCodigoCertificado(), System.currentTimeMillis() - inici);
+							addPeticionsServeiExit(SubsistemesEnum.ENR_S, resultat, System.currentTimeMillis() - inici);
 						} else {
-							aplicacioService.addSubsistemaError(SubsistemesEnum.ENR_S, resultat.getAtributCodigoCertificado());
+							addPeticionsServeiError(SubsistemesEnum.ENR_S, resultat);
 						}
 					} else {
 						// ENRUTADOR MÚLTIPLE
@@ -249,13 +249,13 @@ public class ScspRoutingController extends BaseController {
 							postMethod = resposta.getMethod();
 						}
 						if (proxyResponseCode == 200) {
-							aplicacioService.addSubsistemaExit(SubsistemesEnum.ENR_M, resultat.getAtributCodigoCertificado(), System.currentTimeMillis() - inici);
+							addPeticionsServeiExit(SubsistemesEnum.ENR_M, resultat, System.currentTimeMillis() - inici);
 						} else {
-							aplicacioService.addSubsistemaError(SubsistemesEnum.ENR_M, resultat.getAtributCodigoCertificado());
+							addPeticionsServeiError(SubsistemesEnum.ENR_M, resultat);
 						}
 					}
 				} else {
-					aplicacioService.addSubsistemaError(SubsistemesEnum.ENR_S, resultat.getAtributCodigoCertificado());
+					addPeticionsServeiError(SubsistemesEnum.ENR_S, resultat);
 				}
 				// Tractament comú de la resposta
 				this.processProxyResponse(
@@ -270,6 +270,21 @@ public class ScspRoutingController extends BaseController {
 				throw e;
 			}
 		} 
+	}
+
+	private void addPeticionsServeiExit(
+			SubsistemesEnum subsistema,
+			RedireccioProcessarResultatDto resultat,
+			long duracioMs) {
+		aplicacioService.addSubsistemaExit(subsistema, resultat.getAtributCodigoCertificado(), duracioMs);
+		aplicacioService.addIntegracioExit(resultat.getSolicitantId(), resultat.getAtributCodigoCertificado(), duracioMs);
+	}
+
+	private void addPeticionsServeiError(
+			SubsistemesEnum subsistema,
+			RedireccioProcessarResultatDto resultat) {
+		aplicacioService.addSubsistemaError(subsistema, resultat.getAtributCodigoCertificado());
+		aplicacioService.addIntegracioError(resultat.getSolicitantId(), resultat.getAtributCodigoCertificado());
 	}
 
 	/*

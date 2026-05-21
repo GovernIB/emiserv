@@ -136,12 +136,22 @@ public class AplicacioServiceImpl implements AplicacioService {
 	@Transactional(readOnly = true)
 	public List<IntegracioInfo> getIntegracionsInfo() {
 		List<ScspCoreEmAplicacionEntity> aplicacions = getAplicacionsConfigurades();
-		Map<Integer, String> codisPerAplicacio = getIntegracioCodisUnics(aplicacions);
-		return aplicacions.stream()
-				.map(aplicacio -> new IntegracioInfo()
-						.codi(codisPerAplicacio.get(aplicacio.getIdAplicacion()))
-						.nom(limitaText(getIntegracioNom(aplicacio), 255)))
-				.collect(Collectors.toList());
+		Map<String, Integer> comptadorCodis = new HashMap<>();
+		List<IntegracioInfo> integracions = new ArrayList<>();
+
+		for (ScspCoreEmAplicacionEntity aplicacio : aplicacions) {
+			integracions.add(new IntegracioInfo()
+					.codi(getIntegracioCodiUnic(getIntegracioCodi(aplicacio), comptadorCodis))
+					.nom(limitaText(getIntegracioNom(aplicacio), 255)));
+		}
+
+		for (ServeiEntity servei : getServeisActiusOrdenats()) {
+			integracions.add(new IntegracioInfo()
+					.codi(getIntegracioCodiUnic(servei.getCodi(), comptadorCodis))
+					.nom(limitaText(servei.getNom(), 255)));
+		}
+
+		return integracions;
 	}
 
 	@Override
@@ -155,31 +165,40 @@ public class AplicacioServiceImpl implements AplicacioService {
 	public List<IntegracioSalut> getIntegracionsSalut(OffsetDateTime dataPeriode, OffsetDateTime dataTotal) {
 		darreraConsultaSalut.getAndSet(OffsetDateTime.now(clock));
 
-		Map<Integer, IntegracioSalut> integracions = new LinkedHashMap<>();
+		List<IntegracioSalut> integracions = new ArrayList<>();
 		Map<Integer, IntegracioPeticions> peticionsPerAplicacio = new LinkedHashMap<>();
+		Map<String, IntegracioPeticions> peticionsPerServei = new LinkedHashMap<>();
 		List<ScspCoreEmAplicacionEntity> aplicacions = getAplicacionsConfigurades();
-		Map<Integer, String> codisPerAplicacio = getIntegracioCodisUnics(aplicacions);
+		List<ServeiEntity> serveis = getServeisActiusOrdenats();
+		Map<String, Integer> comptadorCodis = new HashMap<>();
 
 		for (ScspCoreEmAplicacionEntity aplicacio : aplicacions) {
 			IntegracioPeticions peticions = creaPeticionsBuides(null);
 			peticionsPerAplicacio.put(aplicacio.getIdAplicacion(), peticions);
-			integracions.put(
-					aplicacio.getIdAplicacion(),
-					new IntegracioSalut()
-							.codi(codisPerAplicacio.get(aplicacio.getIdAplicacion()))
-							.estat(EstatSalutEnum.UNKNOWN)
-							.peticions(peticions));
+			integracions.add(new IntegracioSalut()
+					.codi(getIntegracioCodiUnic(getIntegracioCodi(aplicacio), comptadorCodis))
+					.estat(EstatSalutEnum.UNKNOWN)
+					.peticions(peticions));
+		}
+
+		for (ServeiEntity servei : serveis) {
+			IntegracioPeticions peticions = creaPeticionsBuides(getServeiEndpoint(servei));
+			peticionsPerServei.put(servei.getCodi(), peticions);
+			integracions.add(new IntegracioSalut()
+					.codi(getIntegracioCodiUnic(servei.getCodi(), comptadorCodis))
+					.estat(EstatSalutEnum.UNKNOWN)
+					.peticions(peticions));
 		}
 
 		List<ScspCoreEmAutorizacionCertificadoEntity> autoritzacions = scspCoreEmAutorizacionCertificadoRepository.findAll();
 		afegeixEntornsConfigurats(peticionsPerAplicacio, autoritzacions);
-		aplicaIntegracioStatsMemoria(peticionsPerAplicacio, autoritzacions);
+		aplicaIntegracioStatsMemoria(peticionsPerAplicacio, peticionsPerServei, autoritzacions);
 
-		for (IntegracioSalut integracio : integracions.values()) {
+		for (IntegracioSalut integracio : integracions) {
 			integracio.estat(calculaEstatIntegracio(integracio.getPeticions()));
 		}
 
-		return new ArrayList<>(integracions.values());
+		return integracions;
 	}
 
 	private void afegeixEntornsConfigurats(
@@ -198,13 +217,14 @@ public class AplicacioServiceImpl implements AplicacioService {
 					}
 					afegeixEntorn(
 							peticionsPerAplicacio.get(aplicacioId),
-							organismo.getNombreOrganismo() + "|" + servei.getCodigoCertificado(),
+							getIntegracioEntornCodi(servei.getCodigoCertificado(), organismo.getNombreOrganismo()),
 							getServeiEndpoint(servei.getUrlSincrona(), servei.getUrlAsincrona(), servei.getCodigoCertificado()));
 				});
 	}
 
 	private void aplicaIntegracioStatsMemoria(
 			Map<Integer, IntegracioPeticions> peticionsPerAplicacio,
+			Map<String, IntegracioPeticions> peticionsPerServei,
 			List<ScspCoreEmAutorizacionCertificadoEntity> autoritzacions) {
 		// Construeix mapes indexats per "solicitantId|serveiCodi" (clau usada per SalutHelper).
 		Map<String, Integer> statKeyToAplicacioId = new HashMap<>();
@@ -217,23 +237,35 @@ public class AplicacioServiceImpl implements AplicacioService {
 			if (aplicacioId != null && teText(serveiCodi) && teText(solicitantId)) {
 				String statKey = solicitantId + "|" + serveiCodi;
 				statKeyToAplicacioId.put(statKey, aplicacioId);
-				statKeyToEntornKey.put(statKey, organismeNom + "|" + serveiCodi);
+				statKeyToEntornKey.put(statKey, getIntegracioEntornCodi(serveiCodi, organismeNom));
 			}
 		}
 		// Aplica les estadístiques en memòria
 		for (SubsistemaSalut stat : SalutHelper.getIntegracioStats()) {
 			String key = stat.getCodi(); // "solicitantId|serveiCodi"
+
+			String serveiCodi = getServeiCodiStatsIntegracio(key);
+			if (teText(serveiCodi)) {
+				afegeixStats(peticionsPerServei.get(serveiCodi), stat);
+			}
+
 			Integer aplicacioId = statKeyToAplicacioId.get(key);
 			if (aplicacioId == null) continue;
 			IntegracioPeticions peticions = peticionsPerAplicacio.get(aplicacioId);
 			if (peticions == null) continue;
 			String entornKey = statKeyToEntornKey.get(key);
 			IntegracioPeticions entorn = afegeixEntorn(peticions, entornKey, null);
-			afegeixTotals(peticions, stat.getTotalOk(), stat.getTotalError());
-			afegeixTotals(entorn, stat.getTotalOk(), stat.getTotalError());
-			afegeixPeriode(peticions, stat.getPeticionsOkUltimPeriode(), stat.getPeticionsErrorUltimPeriode());
-			afegeixPeriode(entorn, stat.getPeticionsOkUltimPeriode(), stat.getPeticionsErrorUltimPeriode());
+			afegeixStats(peticions, stat);
+			afegeixStats(entorn, stat);
 		}
+	}
+
+	private void afegeixStats(IntegracioPeticions peticions, SubsistemaSalut stat) {
+		if (peticions == null) {
+			return;
+		}
+		afegeixTotals(peticions, stat.getTotalOk(), stat.getTotalError());
+		afegeixPeriode(peticions, stat.getPeticionsOkUltimPeriode(), stat.getPeticionsErrorUltimPeriode());
 	}
 
 	private IntegracioPeticions afegeixEntorn(IntegracioPeticions peticions, String serveiCodi, String endpoint) {
@@ -302,10 +334,44 @@ public class AplicacioServiceImpl implements AplicacioService {
 		return serveiCodi;
 	}
 
+	private String getServeiEndpoint(ServeiEntity servei) {
+		if (servei == null) {
+			return null;
+		}
+		if (teText(servei.getBackofficeCaibUrl())) {
+			return servei.getBackofficeCaibUrl();
+		}
+		if (teText(servei.getUrlPerDefecte())) {
+			return servei.getUrlPerDefecte();
+		}
+		return servei.getCodi();
+	}
+
+	private String getServeiCodiStatsIntegracio(String statCodi) {
+		if (!teText(statCodi)) {
+			return null;
+		}
+		int separador = statCodi.lastIndexOf('|');
+		if (separador < 0 || separador == statCodi.length() - 1) {
+			return statCodi;
+		}
+		return statCodi.substring(separador + 1);
+	}
+
+	private String getIntegracioEntornCodi(String serveiCodi, String organismeNom) {
+		return serveiCodi + "|" + organismeNom;
+	}
+
 	private List<ScspCoreEmAplicacionEntity> getAplicacionsConfigurades() {
 		return scspCoreEmAplicacionRepository.findAll().stream()
 				.filter(aplicacio -> aplicacio.getIdAplicacion() != null)
 				.sorted(Comparator.comparing(ScspCoreEmAplicacionEntity::getIdAplicacion))
+				.collect(Collectors.toList());
+	}
+
+	private List<ServeiEntity> getServeisActiusOrdenats() {
+		return serveiRepository.findByActiuTrue().stream()
+				.sorted(Comparator.comparing(ServeiEntity::getCodi, Comparator.nullsLast(String::compareTo)))
 				.collect(Collectors.toList());
 	}
 
@@ -322,17 +388,6 @@ public class AplicacioServiceImpl implements AplicacioService {
 			}
 		} catch (Exception e) {}
 		return "APP-" + aplicacio.getIdAplicacion();
-	}
-
-	private Map<Integer, String> getIntegracioCodisUnics(List<ScspCoreEmAplicacionEntity> aplicacions) {
-		Map<Integer, String> codisPerAplicacio = new LinkedHashMap<>();
-		Map<String, Integer> comptadorCodis = new HashMap<>();
-		for (ScspCoreEmAplicacionEntity aplicacio : aplicacions) {
-			String codiBase = getIntegracioCodi(aplicacio);
-			String codiUnic = getIntegracioCodiUnic(codiBase, comptadorCodis);
-			codisPerAplicacio.put(aplicacio.getIdAplicacion(), codiUnic);
-		}
-		return codisPerAplicacio;
 	}
 
 	private String getIntegracioCodiUnic(
@@ -360,22 +415,11 @@ public class AplicacioServiceImpl implements AplicacioService {
 
 	@Override
 	public List<SubsistemaInfo> getSubsistemesInfo() {
-
-		// Subsistemes per consultes a backoffice i enrutador
-		List<SubsistemaInfo> subsistemes = Arrays.stream(SubsistemesEnum.values())
+		return Arrays.stream(SubsistemesEnum.values())
 				.map(s -> new SubsistemaInfo()
 						.codi(s.name())
 						.nom(s.getNom()))
-				.collect(Collectors.toCollection(ArrayList::new));
-
-		// Un subsistema per servei actiu
-		List<ServeiEntity> serveisActius = serveiRepository.findByActiuTrue();
-		for (ServeiEntity servei : serveisActius) {
-			subsistemes.add(new SubsistemaInfo()
-					.codi(servei.getCodi())
-					.nom(limitaText(servei.getNom(), 250)));
-		}
-		return subsistemes;
+				.collect(Collectors.toList());
 	}
 
 	public static String limitaText(String text, int maxCaracters) {

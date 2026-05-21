@@ -4,13 +4,19 @@ import es.caib.comanda.model.server.monitoring.EstatSalutEnum;
 import es.caib.comanda.model.server.monitoring.IntegracioInfo;
 import es.caib.comanda.model.server.monitoring.IntegracioPeticions;
 import es.caib.comanda.model.server.monitoring.IntegracioSalut;
+import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
+import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
 import es.caib.comanda.ms.salut.helper.SalutComponentsHelper;
 import es.caib.comanda.ms.salut.helper.components.MonitorComponentsMemoria;
 import es.caib.emiserv.logic.helper.SalutHelper;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
+import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAplicacionEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionCertificadoEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreEmAutorizacionOrganismoEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
+import es.caib.emiserv.persist.repository.ServeiRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAplicacionRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionCertificadoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,8 +29,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -32,10 +40,17 @@ import static org.mockito.Mockito.when;
 class AplicacioServiceImplTest {
 
 	@BeforeEach
-	void resetIntegracioStats() throws Exception {
-		Field field = SalutHelper.class.getDeclaredField("integracioComponentHelper");
-		field.setAccessible(true);
-		field.set(null, new SalutComponentsHelper(
+	void resetSalutStats() throws Exception {
+		Field subsistemaField = SalutHelper.class.getDeclaredField("subsistemaComponentHelper");
+		subsistemaField.setAccessible(true);
+		subsistemaField.set(null, new SalutComponentsHelper(
+				new MonitorComponentsMemoria(20),
+				SubsistemesEnum::containsCodi,
+				SubsistemesEnum.CODIS));
+
+		Field integracioField = SalutHelper.class.getDeclaredField("integracioComponentHelper");
+		integracioField.setAccessible(true);
+		integracioField.set(null, new SalutComponentsHelper(
 				new MonitorComponentsMemoria(20),
 				(codi) -> false,
 				Collections.emptyList()));
@@ -45,11 +60,14 @@ class AplicacioServiceImplTest {
 	void getIntegracionsInfoRetornaAplicacionsConfiguradesOrdenadesPerId() {
 		AplicacioServiceImpl service = new AplicacioServiceImpl();
 		ScspCoreEmAplicacionRepository repository = mock(ScspCoreEmAplicacionRepository.class);
+		ServeiRepository serveiRepository = mock(ServeiRepository.class);
 		ReflectionTestUtils.setField(service, "scspCoreEmAplicacionRepository", repository);
+		ReflectionTestUtils.setField(service, "serveiRepository", serveiRepository);
 
 		when(repository.findAll()).thenReturn(Arrays.asList(
 				aplicacio(20, "B12345678", "Aplicació B"),
 				aplicacio(10, "A12345678", "Nom molt llarg ".repeat(25))));
+		when(serveiRepository.findByActiuTrue()).thenReturn(Collections.emptyList());
 
 		List<IntegracioInfo> integracions = service.getIntegracionsInfo();
 
@@ -65,12 +83,15 @@ class AplicacioServiceImplTest {
 	void getIntegracionsInfoAfegeixSufixNumericAlsCodisDuplicats() {
 		AplicacioServiceImpl service = new AplicacioServiceImpl();
 		ScspCoreEmAplicacionRepository repository = mock(ScspCoreEmAplicacionRepository.class);
+		ServeiRepository serveiRepository = mock(ServeiRepository.class);
 		ReflectionTestUtils.setField(service, "scspCoreEmAplicacionRepository", repository);
+		ReflectionTestUtils.setField(service, "serveiRepository", serveiRepository);
 
 		when(repository.findAll()).thenReturn(Arrays.asList(
 				aplicacio(30, "C12345678", "PLATAFORMA DE INTERMEDIACION - C"),
 				aplicacio(10, "A12345678", "PLATAFORMA DE INTERMEDIACION - A"),
 				aplicacio(20, "B12345678", "PLATAFORMA DE INTERMEDIACION - B")));
+		when(serveiRepository.findByActiuTrue()).thenReturn(Collections.emptyList());
 
 		List<IntegracioInfo> integracions = service.getIntegracionsInfo();
 
@@ -81,12 +102,60 @@ class AplicacioServiceImplTest {
 	}
 
 	@Test
+	void getIntegracionsInfoInclouServeisActius() {
+		AplicacioServiceImpl service = new AplicacioServiceImpl();
+		ScspCoreEmAplicacionRepository repository = mock(ScspCoreEmAplicacionRepository.class);
+		ServeiRepository serveiRepository = mock(ServeiRepository.class);
+		ReflectionTestUtils.setField(service, "scspCoreEmAplicacionRepository", repository);
+		ReflectionTestUtils.setField(service, "serveiRepository", serveiRepository);
+
+		when(repository.findAll()).thenReturn(Collections.emptyList());
+		when(serveiRepository.findByActiuTrue()).thenReturn(Arrays.asList(
+				serveiActiu("SRV_B", "Servei B"),
+				serveiActiu("SRV_A", "Servei A")));
+
+		List<IntegracioInfo> integracions = service.getIntegracionsInfo();
+
+		assertEquals(Arrays.asList("SRV_A", "SRV_B"), Arrays.asList(
+				integracions.get(0).getCodi(),
+				integracions.get(1).getCodi()));
+		assertEquals("Servei A", integracions.get(0).getNom());
+		assertEquals("Servei B", integracions.get(1).getNom());
+	}
+
+	@Test
+	void getSubsistemesInfoNoInclouServeisActius() {
+		AplicacioServiceImpl service = new AplicacioServiceImpl();
+
+		List<String> codis = service.getSubsistemesInfo().stream()
+				.map(SubsistemaInfo::getCodi)
+				.collect(Collectors.toList());
+
+		assertEquals(Arrays.asList("BCK_SYN", "BCK_AS", "BCK_SR", "ENR_S", "ENR_M"), codis);
+		assertFalse(codis.contains("SRV_A"));
+	}
+
+	@Test
+	void addSubsistemaAmbServeiNoRegistraElServeiComASubsistema() {
+		SalutHelper.addSubsistemaExit(SubsistemesEnum.BCK_SYN, "SRV_A", 100);
+
+		List<String> codis = SalutHelper.getSubsistemesSalut().stream()
+				.map(SubsistemaSalut::getCodi)
+				.collect(Collectors.toList());
+
+		assertTrue(codis.contains("BCK_SYN"));
+		assertFalse(codis.contains("SRV_A"));
+	}
+
+	@Test
 	void getIntegracionsSalutCalculaPeticionsTotalsIPerEntorn() {
 		AplicacioServiceImpl service = new AplicacioServiceImpl();
 		ScspCoreEmAplicacionRepository aplicacioRepository = mock(ScspCoreEmAplicacionRepository.class);
 		ScspCoreEmAutorizacionCertificadoRepository autoritzacioRepository = mock(ScspCoreEmAutorizacionCertificadoRepository.class);
+		ServeiRepository serveiRepository = mock(ServeiRepository.class);
 		ReflectionTestUtils.setField(service, "scspCoreEmAplicacionRepository", aplicacioRepository);
 		ReflectionTestUtils.setField(service, "scspCoreEmAutorizacionCertificadoRepository", autoritzacioRepository);
+		ReflectionTestUtils.setField(service, "serveiRepository", serveiRepository);
 
 		ScspCoreEmAplicacionEntity aplicacioA = aplicacio(1, "A12345678", "Aplicació A");
 		ScspCoreEmAplicacionEntity aplicacioB = aplicacio(2, "B12345678", "Aplicació B");
@@ -97,6 +166,7 @@ class AplicacioServiceImplTest {
 		when(autoritzacioRepository.findAll()).thenReturn(Arrays.asList(
 				autoritzacio(aplicacioA, serveiA),
 				autoritzacio(aplicacioB, serveiB)));
+		when(serveiRepository.findByActiuTrue()).thenReturn(Collections.emptyList());
 
 		// Injecta estadístiques en memòria per a aplicacioA/SRV_A (solicitantId="S1234567A")
 		for (int i = 0; i < 10; i++) SalutHelper.addIntegracioExit("S1234567A", "SRV_A", 100);
@@ -116,14 +186,50 @@ class AplicacioServiceImplTest {
 		assertEquals(10L, peticionsA.getPeticionsOkUltimPeriode());
 		assertEquals(5L, peticionsA.getPeticionsErrorUltimPeriode());
 		assertEquals(EstatSalutEnum.DEGRADED, integracions.get(0).getEstat());
-		assertTrue(peticionsA.getPeticionsPerEntorn().containsKey("Organisme|SRV_A"));
-		assertEquals("https://servei-a.test", peticionsA.getPeticionsPerEntorn().get("Organisme|SRV_A").getEndpoint());
-		assertEquals(10L, peticionsA.getPeticionsPerEntorn().get("Organisme|SRV_A").getTotalOk());
+		assertTrue(peticionsA.getPeticionsPerEntorn().containsKey("SRV_A|Organisme"));
+		assertEquals("https://servei-a.test", peticionsA.getPeticionsPerEntorn().get("SRV_A|Organisme").getEndpoint());
+		assertEquals(10L, peticionsA.getPeticionsPerEntorn().get("SRV_A|Organisme").getTotalOk());
 
 		IntegracioPeticions peticionsB = integracions.get(1).getPeticions();
 		assertEquals(EstatSalutEnum.UNKNOWN, integracions.get(1).getEstat());
-		assertTrue(peticionsB.getPeticionsPerEntorn().containsKey("Organisme|SRV_B"));
-		assertEquals("SRV_B", peticionsB.getPeticionsPerEntorn().get("Organisme|SRV_B").getEndpoint());
+		assertTrue(peticionsB.getPeticionsPerEntorn().containsKey("SRV_B|Organisme"));
+		assertEquals("SRV_B", peticionsB.getPeticionsPerEntorn().get("SRV_B|Organisme").getEndpoint());
+	}
+
+	@Test
+	void getIntegracionsSalutInclouServeisActiusIStatsDeServei() {
+		AplicacioServiceImpl service = new AplicacioServiceImpl();
+		ScspCoreEmAplicacionRepository aplicacioRepository = mock(ScspCoreEmAplicacionRepository.class);
+		ScspCoreEmAutorizacionCertificadoRepository autoritzacioRepository = mock(ScspCoreEmAutorizacionCertificadoRepository.class);
+		ServeiRepository serveiRepository = mock(ServeiRepository.class);
+		ReflectionTestUtils.setField(service, "scspCoreEmAplicacionRepository", aplicacioRepository);
+		ReflectionTestUtils.setField(service, "scspCoreEmAutorizacionCertificadoRepository", autoritzacioRepository);
+		ReflectionTestUtils.setField(service, "serveiRepository", serveiRepository);
+
+		when(aplicacioRepository.findAll()).thenReturn(Collections.emptyList());
+		when(autoritzacioRepository.findAll()).thenReturn(Collections.emptyList());
+		when(serveiRepository.findByActiuTrue()).thenReturn(Arrays.asList(
+				serveiActiu("SRV_R", "Servei Enrutador", ServeiTipusEnumDto.ENRUTADOR, "https://enrutador.test"),
+				serveiActiu("SRV_B", "Servei Backoffice", ServeiTipusEnumDto.BACKOFFICE, "https://backoffice.test")));
+
+		for (int i = 0; i < 3; i++) SalutHelper.addIntegracioExit("S1234567A", "SRV_B", 100);
+		SalutHelper.addIntegracioError(null, "SRV_R");
+
+		List<IntegracioSalut> integracions = service.getIntegracionsSalut();
+
+		assertEquals(Arrays.asList("SRV_B", "SRV_R"), Arrays.asList(
+				integracions.get(0).getCodi(),
+				integracions.get(1).getCodi()));
+
+		IntegracioPeticions peticionsBackoffice = integracions.get(0).getPeticions();
+		assertEquals("https://backoffice.test", peticionsBackoffice.getEndpoint());
+		assertEquals(3L, peticionsBackoffice.getTotalOk());
+		assertEquals(0L, peticionsBackoffice.getTotalError());
+
+		IntegracioPeticions peticionsEnrutador = integracions.get(1).getPeticions();
+		assertEquals("https://enrutador.test", peticionsEnrutador.getEndpoint());
+		assertEquals(0L, peticionsEnrutador.getTotalOk());
+		assertEquals(1L, peticionsEnrutador.getTotalError());
 	}
 
 	@Test
@@ -131,14 +237,17 @@ class AplicacioServiceImplTest {
 		AplicacioServiceImpl service = new AplicacioServiceImpl();
 		ScspCoreEmAplicacionRepository aplicacioRepository = mock(ScspCoreEmAplicacionRepository.class);
 		ScspCoreEmAutorizacionCertificadoRepository autoritzacioRepository = mock(ScspCoreEmAutorizacionCertificadoRepository.class);
+		ServeiRepository serveiRepository = mock(ServeiRepository.class);
 		ReflectionTestUtils.setField(service, "scspCoreEmAplicacionRepository", aplicacioRepository);
 		ReflectionTestUtils.setField(service, "scspCoreEmAutorizacionCertificadoRepository", autoritzacioRepository);
+		ReflectionTestUtils.setField(service, "serveiRepository", serveiRepository);
 
 		when(aplicacioRepository.findAll()).thenReturn(Arrays.asList(
 				aplicacio(30, "C12345678", "PLATAFORMA DE INTERMEDIACION - C"),
 				aplicacio(10, "A12345678", "PLATAFORMA DE INTERMEDIACION - A"),
 				aplicacio(20, "B12345678", "PLATAFORMA DE INTERMEDIACION - B")));
 		when(autoritzacioRepository.findAll()).thenReturn(Collections.emptyList());
+		when(serveiRepository.findByActiuTrue()).thenReturn(Collections.emptyList());
 
 		List<IntegracioSalut> integracions = service.getIntegracionsSalut();
 
@@ -161,6 +270,21 @@ class AplicacioServiceImplTest {
 		ReflectionTestUtils.setField(servei, "descripcion", nom);
 		ReflectionTestUtils.setField(servei, "urlSincrona", urlSincrona);
 		return servei;
+	}
+
+	private ServeiEntity serveiActiu(String codi, String nom) {
+		return serveiActiu(codi, nom, ServeiTipusEnumDto.BACKOFFICE, null);
+	}
+
+	private ServeiEntity serveiActiu(String codi, String nom, ServeiTipusEnumDto tipus, String endpoint) {
+		ServeiEntity.Builder builder = ServeiEntity
+				.getBuilder(codi, nom, tipus);
+		if (ServeiTipusEnumDto.BACKOFFICE.equals(tipus)) {
+			builder.backofficeCaibUrl(endpoint);
+		} else {
+			builder.urlPerDefecte(endpoint);
+		}
+		return builder.build();
 	}
 
 	private ScspCoreEmAutorizacionCertificadoEntity autoritzacio(
