@@ -715,7 +715,11 @@ databaseChangeLog:
     context: caib
     changes:
     - sql:
+        dbms: oracle,postgresql
         sql: ALTER TABLE core_clave_privada RENAME COLUMN passwd TO password;
+    - sql:
+        dbms: hsqldb
+        sql: ALTER TABLE core_clave_privada ALTER COLUMN passwd RENAME TO password;
 - changeSet:
     id: init-16
     author: limit (generated)
@@ -1280,7 +1284,7 @@ databaseChangeLog:
             type: VARCHAR(256)
         - column:
             name: xpathcodigoerrorsecundario
-            type: VARCHAR(256 BYTE)
+            type: VARCHAR(256)
         - column:
             constraints:
               nullable: false
