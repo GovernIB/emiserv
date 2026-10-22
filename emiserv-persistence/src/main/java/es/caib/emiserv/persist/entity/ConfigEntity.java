@@ -9,8 +9,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 
 /**
@@ -40,7 +42,7 @@ public class ConfigEntity {
     @Enumerated(EnumType.STRING)
     private ConfigSourceEnumDto sourceProperty;
 
-    @Column(name = "group_code", length = 2048, nullable = true)
+    @Column(name = "group_code", length = 128, nullable = true)
     private String groupCode;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -78,7 +80,7 @@ public class ConfigEntity {
 
     public void update(String value) {
         this.value = value;
-        this.lastModifiedDate = LocalDateTime.now();
+        this.lastModifiedDate = LocalDateTime.now(ZoneId.of("Europe/Madrid"));
         if (SecurityContextHolder.getContext().getAuthentication() != null)
             this.lastModifiedCodi = SecurityContextHolder.getContext().getAuthentication().getName();
 
