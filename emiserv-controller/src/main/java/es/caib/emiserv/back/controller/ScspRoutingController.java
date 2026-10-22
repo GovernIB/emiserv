@@ -25,11 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -85,7 +83,6 @@ public class ScspRoutingController extends BaseController {
 	private HeaderCopier headerCopier;
 
 	@RequestMapping(value = SERVLET_PATH_PREFIX + "/**", method = RequestMethod.GET)
-	@ResponseStatus(value = HttpStatus.OK)
 	public void doGet(
 			HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
@@ -116,7 +113,6 @@ public class ScspRoutingController extends BaseController {
 	}
 
 	@RequestMapping(value = SERVLET_PATH_PREFIX + "/**", method = RequestMethod.POST)
-	@ResponseStatus(value = HttpStatus.OK)
 	public void doPost(
 			HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
@@ -312,7 +308,7 @@ public class ScspRoutingController extends BaseController {
 						soapFault.getBytes(),
 						resultat.getEntitatCodiRedireccio(),
 						proxyUrl);
-				response.getOutputStream().write(soapFault.getBytes());
+				escriureSoapFault(response, soapFault);
 			} catch (Exception ex) {
 				logger.error("Error processant resposta errònia d'una petició a l'enrutador: " + 
 						ex.getClass().getName() + ": " +
@@ -434,7 +430,7 @@ public class ScspRoutingController extends BaseController {
 									soapFault.getBytes(),
 									resultat.getEntitatCodiRedireccio(),
 									proxyUrl);
-							response.getOutputStream().write(soapFault.getBytes());
+							escriureSoapFault(response, soapFault);
 						} catch (Exception ex2) {
 							logger.error("Error processant el resultat d'error: " + ex.getLocalizedMessage());
 							ex.printStackTrace();
@@ -454,6 +450,17 @@ public class ScspRoutingController extends BaseController {
 						ex);
 			}
 		}
+	}
+
+	/**
+	 * Escriu un SOAP Fault generat per EMISERV. Segons SOAP 1.1 (i WS-I BP R1126) un Fault
+	 * s'ha de retornar amb HTTP 500 i Content-Type text/xml. Els clients basats en Spring-WS
+	 * (llibreria SCSP 5.x) només el tracten com a Fault si es compleixen les dues condicions.
+	 */
+	private void escriureSoapFault(HttpServletResponse response, String soapFault) throws IOException {
+		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		response.setContentType("text/xml; charset=utf-8");
+		response.getOutputStream().write(soapFault.getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**
