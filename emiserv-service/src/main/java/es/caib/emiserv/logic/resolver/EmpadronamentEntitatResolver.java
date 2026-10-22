@@ -33,12 +33,31 @@ public class EmpadronamentEntitatResolver implements EntitatResolver {
 			String municipio = getTextFromFirstNode(
 					firstElement,
 					"//scsp:Peticion/scsp:Solicitudes/scsp:SolicitudTransmision/datosespecificos:DatosEspecificos/datosespecificos:Solicitud/datosespecificos:MunicipioSolicitud");
-			return provincia + municipio;
+			return provincia + normalitzarMunicipio(provincia, municipio);
 		} catch (Exception ex) {
 			throw new EntitatResolverException(
 					"No s'ha pogut resoldre l'entitat",
 					ex);
 		}
+	}
+
+	/**
+	 * L'esquema SCSP defineix MunicipioSolicitud com el codi INE del municipi de només 3 dígits,
+	 * a informar en un element a part de ProvinciaSolicitud (2 dígits). Alguns aplicatius clients
+	 * envien per error el codi INE complet (provincia+municipi, p.ex. "07040" en lloc de "040"),
+	 * cosa que en concatenar-lo altra volta amb la província dona un codi d'entitat duplicat
+	 * (p.ex. "0707040") que no es correspon amb cap ruta configurada. Ho normalitzam retirant el
+	 * prefix de província quan detectam aquest patró, per no fallar l'encaminament per un error
+	 * de format del client.
+	 */
+	private String normalitzarMunicipio(String provincia, String municipio) {
+		if (provincia != null
+				&& municipio != null
+				&& municipio.length() == provincia.length() + 3
+				&& municipio.startsWith(provincia)) {
+			return municipio.substring(provincia.length());
+		}
+		return municipio;
 	}
 
 	private String getTextFromFirstNode(
