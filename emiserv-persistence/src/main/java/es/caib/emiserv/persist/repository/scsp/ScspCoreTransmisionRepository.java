@@ -21,7 +21,7 @@ import java.util.List;
  * 
  * @author Limit Tecnologies <limit@limit.es>
  */
-public interface ScspCoreTransmisionRepository extends JpaRepository<ScspCoreTransmisionEntity, String> {
+public interface ScspCoreTransmisionRepository extends JpaRepository<ScspCoreTransmisionEntity, ScspCoreTransmisionEntity.ScspCoreTransmisionPk> {
 
 	ScspCoreTransmisionEntity findByPeticionIdAndSolicitudId(
 			String peticionId,

@@ -42,6 +42,14 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 
 	@Override
 	@PermitAll
+	public RedireccioProcessarResultatDto processarPeticio(
+			byte[] xml,
+			boolean asincrona) throws ScspParseException {
+		return getDelegateService().processarPeticio(xml, asincrona);
+	}
+
+	@Override
+	@PermitAll
 	public void processarResposta(
 			String peticioId,
 			String serveiCodi,

@@ -77,7 +77,7 @@ public class BackofficeDestiHelper {
 			throw new ValidationException("No es pot resoldre la ruta del servei enrutador (codi=" + servei.getCodi() + ") sense la petició");
 		}
 		String entitatCodi = resoldreEntitat(servei, peticion);
-		ServeiRutaDestiEntity ruta = serveiRutaDestiRepository.findByServeiAndEntitatCodi(
+		ServeiRutaDestiEntity ruta = serveiRutaDestiRepository.findPrimeraByServeiAndEntitatCodi(
 				servei,
 				entitatCodi);
 		if (ruta == null) {
@@ -190,7 +190,24 @@ public class BackofficeDestiHelper {
 		return destins;
 	}
 
-	private String resoldreEntitat(
+	/**
+	 * Totes les rutes de l'enrutador múltiple per ordre, per a les consultes asíncrones: les de tipus
+	 * BACKOFFICE amb la URL del backoffice i les de tipus EMISERV (emisor del cedent) sense URL.
+	 */
+	public List<BackofficeDesti> getDestinsEnrutadorMultipleOrdenats(ServeiEntity servei) {
+		List<BackofficeDesti> destins = new ArrayList<BackofficeDesti>();
+		for (ServeiRutaDestiEntity ruta: serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(servei)) {
+			destins.add(new BackofficeDesti(
+					servei.getCodi(),
+					ruta.getEntitatCodi(),
+					ruta.isDestiBackoffice() ? ruta.getUrl() : null,
+					ruta.getBackofficeAutenticacio()));
+		}
+		return destins;
+	}
+
+	/** Entitat destí de la petició segons el resolutor d'entitats del servei enrutador. */
+	public String resoldreEntitat(
 			ServeiEntity servei,
 			Peticion peticion) {
 		if (servei.getResolverClass() == null) {

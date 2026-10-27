@@ -95,7 +95,7 @@ class BackofficeDestiHelperTest {
 
 	@Test
 	void enrutadorFaServirElBackofficeDeLaRutaDeLEntitat() throws Exception {
-		when(serveiRutaDestiRepository.findByServeiAndEntitatCodi(enrutador, "7040")).thenReturn(
+		when(serveiRutaDestiRepository.findPrimeraByServeiAndEntitatCodi(enrutador, "7040")).thenReturn(
 				ruta(ServeiRutaDestiTipusEnumDto.BACKOFFICE, BackofficeAutenticacioTipusEnumDto.TEXT_CLAR));
 
 		BackofficeDesti desti = helper.getDesti(enrutador, peticion(element(DATOS_ESPECIFICOS_PADRO)));
@@ -114,7 +114,7 @@ class BackofficeDestiHelperTest {
 	@Test
 	void enrutadorAmbDadesEspecifiquesComATextIClientQueEnviaElCodiIneComplet() {
 		// Alguns clients envien el codi INE complet al municipi (p.ex. 7040 en lloc de 040)
-		when(serveiRutaDestiRepository.findByServeiAndEntitatCodi(eq(enrutador), eq("7040"))).thenReturn(
+		when(serveiRutaDestiRepository.findPrimeraByServeiAndEntitatCodi(eq(enrutador), eq("7040"))).thenReturn(
 				ruta(ServeiRutaDestiTipusEnumDto.BACKOFFICE, null));
 
 		BackofficeDesti desti = helper.getDesti(enrutador, peticion(DATOS_ESPECIFICOS_PADRO.replace(">040<", ">7040<")));
@@ -125,7 +125,7 @@ class BackofficeDestiHelperTest {
 
 	@Test
 	void enrutadorAmbRutaEmiserv() throws Exception {
-		when(serveiRutaDestiRepository.findByServeiAndEntitatCodi(enrutador, "7040")).thenReturn(
+		when(serveiRutaDestiRepository.findPrimeraByServeiAndEntitatCodi(enrutador, "7040")).thenReturn(
 				ruta(ServeiRutaDestiTipusEnumDto.EMISERV, null));
 
 		ValidationException ex = assertThrows(
@@ -136,7 +136,7 @@ class BackofficeDestiHelperTest {
 
 	@Test
 	void enrutadorSenseRutaPerALEntitat() throws Exception {
-		when(serveiRutaDestiRepository.findByServeiAndEntitatCodi(any(), any())).thenReturn(null);
+		when(serveiRutaDestiRepository.findPrimeraByServeiAndEntitatCodi(any(), any())).thenReturn(null);
 
 		assertThrows(ValidationException.class, () -> helper.getDesti(enrutador, peticion(element(DATOS_ESPECIFICOS_PADRO))));
 	}

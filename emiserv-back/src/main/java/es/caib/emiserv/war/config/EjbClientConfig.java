@@ -52,6 +52,11 @@ public class EjbClientConfig {
 	}
 
 	@Bean
+	public LocalStatelessSessionProxyFactoryBean consultaAsincronaService() {
+		return getLocalEjbFactoyBean(ConsultaAsincronaService.class);
+	}
+
+	@Bean
 	public LocalStatelessSessionProxyFactoryBean explotacioService() {
 		return getLocalEjbFactoyBean(ExplotacioService.class);
 	}

@@ -36,9 +36,17 @@ import es.caib.emiserv.persist.repository.scsp.ScspCoreTransmisionRepository;
 import es.caib.loginModule.auth.ControladorSesion;
 import es.caib.loginModule.client.AuthorizationToken;
 import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.Callable;
+import javax.persistence.PersistenceContext;
+import javax.persistence.EntityManager;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import es.caib.emiserv.persist.repository.ServeiRutaDestiRepository;
+import es.caib.emiserv.persist.entity.ServeiRutaDestiEntity;
+import es.caib.emiserv.logic.helper.ClientScspHelper.ScspCedentException;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,15 +73,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.net.MalformedURLException;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -111,11 +123,19 @@ public class BackofficeHelper {
 	private Environment environment;
 	@Autowired
 	private BackofficeDestiHelper backofficeDestiHelper;
+	@Autowired
+	private ConfiguracioAsincronHelper configuracioAsincronHelper;
+	@Autowired
+	private ClientScspHelper clientScspHelper;
+	@Autowired
+	private ServeiRutaDestiRepository serveiRutaDestiRepository;
+	@PersistenceContext
+	private EntityManager entityManager;
 
 	private static final String NS_SOAPENV = "http://schemas.xmlsoap.org/soap/envelope/";
 	private static final String NS_RESPUESTA3 = "http://intermediacion.redsara.es/scsp/esquemas/V3/respuesta";
-	/** Temps estimat de resposta de les peticions asíncrones dels enrutadors (es processen com a síncrones). */
-	private static final int TER_ENRUTADOR_SEGONS = 60;
+	/** Codi d'estat de les sol·licituds que no s'han pogut enviar al destí (error definitiu). */
+	static final String CODI_ERROR_DESTI = "0503";
 
 	private EmiservBackofficeHandlerProxy testBackoffice;
 	private String testXmlPeticio;
@@ -154,40 +174,212 @@ public class BackofficeHelper {
 				backofficePeticio);
 	}
 
+	/**
+	 * Resol l'entitat destí d'una sol·licitud d'una consulta asíncrona a un enrutador (cada sol·licitud
+	 * pot anar a un cedent diferent). Si no es pot resoldre, la sol·licitud finalitza amb error.
+	 *
+	 * @return l'id de la petició si la sol·licitud ha finalitzat amb error (s'ha de recomptar), o null.
+	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public void processarPeticioPendent(
-			Long peticioId) {
-		BackofficePeticioEntity peticio = backofficePeticioRepository.getOne(peticioId);
-		ScspCorePeticionRespuestaEntity scspPeticionRespuesta = peticio.getScspPeticionRespuesta();
-		log.debug("Processant petició pendent (" +
-				"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " +
-				"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " +
-				"darreraSolicitudId=" + peticio.getDarreraSolicitudId() + ")");
-		List<BackofficeSolicitudEntity> solicituds = backofficeSolicitudRepository.findByPeticioOrderByIdAsc(
-				peticio);
-		boolean trobada = peticio.getDarreraSolicitudId() == null;
-		// Cerca la darrera sol·licitud enviada i envia la següent
-		for (BackofficeSolicitudEntity solicitud: solicituds) {
-			if (!trobada) {
-				trobada = solicitud.getSolicitudId().equals(peticio.getDarreraSolicitudId());
-				log.debug("Comprovant sol·licitud a enviar (" +
-						"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " + 
-						"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " + 
-						"idSolicitud=" + solicitud.getSolicitudId() + ", " +
-						"trobada=" + trobada + ")");
-			} else {
-				peticioBackofficeEnviarNomesUna(
-						peticio,
-						solicitud);
-				break;
+	public Long resoldreEntitatSolicitud(Long solicitudId) {
+		BackofficeSolicitudEntity solicitud = backofficeSolicitudRepository.getOne(solicitudId);
+		BackofficePeticioEntity peticio = solicitud.getPeticio();
+		try {
+			ServeiEntity servei = getServeiPeticio(peticio);
+			String entitatCodi = backofficeDestiHelper.resoldreEntitat(
+					servei,
+					crearPeticioSolicitud(peticio, solicitud));
+			if (entitatCodi == null || entitatCodi.isBlank()) {
+				throw new ValidationException("El resolutor no ha retornat cap entitat (servei=" + servei.getCodi() + ")");
+			}
+			solicitud.updateEntitatCodi(entitatCodi);
+			return null;
+		} catch (Exception ex) {
+			log.error("No s'ha pogut resoldre l'entitat destí de la sol·licitud (" +
+					"idPeticion=" + peticio.getScspPeticionRespuesta().getPeticionId() + ", " +
+					"idSolicitud=" + solicitud.getSolicitudId() + "): " + ex.getMessage());
+			solicitud.finalitzarAmbError(CODI_ERROR_DESTI, "No s'ha pogut resoldre l'entitat destí: " + ex.getMessage());
+			return peticio.getId();
+		}
+	}
+
+	/**
+	 * Reserva la següent sol·licitud pendent d'un destí (servei SCSP i entitat).
+	 *
+	 * @return l'id de la sol·licitud reservada (estat ENVIANT) o null si no n'hi ha cap.
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public Long reservarSeguentSolicitud(
+			Long certificado,
+			String entitatCodi) {
+		Date ara = new Date();
+		List<Long> ids = backofficeSolicitudRepository.findIdsEnviablesDesti(
+				Collections.singletonList(certificado),
+				entitatCodi,
+				ara,
+				PageRequest.of(0, 5));
+		for (Long id: ids) {
+			// Un altre procés (o node) pot haver reservat la mateixa sol·licitud
+			if (backofficeSolicitudRepository.reservarEnviament(id, ara) == 1) {
+				return id;
 			}
 		}
-		if (!trobada) {
-			log.error("No s'han trobat sol·licituds pendents d'enviar per a la petició (" +
-					"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " +
-					"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " +
-					"darreraSolicitudId=" + peticio.getDarreraSolicitudId() + ")");
+		return null;
+	}
+
+	/**
+	 * Envia al destí una sol·licitud reservada (ENVIANT) com a petició síncrona. Si falla es reprograma
+	 * amb espera creixent fins al nombre màxim d'intents; els errors de configuració són definitius.
+	 * No modifica la petició (altres sol·licituds de la mateixa petició s'envien en paral·lel): s'ha de
+	 * cridar després actualitzarEstatPeticio.
+	 *
+	 * @return l'id de la petició de la sol·licitud.
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public Long enviarSolicitud(Long solicitudId) {
+		BackofficeSolicitudEntity solicitud = backofficeSolicitudRepository.getOne(solicitudId);
+		BackofficePeticioEntity peticio = solicitud.getPeticio();
+		if (!BackofficeSolicitudEstatEnumDto.ENVIANT.equals(solicitud.getEstat())) {
+			log.warn("La sol·licitud no està reservada per enviar (id=" + solicitudId + ", estat=" + solicitud.getEstat() + ")");
+			return peticio.getId();
 		}
+		String idPeticion = peticio.getScspPeticionRespuesta().getPeticionId();
+		log.debug("Enviant la sol·licitud d'una petició asíncrona (" +
+				"idPeticion=" + idPeticion + ", " +
+				"idSolicitud=" + solicitud.getSolicitudId() + ", " +
+				"entitat=" + solicitud.getEntitatCodi() + ", " +
+				"intent=" + solicitud.getIntents() + ")");
+		Exception excepcio;
+		try {
+			ServeiEntity servei = getServeiPeticio(peticio);
+			ServeiRutaDestiEntity rutaEmisor = getRutaEmisorCedent(servei, solicitud);
+			RespuestaAmbException respuesta;
+			if (rutaEmisor != null) {
+				// El cedent no té backoffice: es fa la petició SCSP al seu emisor
+				respuesta = enviarSolicitudEmisorCedent(peticio, solicitud, servei, rutaEmisor);
+			} else {
+				respuesta = peticioBackofficeSincronaEnviar(
+						crearPeticioSolicitud(peticio, solicitud),
+						peticio,
+						solicitud,
+						false);
+			}
+			excepcio = respuesta.getException();
+		} catch (Exception ex) {
+			excepcio = ex;
+		}
+		if (excepcio == null) {
+			solicitud.marcarTramitada();
+		} else {
+			String error = excepcio.getClass().getSimpleName() + ": " + excepcio.getMessage();
+			ScspCedentException errorCedent = excepcio instanceof ScspCedentException ? (ScspCedentException)excepcio : null;
+			boolean definitiu = excepcio instanceof ValidationException || excepcio instanceof NotFoundException ||
+					(errorCedent != null && errorCedent.isDefinitiu());
+			if (definitiu || solicitud.getIntents() >= configuracioAsincronHelper.getReintentsMaxim()) {
+				log.error("Error definitiu enviant la sol·licitud d'una petició asíncrona (" +
+						"idPeticion=" + idPeticion + ", " +
+						"idSolicitud=" + solicitud.getSolicitudId() + ", " +
+						"intents=" + solicitud.getIntents() + "): " + error);
+				// L'estat de la transmissió és el de l'error de l'emisor del cedent, si n'ha retornat
+				solicitud.finalitzarAmbError(
+						errorCedent != null && errorCedent.getCodiEstat() != null ? errorCedent.getCodiEstat() : CODI_ERROR_DESTI,
+						error);
+			} else {
+				Date properIntent = new Date(System.currentTimeMillis() + configuracioAsincronHelper.getEsperaReintentMs(solicitud.getIntents()));
+				log.warn("Error enviant la sol·licitud d'una petició asíncrona, es tornarà a intentar (" +
+						"idPeticion=" + idPeticion + ", " +
+						"idSolicitud=" + solicitud.getSolicitudId() + ", " +
+						"intents=" + solicitud.getIntents() + ", " +
+						"properIntent=" + properIntent + "): " + error);
+				solicitud.reprogramar(error, properIntent);
+			}
+		}
+		return peticio.getId();
+	}
+
+	/**
+	 * Recompta les sol·licituds processades de la petició (amb la fila bloquejada: les sol·licituds
+	 * s'envien en paral·lel) i, si ja no en queda cap per enviar, la dona per finalitzada.
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void actualitzarEstatPeticio(
+			Long peticioId,
+			Long darreraSolicitudId) {
+		BackofficePeticioEntity peticio = backofficePeticioRepository.findAmbBloqueig(peticioId);
+		if (peticio != null) {
+			recomptarPeticio(peticio, darreraSolicitudId);
+		}
+	}
+
+	/**
+	 * Recompte de la petició dins la transacció actual (la petició s'ha d'haver obtingut amb
+	 * bloqueig o ja s'ha de modificar a la transacció, com a les accions de la pantalla de gestió).
+	 */
+	public void recomptarPeticio(
+			BackofficePeticioEntity peticio,
+			Long darreraSolicitudId) {
+		if (!PeticioEstatEnumDto.PENDENT.equals(peticio.getEstat())) {
+			return;
+		}
+		int total = backofficeSolicitudRepository.countByPeticio(peticio);
+		int tramitades = backofficeSolicitudRepository.countByPeticioAndEstat(peticio, BackofficeSolicitudEstatEnumDto.TRAMITADA);
+		int errors = backofficeSolicitudRepository.countByPeticioAndEstat(peticio, BackofficeSolicitudEstatEnumDto.ERROR);
+		String darreraSolicitud = null;
+		if (darreraSolicitudId != null) {
+			BackofficeSolicitudEntity solicitud = backofficeSolicitudRepository.getOne(darreraSolicitudId);
+			darreraSolicitud = solicitud.getSolicitudId();
+			if (solicitud.getComunicacioDarrera() != null) {
+				peticio.updateComunicacioDarrera(solicitud.getComunicacioDarrera());
+			}
+		}
+		peticio.updateProcessades(tramitades + errors, errors, darreraSolicitud);
+		if (tramitades + errors >= total) {
+			log.debug("Petició asíncrona finalitzada (" +
+					"idPeticion=" + peticio.getScspPeticionRespuesta().getPeticionId() + ", " +
+					"tramitades=" + tramitades + ", " +
+					"errors=" + errors + ")");
+			peticio.updateEstat(errors == 0 ? PeticioEstatEnumDto.TRAMITADA : PeticioEstatEnumDto.ERROR);
+			updateScspEstat(peticio.getScspPeticionRespuesta(), peticio);
+		}
+	}
+
+	/**
+	 * Enviaments no finalitzats (aturada de l'aplicació o del node): es tornen a fer o, si ja s'han
+	 * esgotat els intents, finalitzen amb error.
+	 *
+	 * @param enCurs sol·licituds que aquest node està enviant ara mateix (no s'han de recuperar).
+	 * @return els ids de les peticions de les sol·licituds finalitzades amb error.
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public Set<Long> recuperarEnviamentsInterromputs(Set<Long> enCurs) {
+		Set<Long> peticions = new HashSet<Long>();
+		Date limit = new Date(System.currentTimeMillis() - configuracioAsincronHelper.getEnviamentCaducatSegons() * 1000L);
+		for (BackofficeSolicitudEntity solicitud: backofficeSolicitudRepository.findByEstatAndDataEnviamentBefore(BackofficeSolicitudEstatEnumDto.ENVIANT, limit)) {
+			if (enCurs.contains(solicitud.getId())) {
+				continue;
+			}
+			String error = "Enviament interromput (iniciat el " + solicitud.getDataEnviament() + ")";
+			if (solicitud.getIntents() >= configuracioAsincronHelper.getReintentsMaxim()) {
+				solicitud.finalitzarAmbError(CODI_ERROR_DESTI, error);
+				peticions.add(solicitud.getPeticio().getId());
+			} else {
+				solicitud.reprogramar(error, new Date());
+			}
+			log.warn("Recuperada una sol·licitud amb l'enviament interromput (" +
+					"id=" + solicitud.getId() + ", " +
+					"idSolicitud=" + solicitud.getSolicitudId() + ", " +
+					"estat=" + solicitud.getEstat() + ")");
+		}
+		return peticions;
+	}
+
+	private ServeiEntity getServeiPeticio(BackofficePeticioEntity peticio) {
+		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.getOne(peticio.getScspPeticionRespuesta().getCertificado());
+		ServeiEntity servei = serveiRepository.findByCodi(scspCoreServicio.getCodigoCertificado());
+		if (servei == null) {
+			throw new NotFoundException(scspCoreServicio.getCodigoCertificado(), ServeiEntity.class);
+		}
+		return servei;
 	}
 
 	public ScspCoreServicioEntity findCoreServicioPerPeticionRespuesta(
@@ -236,9 +428,15 @@ public class BackofficeHelper {
 					ServeiEntity.class);
 		}
 		int terEnSegons = servei.getBackofficeCaibAsyncTer();
-		if (terEnSegons == 0)
-			// Per defecte és una hora. Els enrutadors processen les asíncrones com a síncrones en pocs segons.
-			terEnSegons = servei.isEnrutador() ? TER_ENRUTADOR_SEGONS : 3600;
+		if (servei.isEnrutador()) {
+			// Les sol·licituds s'envien als cedents amb un ritme limitat: el TER depèn del nombre de
+			// sol·licituds i de les que ja hi ha pendents per al mateix servei
+			long pendents = backofficeSolicitudRepository.countPendentsCertificat(peticionRespuesta.getCertificado());
+			terEnSegons = configuracioAsincronHelper.calcularTerMinuts(servei, idSolicituds.size() + pendents) * 60;
+		} else if (terEnSegons == 0) {
+			// Per defecte és una hora
+			terEnSegons = 3600;
+		}
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.SECOND, terEnSegons);
 		BackofficePeticioEntity peticio = BackofficePeticioEntity.getBuilder(
@@ -281,16 +479,19 @@ public class BackofficeHelper {
 		return PeticioEstatEnumDto.ERROR;
 	}
 
-	private void peticioBackofficeEnviarNomesUna(
+	/**
+	 * Petició SCSP d'una única sol·licitud d'una petició asíncrona, construïda amb les dades de la
+	 * sol·licitud desades per l'emisor (transmissió i missatge de la petició).
+	 */
+	Peticion crearPeticioSolicitud(
 			BackofficePeticioEntity backofficePeticio,
-			BackofficeSolicitudEntity backofficeSolicitud) {
-		Exception excepcio = null;
+			BackofficeSolicitudEntity backofficeSolicitud) throws Exception {
 		ScspCorePeticionRespuestaEntity scspPeticionRespuesta = backofficePeticio.getScspPeticionRespuesta();
 		ScspCoreTransmisionEntity scspTransmision = scspCoreTransmisionRepository.findByPeticionIdAndSolicitudId(
 				scspPeticionRespuesta.getPeticionId(),
 				backofficeSolicitud.getSolicitudId());
 		if (scspTransmision == null) {
-			excepcio = new NotFoundException(
+			throw new NotFoundException(
 					scspPeticionRespuesta.getPeticionId() + ", " + backofficeSolicitud.getSolicitudId(),
 					ScspCoreTransmisionEntity.class);
 		}
@@ -298,136 +499,91 @@ public class BackofficeHelper {
 				scspPeticionRespuesta.getPeticionId(),
 				0);
 		if (scspTokenData == null) {
-			excepcio = new NotFoundException(
+			throw new NotFoundException(
 					scspPeticionRespuesta.getPeticionId() + ", 0",
 					ScspCoreTokenDataEntity.class);
 		}
 		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.getOne(scspPeticionRespuesta.getCertificado());
 		if (scspCoreServicio == null) {
-			excepcio = new NotFoundException(
+			throw new NotFoundException(
 					scspPeticionRespuesta.getCertificado(),
 					ScspCoreServicioEntity.class);
 		}
-		if (excepcio == null) {
-			log.debug("Enviant al backoffice una petició síncrona provinent d'una petició asíncrona (" +
-					"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " + 
-					"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " +
-					"idSolicitud=" + backofficeSolicitud.getSolicitudId() + ")");
-			try {
-				String xml = scspTokenData.getDatos();
-				Element solicitudTransmisionElement = getElementSolicitudTransmision(
-						xml,
-						backofficeSolicitud.getSolicitudId());
-				String nsprefix = (xmlHelper.isPeticioScspV2(solicitudTransmisionElement)) ? "peticion2" : "peticion3";
-				// Rutes relatives a la sol·licitud: amb "//" s'obtindrien les dades de la primera sol·licitud de la petició
-				String emisorNombre = xmlHelper.getTextFromFirstNode(
-						solicitudTransmisionElement,
-						"./" + nsprefix + ":DatosGenericos/" + nsprefix + ":Emisor/" + nsprefix + ":NombreEmisor");
-				String emisorNif = xmlHelper.getTextFromFirstNode(
-						solicitudTransmisionElement,
-						"./" + nsprefix + ":DatosGenericos/" + nsprefix + ":Emisor/" + nsprefix + ":NifEmisor");
-				String titularDocumentoTipo = xmlHelper.getTextFromFirstNode(
-						solicitudTransmisionElement,
-						"./" + nsprefix + ":DatosGenericos/" + nsprefix + ":Titular/" + nsprefix + ":TipoDocumentacion");
-				// A SCSP v3 l'element DatosEspecificos és del namespace de dades específiques, no del de la petició
-				Node datosEspecificos = xmlHelper.getFirstNode(
-						solicitudTransmisionElement,
-						"./*[local-name()='DatosEspecificos']");
-				Peticion peticion = new Peticion();
-				Atributos atributos = new Atributos();
-				atributos.setCodigoCertificado(scspCoreServicio.getCodigoCertificado());
-				atributos.setIdPeticion(scspPeticionRespuesta.getPeticionId());
-				atributos.setNumElementos("1");
-				atributos.setTimeStamp(crearTimestampScsp(new Date()));
-				peticion.setAtributos(atributos);
-				Solicitudes solicitudes = new Solicitudes();
-				SolicitudTransmision solicitudTransmision = new SolicitudTransmision();
-				DatosGenericos datosGenericos = new DatosGenericos();
-				Emisor emisor = new Emisor();
-				emisor.setNombreEmisor(emisorNombre);
-				emisor.setNifEmisor(emisorNif);
-				datosGenericos.setEmisor(emisor);
-				Solicitante solicitante = new Solicitante();
-				Procedimiento procedimiento = new Procedimiento();
-				procedimiento.setCodProcedimiento(scspTransmision.getProcedimientoCodigo());
-				procedimiento.setNombreProcedimiento(scspTransmision.getProcedimientoNombre());
-				solicitante.setProcedimiento(procedimiento);
-				solicitante.setNombreSolicitante(scspTransmision.getSolicitanteNombre());
-				solicitante.setIdentificadorSolicitante(scspTransmision.getSolicitanteId());
-				Funcionario funcionario = new Funcionario();
-				funcionario.setNombreCompletoFuncionario(scspTransmision.getFuncionarioNombre());
-				funcionario.setNifFuncionario(scspTransmision.getFuncionarioDocumento());
-				solicitante.setFuncionario(funcionario);
-				solicitante.setUnidadTramitadora(scspTransmision.getUnidadTramitadora());
-				solicitante.setIdExpediente(scspTransmision.getExpediente());
-				if (scspTransmision.getConsentimiento() != null) {
-					solicitante.setConsentimiento(toConsentimiento(scspTransmision.getConsentimiento()));
-				}
-				solicitante.setFinalidad(scspTransmision.getFinalidad());
-				datosGenericos.setSolicitante(solicitante);
-				Titular titular = new Titular();
-				titular.setNombre(scspTransmision.getTitularNombre());
-				titular.setApellido1(scspTransmision.getTitularApellido1());
-				titular.setApellido2(scspTransmision.getTitularApellido2());
-				titular.setNombreCompleto(scspTransmision.getTitularNombreCompleto());
-				if (titularDocumentoTipo != null) {
-					titular.setTipoDocumentacion(TipoDocumentacion.valueOf(titularDocumentoTipo));
-				}
-				titular.setDocumentacion(scspTransmision.getTitularDocumento());
-				datosGenericos.setTitular(titular);
-				Transmision transmision = new Transmision();
-				transmision.setCodigoCertificado(scspCoreServicio.getCodigoCertificado());
-				transmision.setIdSolicitud(scspTransmision.getSolicitudId());
-				transmision.setIdTransmision(scspTransmision.getTransmisionId());
-				if (scspTransmision.getFechaGeneracion() != null) {
-					transmision.setFechaGeneracion(crearTimestampScsp(scspTransmision.getFechaGeneracion()));
-				}
-				datosGenericos.setTransmision(transmision);
-				solicitudTransmision.setDatosGenericos(datosGenericos);
-				solicitudTransmision.setDatosEspecificos(datosEspecificos);
-				solicitudes.setSolicitudTransmision(new ArrayList<SolicitudTransmision>());
-				solicitudes.getSolicitudTransmision().add(solicitudTransmision);
-				peticion.setSolicitudes(solicitudes);
-				RespuestaAmbException respuesta = peticioBackofficeSincronaEnviar(
-						peticion,
-						backofficePeticio,
-						backofficeSolicitud,
-						false);
-				if (respuesta.getException() == null) {
-					backofficeSolicitud.updateEstat(BackofficeSolicitudEstatEnumDto.TRAMITADA);
-					backofficePeticio.updateSolicitudProcessada(
-							backofficeSolicitud.getSolicitudId(),
-							false);
-//					scspPeticionRespuesta.updateProcessadesTotal(backofficePeticio.getProcessadesTotal());
-				} else {
-					excepcio = respuesta.getException();
-				}
-			} catch (Exception ex) {
-				excepcio = ex;
+			String xml = scspTokenData.getDatos();
+			Element solicitudTransmisionElement = getElementSolicitudTransmision(
+					xml,
+					backofficeSolicitud.getSolicitudId());
+			String nsprefix = (xmlHelper.isPeticioScspV2(solicitudTransmisionElement)) ? "peticion2" : "peticion3";
+			// Rutes relatives a la sol·licitud: amb "//" s'obtindrien les dades de la primera sol·licitud de la petició
+			String emisorNombre = xmlHelper.getTextFromFirstNode(
+					solicitudTransmisionElement,
+					"./" + nsprefix + ":DatosGenericos/" + nsprefix + ":Emisor/" + nsprefix + ":NombreEmisor");
+			String emisorNif = xmlHelper.getTextFromFirstNode(
+					solicitudTransmisionElement,
+					"./" + nsprefix + ":DatosGenericos/" + nsprefix + ":Emisor/" + nsprefix + ":NifEmisor");
+			String titularDocumentoTipo = xmlHelper.getTextFromFirstNode(
+					solicitudTransmisionElement,
+					"./" + nsprefix + ":DatosGenericos/" + nsprefix + ":Titular/" + nsprefix + ":TipoDocumentacion");
+			// A SCSP v3 l'element DatosEspecificos és del namespace de dades específiques, no del de la petició
+			Node datosEspecificos = xmlHelper.getFirstNode(
+					solicitudTransmisionElement,
+					"./*[local-name()='DatosEspecificos']");
+			Peticion peticion = new Peticion();
+			Atributos atributos = new Atributos();
+			atributos.setCodigoCertificado(scspCoreServicio.getCodigoCertificado());
+			atributos.setIdPeticion(scspPeticionRespuesta.getPeticionId());
+			atributos.setNumElementos("1");
+			atributos.setTimeStamp(crearTimestampScsp(new Date()));
+			peticion.setAtributos(atributos);
+			Solicitudes solicitudes = new Solicitudes();
+			SolicitudTransmision solicitudTransmision = new SolicitudTransmision();
+			DatosGenericos datosGenericos = new DatosGenericos();
+			Emisor emisor = new Emisor();
+			emisor.setNombreEmisor(emisorNombre);
+			emisor.setNifEmisor(emisorNif);
+			datosGenericos.setEmisor(emisor);
+			Solicitante solicitante = new Solicitante();
+			Procedimiento procedimiento = new Procedimiento();
+			procedimiento.setCodProcedimiento(scspTransmision.getProcedimientoCodigo());
+			procedimiento.setNombreProcedimiento(scspTransmision.getProcedimientoNombre());
+			solicitante.setProcedimiento(procedimiento);
+			solicitante.setNombreSolicitante(scspTransmision.getSolicitanteNombre());
+			solicitante.setIdentificadorSolicitante(scspTransmision.getSolicitanteId());
+			Funcionario funcionario = new Funcionario();
+			funcionario.setNombreCompletoFuncionario(scspTransmision.getFuncionarioNombre());
+			funcionario.setNifFuncionario(scspTransmision.getFuncionarioDocumento());
+			solicitante.setFuncionario(funcionario);
+			solicitante.setUnidadTramitadora(scspTransmision.getUnidadTramitadora());
+			solicitante.setIdExpediente(scspTransmision.getExpediente());
+			if (scspTransmision.getConsentimiento() != null) {
+				solicitante.setConsentimiento(toConsentimiento(scspTransmision.getConsentimiento()));
 			}
-		}
-		if (excepcio != null) {
-			log.error("Error al enviar al backoffice una petició síncrona provinent d'una petició asíncrona (" +
-					"codigoCertificado=" + scspPeticionRespuesta.getCertificado() + ", " + 
-					"idPeticion=" + scspPeticionRespuesta.getPeticionId() + ", " +
-					"idSolicitud=" + backofficeSolicitud.getSolicitudId() + ")",
-					excepcio);
-			backofficeSolicitud.updateEstat(BackofficeSolicitudEstatEnumDto.ERROR);
-			backofficePeticio.updateSolicitudProcessada(
-					backofficeSolicitud.getSolicitudId(),
-					true);
-//			scspPeticionRespuesta.updateProcessadesTotal(backofficePeticio.getProcessadesTotal());
-		}
-		int numSolicituds = backofficeSolicitudRepository.countByPeticio(backofficePeticio);
-		if (numSolicituds == backofficePeticio.getProcessadesTotal()) {
-			if (backofficePeticio.getProcessadesError() == 0) {
-				backofficePeticio.updateEstat(PeticioEstatEnumDto.TRAMITADA);
-			} else {
-				backofficePeticio.updateEstat(PeticioEstatEnumDto.ERROR);
+			solicitante.setFinalidad(scspTransmision.getFinalidad());
+			datosGenericos.setSolicitante(solicitante);
+			Titular titular = new Titular();
+			titular.setNombre(scspTransmision.getTitularNombre());
+			titular.setApellido1(scspTransmision.getTitularApellido1());
+			titular.setApellido2(scspTransmision.getTitularApellido2());
+			titular.setNombreCompleto(scspTransmision.getTitularNombreCompleto());
+			if (titularDocumentoTipo != null) {
+				titular.setTipoDocumentacion(TipoDocumentacion.valueOf(titularDocumentoTipo));
 			}
-			// Update estat SCSP
-			updateScspEstat(scspPeticionRespuesta, backofficePeticio);
-		}
+			titular.setDocumentacion(scspTransmision.getTitularDocumento());
+			datosGenericos.setTitular(titular);
+			Transmision transmision = new Transmision();
+			transmision.setCodigoCertificado(scspCoreServicio.getCodigoCertificado());
+			transmision.setIdSolicitud(scspTransmision.getSolicitudId());
+			transmision.setIdTransmision(scspTransmision.getTransmisionId());
+			if (scspTransmision.getFechaGeneracion() != null) {
+				transmision.setFechaGeneracion(crearTimestampScsp(scspTransmision.getFechaGeneracion()));
+			}
+			datosGenericos.setTransmision(transmision);
+			solicitudTransmision.setDatosGenericos(datosGenericos);
+			solicitudTransmision.setDatosEspecificos(datosEspecificos);
+			solicitudes.setSolicitudTransmision(new ArrayList<SolicitudTransmision>());
+			solicitudes.getSolicitudTransmision().add(solicitudTransmision);
+			peticion.setSolicitudes(solicitudes);
+		return peticion;
 	}
 
 	private RespuestaAmbException peticioBackofficeSincronaEnviar(
@@ -455,7 +611,11 @@ public class BackofficeHelper {
 		DatosEspecificosHandler datosEspecificosHandler = new DatosEspecificosHandler();
 		try {
 			// El destí es resol abans de modificar les dades específiques (els resolutors d'entitats en necessiten els namespaces)
-			BackofficeDesti desti = getBackofficeDesti(servei, peticion, backofficePeticio);
+			// Les sol·licituds de les consultes asíncrones s'envien en paral·lel: no es modifica la petició
+			BackofficeDesti desti = getBackofficeDesti(servei, peticion, backofficeSolicitud == null ? backofficePeticio : null);
+			if (backofficeSolicitud != null && desti != null && desti.getEntitatCodi() != null) {
+				backofficeSolicitud.updateEntitatCodi(desti.getEntitatCodi());
+			}
 			if (generarLogs) {
 				log.debug("Enviant petició síncrona al backoffice " +
 						getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + "(" +
@@ -468,6 +628,9 @@ public class BackofficeHelper {
 					desti,
 					peticioRespostaHandler,
 					datosEspecificosHandler);
+			if (backofficeSolicitud != null) {
+				WsClientHelper.configurarTimeout(emiservBackoffice, configuracioAsincronHelper.getTimeoutSegons());
+			}
 			respuesta = emiservBackoffice.peticionSincrona(peticion);
 			comprovarTransmisionsResposta(respuesta);
 			copiarDatosEspecificosResposta(
@@ -552,21 +715,46 @@ public class BackofficeHelper {
 		RespostaBackofficeEntitat escollida = null;
 		Exception excepcioDurantPeticio = null;
 		try {
-			List<BackofficeDesti> destins = backofficeDestiHelper.getDestinsEnrutadorMultiple(servei);
+			// Les peticions de les consultes asíncrones (amb sol·licitud) també es fan als emisors dels
+			// cedents (rutes de tipus EMISERV). Les tasques es creen per ordre de les rutes.
+			List<Callable<RespostaBackofficeEntitat>> tasques = new ArrayList<Callable<RespostaBackofficeEntitat>>();
+			List<PeticioEmisorCedent> peticionsCedents = backofficeSolicitud != null ?
+					prepararPeticionsEmisorsCedents(backofficePeticio, backofficeSolicitud, servei) :
+					Collections.<PeticioEmisorCedent>emptyList();
+			List<BackofficeDesti> destins = backofficeSolicitud != null ?
+					backofficeDestiHelper.getDestinsEnrutadorMultipleOrdenats(servei) :
+					backofficeDestiHelper.getDestinsEnrutadorMultiple(servei);
 			if (generarLogs) {
 				log.debug("Enviant petició síncrona als backoffices de l'enrutador múltiple " +
 						getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + "(" +
 						"backofficeDestins=" + destins + ")");
 			}
 			modificarDatosEspecificosTransmisionPeticio(peticion);
-			List<RespostaBackofficeEntitat> respostes = new ArrayList<RespostaBackofficeEntitat>();
-			ExecutorService executor = Executors.newFixedThreadPool(destins.size());
-			try {
-				List<Future<RespostaBackofficeEntitat>> futures = new ArrayList<Future<RespostaBackofficeEntitat>>();
-				for (BackofficeDesti desti: destins) {
+			for (BackofficeDesti desti: destins) {
+				PeticioEmisorCedent peticioCedent = null;
+				for (PeticioEmisorCedent p: peticionsCedents) {
+					if (p.getEntitatCodi().equals(desti.getEntitatCodi()) && desti.getUrl() == null) {
+						peticioCedent = p;
+					}
+				}
+				if (peticioCedent != null) {
+					PeticioEmisorCedent peticioFil = peticioCedent;
+					tasques.add(() -> enviarPeticioSincronaEmisorCedent(peticioFil));
+				} else if (desti.getUrl() != null) {
 					// Cada fil fa servir la seva còpia de la petició (els DOM no són segurs entre fils)
 					Peticion copia = copiarPeticio(peticion);
-					futures.add(executor.submit(() -> enviarPeticioSincronaBackoffice(copia, desti, generarLogs)));
+					tasques.add(() -> enviarPeticioSincronaBackoffice(copia, desti, generarLogs));
+				}
+			}
+			if (tasques.isEmpty()) {
+				throw new ValidationException("El servei enrutador múltiple no té cap ruta (codi=" + servei.getCodi() + ")");
+			}
+			List<RespostaBackofficeEntitat> respostes = new ArrayList<RespostaBackofficeEntitat>();
+			ExecutorService executor = Executors.newFixedThreadPool(tasques.size());
+			try {
+				List<Future<RespostaBackofficeEntitat>> futures = new ArrayList<Future<RespostaBackofficeEntitat>>();
+				for (Callable<RespostaBackofficeEntitat> tasca: tasques) {
+					futures.add(executor.submit(tasca));
 				}
 				for (Future<RespostaBackofficeEntitat> future: futures) {
 					respostes.add(future.get());
@@ -593,7 +781,7 @@ public class BackofficeHelper {
 						"entitats=" + respostes + ")");
 			}
 			log.debug("Resposta escollida de l'enrutador múltiple " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ": " + escollida.getEntitatCodi());
-			if (backofficePeticio != null) {
+			if (backofficePeticio != null && backofficeSolicitud == null) {
 				backofficePeticio.updateEntitatCodi(escollida.getEntitatCodi());
 			}
 			excepcioDurantPeticio = escollida.getException();
@@ -748,6 +936,246 @@ public class BackofficeHelper {
 			copia.setSolicitudes(solicitudes);
 		}
 		return copia;
+	}
+
+	/**
+	 * Ruta de tipus EMISERV (emisor SCSP del cedent) a la qual s'ha d'enviar la sol·licitud d'un
+	 * enrutador simple, o null si s'ha d'enviar a un backoffice.
+	 */
+	private ServeiRutaDestiEntity getRutaEmisorCedent(
+			ServeiEntity servei,
+			BackofficeSolicitudEntity solicitud) {
+		if (!ServeiTipusEnumDto.ENRUTADOR.equals(servei.getTipus()) || solicitud.getEntitatCodi() == null || isPropertyBackofficeMock()) {
+			return null;
+		}
+		ServeiRutaDestiEntity ruta = serveiRutaDestiRepository.findPrimeraByServeiAndEntitatCodi(servei, solicitud.getEntitatCodi());
+		return ruta != null && !ruta.isDestiBackoffice() ? ruta : null;
+	}
+
+	private RespuestaAmbException enviarSolicitudEmisorCedent(
+			BackofficePeticioEntity peticio,
+			BackofficeSolicitudEntity solicitud,
+			ServeiEntity servei,
+			ServeiRutaDestiEntity ruta) throws Exception {
+		ScspCoreServicioEntity scspCoreServicio = scspCoreServicioRepository.getOne(peticio.getScspPeticionRespuesta().getCertificado());
+		String idPeticionDesti = getIdPeticioDesti(solicitud);
+		PeticioEmisorCedent peticioCedent = prepararPeticioEmisorCedent(
+				peticio,
+				solicitud,
+				servei,
+				ruta,
+				idPeticionDesti,
+				clientScspHelper.getCredencials(scspCoreServicio.getClaveFirma()));
+		RespostaBackofficeEntitat resposta = enviarPeticioSincronaEmisorCedent(peticioCedent);
+		Atributos atributos = new Atributos();
+		atributos.setIdPeticion(idPeticionDesti);
+		atributos.setCodigoCertificado(servei.getCodi());
+		processarComunicacioBackoffice(
+				peticio,
+				solicitud,
+				atributos,
+				resposta.getRespuesta() != null ? resposta.getRespuesta().getAtributos() : null,
+				resposta.getXmlPeticio(),
+				resposta.getXmlResposta(),
+				resposta.getException());
+		return new RespuestaAmbException(
+				resposta.getRespuesta(),
+				resposta.getException());
+	}
+
+	/** Peticions als emisors dels cedents de les rutes de tipus EMISERV d'un enrutador múltiple. */
+	private List<PeticioEmisorCedent> prepararPeticionsEmisorsCedents(
+			BackofficePeticioEntity peticio,
+			BackofficeSolicitudEntity solicitud,
+			ServeiEntity servei) throws Exception {
+		List<PeticioEmisorCedent> peticions = new ArrayList<PeticioEmisorCedent>();
+		ScspCoreServicioEntity scspCoreServicio = null;
+		ClientScspHelper.Credencials credencials = null;
+		String idPeticionDesti = null;
+		for (ServeiRutaDestiEntity ruta: serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(servei)) {
+			if (ruta.isDestiBackoffice()) {
+				continue;
+			}
+			if (credencials == null) {
+				scspCoreServicio = scspCoreServicioRepository.getOne(peticio.getScspPeticionRespuesta().getCertificado());
+				credencials = clientScspHelper.getCredencials(scspCoreServicio.getClaveFirma());
+				// El mateix IdPeticion per a tots els cedents (emisors diferents)
+				idPeticionDesti = getIdPeticioDesti(solicitud);
+			}
+			peticions.add(prepararPeticioEmisorCedent(peticio, solicitud, servei, ruta, idPeticionDesti, credencials));
+		}
+		return peticions;
+	}
+
+	/**
+	 * Petició SCSP d'una sola sol·licitud per a l'emisor del cedent: les dades de la sol·licitud
+	 * original (requeridor, titular, dades específiques) amb un IdPeticion propi d'EMISERV. L'emisor
+	 * es pot substituir per ruta (propietats emisor.nif i emisor.nom del backoffice de la ruta).
+	 */
+	PeticioEmisorCedent prepararPeticioEmisorCedent(
+			BackofficePeticioEntity peticio,
+			BackofficeSolicitudEntity solicitud,
+			ServeiEntity servei,
+			ServeiRutaDestiEntity ruta,
+			String idPeticionDesti,
+			ClientScspHelper.Credencials credencials) throws Exception {
+		String idPeticion = peticio.getScspPeticionRespuesta().getPeticionId();
+		ScspCoreTokenDataEntity scspTokenData = scspCoreTokenDataRepository.findByPeticionIdAndTipoMensaje(idPeticion, 0);
+		if (scspTokenData == null) {
+			throw new NotFoundException(idPeticion + ", 0", ScspCoreTokenDataEntity.class);
+		}
+		Element solicitudOriginal = getElementSolicitudTransmision(scspTokenData.getDatos(), solicitud.getSolicitudId());
+		if (solicitudOriginal == null) {
+			throw new NotFoundException(idPeticion + ", " + solicitud.getSolicitudId(), SolicitudTransmision.class);
+		}
+		String ns = solicitudOriginal.getNamespaceURI();
+		Document document = ClientScspHelper.nouDocument();
+		Element peticion = document.createElementNS(ns, "Peticion");
+		document.appendChild(peticion);
+		Element atributos = document.createElementNS(ns, "Atributos");
+		peticion.appendChild(atributos);
+		afegirElement(atributos, ns, "IdPeticion", idPeticionDesti);
+		afegirElement(atributos, ns, "NumElementos", "1");
+		afegirElement(atributos, ns, "TimeStamp", crearTimestampScsp(new Date()));
+		afegirElement(atributos, ns, "CodigoCertificado", servei.getCodi());
+		Element solicitudes = document.createElementNS(ns, "Solicitudes");
+		peticion.appendChild(solicitudes);
+		Element solicitudTransmision = (Element)document.importNode(solicitudOriginal, true);
+		solicitudes.appendChild(solicitudTransmision);
+		BackofficeDesti desti = new BackofficeDesti(servei.getCodi(), ruta.getEntitatCodi(), ruta.getUrl(), ruta.getBackofficeAutenticacio());
+		String emisorNif = backofficeDestiHelper.getPropietat(desti, "emisor.nif");
+		String emisorNom = backofficeDestiHelper.getPropietat(desti, "emisor.nom");
+		if (emisorNif != null || emisorNom != null) {
+			Element emisor = primerDescendent(solicitudTransmision, "Emisor");
+			if (emisor != null) {
+				Element nif = primerDescendent(emisor, "NifEmisor");
+				Element nom = primerDescendent(emisor, "NombreEmisor");
+				if (emisorNif != null && nif != null) {
+					nif.setTextContent(emisorNif);
+				}
+				if (emisorNom != null && nom != null) {
+					nom.setTextContent(emisorNom);
+				}
+			}
+		}
+		String validarSignatura = backofficeDestiHelper.getPropietat(desti, "signatura.validar");
+		String soapAction = backofficeDestiHelper.getPropietat(desti, "soapaction");
+		return new PeticioEmisorCedent(
+				ruta.getEntitatCodi(),
+				ruta.getUrl(),
+				soapAction != null ? soapAction : "peticionSincrona",
+				peticion,
+				idPeticionDesti,
+				credencials,
+				configuracioAsincronHelper.getTimeoutSegons(),
+				validarSignatura == null || Boolean.parseBoolean(validarSignatura.trim()));
+	}
+
+	/** Enviament a l'emisor del cedent (es pot fer des d'un altre fil: no accedeix a la BBDD). */
+	RespostaBackofficeEntitat enviarPeticioSincronaEmisorCedent(PeticioEmisorCedent peticio) {
+		RespostaBackofficeEntitat resposta = new RespostaBackofficeEntitat(peticio.getEntitatCodi());
+		try {
+			ClientScspHelper.RespostaCedent respostaCedent = clientScspHelper.enviarPeticioSincrona(
+					peticio.getUrl(),
+					peticio.getSoapAction(),
+					peticio.getPeticion(),
+					peticio.getCredencials(),
+					peticio.getTimeoutSegons(),
+					peticio.isValidarSignatura());
+			ClientScspHelper.escriure(resposta.getXmlPeticio(), respostaCedent.getXmlPeticio());
+			// Es desa en el format del backoffice: la resposta final es construeix igual per a tots els destins
+			Document formatBackoffice = RespostaScspConversor.toFormatBackoffice(respostaCedent.getRespuesta());
+			ClientScspHelper.escriure(resposta.getXmlResposta(), ClientScspHelper.toXml(formatBackoffice));
+			Respuesta respuesta = RespostaScspConversor.toRespuesta(formatBackoffice);
+			Estado estado = respuesta.getAtributos() != null ? respuesta.getAtributos().getEstado() : null;
+			String codigoEstado = estado != null ? estado.getCodigoEstado() : null;
+			if (!"0003".equals(codigoEstado)) {
+				throw new ScspCedentException(codigoEstado, "L'emisor del cedent ha retornat l'estat " + codigoEstado +
+						(estado != null && estado.getLiteralError() != null ? ": " + estado.getLiteralError() : ""), null, null);
+			}
+			if (respuesta.getAtributos().getIdPeticion() != null && !peticio.getIdPeticion().equals(respuesta.getAtributos().getIdPeticion())) {
+				throw new ScspCedentException(null, "La resposta de l'emisor del cedent és d'una altra petició (" +
+						"enviada=" + peticio.getIdPeticion() + ", " +
+						"rebuda=" + respuesta.getAtributos().getIdPeticion() + ")", null, null);
+			}
+			comprovarTransmisionsResposta(respuesta);
+			emplenarCampsBuits(respuesta);
+			resposta.setRespuesta(respuesta);
+		} catch (Exception ex) {
+			if (ex instanceof ScspCedentException) {
+				ScspCedentException errorCedent = (ScspCedentException)ex;
+				if (resposta.getXmlPeticio().size() == 0) {
+					ClientScspHelper.escriure(resposta.getXmlPeticio(), errorCedent.getXmlPeticio());
+				}
+				if (resposta.getXmlResposta().size() == 0) {
+					ClientScspHelper.escriure(resposta.getXmlResposta(), errorCedent.getXmlResposta());
+				}
+			}
+			log.warn("Error al enviar la petició a l'emisor del cedent " + peticio.getEntitatCodi() + " (" +
+					"url=" + peticio.getUrl() + ", " +
+					"idPeticion=" + peticio.getIdPeticion() + "): " + ex.getMessage());
+			resposta.setException(ex);
+		}
+		return resposta;
+	}
+
+	/**
+	 * IdPeticion de les peticions als emisors dels cedents: prefix configurat i número de seqüència.
+	 * Es desa a la sol·licitud (relació amb la petició original); cada intent en fa servir un de nou.
+	 */
+	private String getIdPeticioDesti(BackofficeSolicitudEntity solicitud) {
+		String prefix = configuracioAsincronHelper.getPrefixIdPeticio();
+		if (prefix.length() > 16) {
+			prefix = prefix.substring(0, 16);
+		}
+		String sql = entityManager.getEntityManagerFactory().unwrap(SessionFactoryImplementor.class).
+				getJdbcServices().getDialect().getSequenceNextValString("ems_async_idpet_seq");
+		long sequencia = ((Number)entityManager.createNativeQuery(sql).getSingleResult()).longValue();
+		String idPeticion = prefix + String.format("%0" + (26 - prefix.length()) + "d", sequencia);
+		solicitud.updatePeticioDestiId(idPeticion);
+		return idPeticion;
+	}
+
+	private static void afegirElement(Element pare, String ns, String nom, String valor) {
+		Element element = pare.getOwnerDocument().createElementNS(ns, nom);
+		element.setTextContent(valor);
+		pare.appendChild(element);
+	}
+
+	private static Element primerDescendent(Element element, String nom) {
+		NodeList nodes = element.getElementsByTagNameNS("*", nom);
+		return nodes.getLength() > 0 ? (Element)nodes.item(0) : null;
+	}
+
+	/** Petició preparada per a l'emisor d'un cedent (sense dependències de la sessió de BBDD). */
+	static class PeticioEmisorCedent {
+		private final String entitatCodi;
+		private final String url;
+		private final String soapAction;
+		private final Element peticion;
+		private final String idPeticion;
+		private final ClientScspHelper.Credencials credencials;
+		private final int timeoutSegons;
+		private final boolean validarSignatura;
+		PeticioEmisorCedent(String entitatCodi, String url, String soapAction, Element peticion, String idPeticion,
+				ClientScspHelper.Credencials credencials, int timeoutSegons, boolean validarSignatura) {
+			this.entitatCodi = entitatCodi;
+			this.url = url;
+			this.soapAction = soapAction;
+			this.peticion = peticion;
+			this.idPeticion = idPeticion;
+			this.credencials = credencials;
+			this.timeoutSegons = timeoutSegons;
+			this.validarSignatura = validarSignatura;
+		}
+		String getEntitatCodi() { return entitatCodi; }
+		String getUrl() { return url; }
+		String getSoapAction() { return soapAction; }
+		Element getPeticion() { return peticion; }
+		String getIdPeticion() { return idPeticion; }
+		ClientScspHelper.Credencials getCredencials() { return credencials; }
+		int getTimeoutSegons() { return timeoutSegons; }
+		boolean isValidarSignatura() { return validarSignatura; }
 	}
 
 	/** Resposta del backoffice d'una entitat d'un enrutador múltiple. */
@@ -935,18 +1363,30 @@ public class BackofficeHelper {
 						getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + "(" +
 						"total=" + numSolicituds + ", " +
 						"enviades=" + backofficePeticio.getProcessadesTotal() + ")");
-				boolean respostaDisponible = (numSolicituds == backofficePeticio.getProcessadesTotal()) && backofficePeticio.getProcessadesError() == 0;
+				// La resposta està disponible quan s'han processat totes les sol·licituds: les que han
+				// finalitzat amb error es retornen amb l'estat de l'error a les dades específiques
+				boolean respostaDisponible = numSolicituds == backofficePeticio.getProcessadesTotal();
 				if (respostaDisponible) {
 					Transmisiones transmisiones = new Transmisiones();
 					transmisiones.setTransmisionDatos(new ArrayList<TransmisionDatos>());
 					List<BackofficeSolicitudEntity> solicituds = backofficeSolicitudRepository.findByPeticioOrderByIdAsc(backofficePeticio);
 					for (BackofficeSolicitudEntity solicitud: solicituds) {
-						transmisiones.getTransmisionDatos().add(
-								solicitudToTransmisionDatos(
-										solicitud,
-										solicitudRespuesta.getAtributos().getCodigoCertificado()));
+						if (BackofficeSolicitudEstatEnumDto.TRAMITADA.equals(solicitud.getEstat())) {
+							transmisiones.getTransmisionDatos().add(
+									solicitudToTransmisionDatos(
+											solicitud,
+											solicitudRespuesta.getAtributos().getCodigoCertificado()));
+						} else {
+							transmisiones.getTransmisionDatos().add(
+									solicitudErrorToTransmisionDatos(
+											backofficePeticio,
+											solicitud,
+											solicitudRespuesta.getAtributos().getCodigoCertificado()));
+						}
 					}
 					respuesta.setTransmisiones(transmisiones);
+					// Les transmissions de les sol·licituds amb error no tenen IdTransmision del destí
+					emplenarCampsBuits(respuesta);
 					estado.setCodigoEstado("0003");
 					atributos.setNumElementos(Integer.valueOf(solicituds.size()).toString());
 				} else {
@@ -1023,7 +1463,8 @@ public class BackofficeHelper {
 			String comunicacioError,
 			Respuesta respuesta) {
 		if (respuesta != null) {
-			BackofficeComunicacioEntity comunicacio = peticio.getComunicacioDarrera();
+			// Les sol·licituds de les consultes asíncrones tenen la seva comunicació (s'envien en paral·lel)
+			BackofficeComunicacioEntity comunicacio = (solicitud != null) ? solicitud.getComunicacioDarrera() : peticio.getComunicacioDarrera();
 			if (comunicacio == null) {
 				throw new ValidationException(
 						"No s'ha trobat la comunicació amb el backoffice");
@@ -1037,10 +1478,12 @@ public class BackofficeHelper {
 					peticio,
 					xml).build();
 			backofficeComunicacioRepository.save(comunicacio);
-			peticio.updateComunicacioDarrera(
-					comunicacio);
 			if (solicitud != null) {
+				// La petició s'actualitza a actualitzarEstatPeticio (amb la fila bloquejada)
 				solicitud.updateComunicacioDarrera(
+						comunicacio);
+			} else {
+				peticio.updateComunicacioDarrera(
 						comunicacio);
 			}
 		}
@@ -1227,6 +1670,43 @@ public class BackofficeHelper {
 					xmlHelper.bytesToDocument(datosEspecificosModificats.getBytes()).getDocumentElement());
 		}
 		return transmisionDatos;
+	}
+
+	/**
+	 * Transmissió d'una sol·licitud finalitzada amb error: dades genèriques de la petició i l'estat de
+	 * l'error a les dades específiques (DatosEspecificos/Estado), d'on els requeridors l'obtenen amb
+	 * els XPath d'error configurats per servei.
+	 */
+	TransmisionDatos solicitudErrorToTransmisionDatos(
+			BackofficePeticioEntity peticio,
+			BackofficeSolicitudEntity solicitud,
+			String serveiCodi) throws Exception {
+		TransmisionDatos transmisionDatos = new TransmisionDatos();
+		DatosGenericos datosGenericos;
+		try {
+			datosGenericos = crearPeticioSolicitud(peticio, solicitud).getSolicitudes().getSolicitudTransmision().get(0).getDatosGenericos();
+		} catch (Exception ex) {
+			log.warn("No s'han pogut obtenir les dades genèriques de la sol·licitud (idSolicitud=" + solicitud.getSolicitudId() + "): " + ex.getMessage());
+			datosGenericos = new DatosGenericos();
+			Transmision transmision = new Transmision();
+			transmision.setCodigoCertificado(serveiCodi);
+			transmision.setIdSolicitud(solicitud.getSolicitudId());
+			datosGenericos.setTransmision(transmision);
+		}
+		transmisionDatos.setDatosGenericos(datosGenericos);
+		String errorCodi = solicitud.getErrorCodi() != null ? solicitud.getErrorCodi() : CODI_ERROR_DESTI;
+		String literal = solicitud.getDarrerError() != null ? solicitud.getDarrerError() : "Error al obtener la respuesta del servicio";
+		String datosEspecificosXml = "<DatosEspecificos><Estado>" +
+				"<CodigoEstado>" + escapeXml(errorCodi) + "</CodigoEstado>" +
+				"<LiteralError>" + escapeXml(literal.length() > 255 ? literal.substring(0, 255) : literal) + "</LiteralError>" +
+				"</Estado></DatosEspecificos>";
+		transmisionDatos.setDatosEspecificos(
+				xmlHelper.bytesToDocument(modificarDatosEspecificosResposta(datosEspecificosXml, serveiCodi).getBytes(StandardCharsets.UTF_8)).getDocumentElement());
+		return transmisionDatos;
+	}
+
+	private static String escapeXml(String text) {
+		return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
 
 	private void emplenarCampsBuits(

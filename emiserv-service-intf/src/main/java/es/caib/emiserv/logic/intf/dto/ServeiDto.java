@@ -33,6 +33,12 @@ public class ServeiDto extends ObjecteAmbPermisosDto {
 	private boolean configurat;
 	/** Indica si el servei està configurat a l'emisor SCSP (CORE_SERVICIO), necessari per a les autoritzacions i les rutes de tipus BACKOFFICE. */
 	private boolean configuratScsp;
+	/** Enrutadors: s'accepten peticions asíncrones processant-les com a síncrones a cada cedent. */
+	private boolean asyncSincron;
+	/** Temps mínim entre peticions a un mateix cedent (ms). Si és null, el valor global. */
+	private Integer asyncInterval;
+	/** Peticions simultànies màximes a un mateix cedent. Si és null, el valor global. */
+	private Integer asyncConcurrencia;
 	private boolean actiu;
 
 	public String getCodiNom() {

@@ -123,6 +123,10 @@ public class ServeiServiceImpl implements ServeiService {
 					descripcio(servei.getDescripcio()).
 					resolverClass(servei.getResolverClass()).
 					build();
+			entity.updateAsyncSincron(
+					servei.isAsyncSincron(),
+					servei.getAsyncInterval(),
+					servei.getAsyncConcurrencia());
 		}
 		return conversioTipusHelper.convertir(
 				serveiRepository.save(entity),
@@ -159,6 +163,10 @@ public class ServeiServiceImpl implements ServeiService {
 					servei.getDescripcio(),
 					servei.getResponseResolverClass());
 		}
+		entity.updateAsyncSincron(
+				servei.isAsyncSincron(),
+				servei.getAsyncInterval(),
+				servei.getAsyncConcurrencia());
 		return conversioTipusHelper.convertir(
 				entity,
 				ServeiDto.class);

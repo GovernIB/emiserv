@@ -66,6 +66,18 @@ public class ServeiEntity extends AbstractAuditableEntity<Long> {
 	private boolean configurat = false;
 	@Column(name = "actiu")
 	private boolean actiu = true;
+	/**
+	 * Enrutadors: s'accepten peticions asíncrones encara que els cedents només admetin peticions
+	 * síncrones (EMISERV les processa com a peticions síncrones a cada cedent).
+	 */
+	@Column(name = "async_sincron")
+	private boolean asyncSincron;
+	/** Temps mínim entre peticions a un mateix cedent, en mil·lisegons (si és null, el valor global). */
+	@Column(name = "async_interval")
+	private Integer asyncInterval;
+	/** Peticions simultànies màximes a un mateix cedent (si és null, el valor global). */
+	@Column(name = "async_concurrencia")
+	private Integer asyncConcurrencia;
 	@OneToMany(
 			mappedBy = "servei",
 			fetch = FetchType.LAZY,
@@ -100,6 +112,24 @@ public class ServeiEntity extends AbstractAuditableEntity<Long> {
 	}
 	public BackofficeAsyncTipusEnumDto getBackofficeCaibAsyncTipus() {
 		return backofficeCaibAsyncTipus;
+	}
+	public boolean isAsyncSincron() {
+		return asyncSincron;
+	}
+	public Integer getAsyncInterval() {
+		return asyncInterval;
+	}
+	public Integer getAsyncConcurrencia() {
+		return asyncConcurrencia;
+	}
+	/** Configuració de les peticions asíncrones processades com a síncrones (només enrutadors). */
+	public void updateAsyncSincron(
+			boolean asyncSincron,
+			Integer asyncInterval,
+			Integer asyncConcurrencia) {
+		this.asyncSincron = isEnrutador() && asyncSincron;
+		this.asyncInterval = this.asyncSincron ? asyncInterval : null;
+		this.asyncConcurrencia = this.asyncSincron ? asyncConcurrencia : null;
 	}
 	public boolean isEnrutador() {
 		return ServeiTipusEnumDto.ENRUTADOR.equals(tipus) || ServeiTipusEnumDto.ENRUTADOR_MULTIPLE.equals(tipus);

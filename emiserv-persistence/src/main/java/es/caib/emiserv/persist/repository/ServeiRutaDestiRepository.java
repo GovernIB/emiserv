@@ -30,6 +30,21 @@ public interface ServeiRutaDestiRepository extends JpaRepository<ServeiRutaDesti
 			ServeiEntity servei,
 			String entitatCodi);
 
+	public List<ServeiRutaDestiEntity> findByServeiAndEntitatCodiOrderByOrdreAsc(
+			ServeiEntity servei,
+			String entitatCodi);
+
+	/**
+	 * Ruta d'una entitat. Si n'hi ha més d'una per a la mateixa entitat (dades duplicades), la primera
+	 * per ordre (findByServeiAndEntitatCodi falla amb un resultat no únic).
+	 */
+	public default ServeiRutaDestiEntity findPrimeraByServeiAndEntitatCodi(
+			ServeiEntity servei,
+			String entitatCodi) {
+		List<ServeiRutaDestiEntity> rutes = findByServeiAndEntitatCodiOrderByOrdreAsc(servei, entitatCodi);
+		return rutes.isEmpty() ? null : rutes.get(0);
+	}
+
 	/** Troba totes les rutes per a un servei ordenades per l'ordre donat a la columna ordre. */
 	public List<ServeiRutaDestiEntity> findByServeiOrderByOrdreAsc(ServeiEntity servei);
 

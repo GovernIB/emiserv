@@ -22,6 +22,8 @@ public class ServeiRutaDestiDto extends ObjecteAmbPermisosDto {
 	private String credencialsPropietats;
 	/** Indica si les credencials del backoffice estan configurades (null si la ruta no en necessita). */
 	private Boolean credencialsConfigurades;
+	/** Enviaments al cedent pausats (consultes asíncrones processades com a síncrones). */
+	private boolean pausada;
 
 	public Long getId() {
 		return id;
@@ -65,6 +67,12 @@ public class ServeiRutaDestiDto extends ObjecteAmbPermisosDto {
 	}
 	public void setCredencialsPropietats(String credencialsPropietats) {
 		this.credencialsPropietats = credencialsPropietats;
+	}
+	public boolean isPausada() {
+		return pausada;
+	}
+	public void setPausada(boolean pausada) {
+		this.pausada = pausada;
 	}
 	public Boolean getCredencialsConfigurades() {
 		return credencialsConfigurades;

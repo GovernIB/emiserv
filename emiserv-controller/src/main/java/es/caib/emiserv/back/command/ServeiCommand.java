@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.back.command;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -50,6 +51,12 @@ public class ServeiCommand {
 	@Size(max=256)
 	@NotNull(groups = TipusEnrutadorMultiple.class)
 	private String responseResolverClass;
+	/** Enrutadors: acceptar peticions asíncrones encara que els cedents només admetin síncrones. */
+	private boolean asyncSincron;
+	@Min(0)
+	private Integer asyncInterval;
+	@Min(1)
+	private Integer asyncConcurrencia;
 
 	public Long getId() {
 		return id;
@@ -104,6 +111,24 @@ public class ServeiCommand {
 	}
 	public void setBackofficeCaibAsyncTipus(BackofficeAsyncTipusEnumDto backofficeCaibAsyncTipus) {
 		this.backofficeCaibAsyncTipus = backofficeCaibAsyncTipus;
+	}
+	public boolean isAsyncSincron() {
+		return asyncSincron;
+	}
+	public void setAsyncSincron(boolean asyncSincron) {
+		this.asyncSincron = asyncSincron;
+	}
+	public Integer getAsyncInterval() {
+		return asyncInterval;
+	}
+	public void setAsyncInterval(Integer asyncInterval) {
+		this.asyncInterval = asyncInterval;
+	}
+	public Integer getAsyncConcurrencia() {
+		return asyncConcurrencia;
+	}
+	public void setAsyncConcurrencia(Integer asyncConcurrencia) {
+		this.asyncConcurrencia = asyncConcurrencia;
 	}
 	public int getBackofficeCaibAsyncTer() {
 		return backofficeCaibAsyncTer;

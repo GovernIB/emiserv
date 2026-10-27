@@ -39,6 +39,24 @@ public interface RedireccioService {
 			byte[] xml) throws ScspParseException;
 
 	/**
+	 * Processa un missatge XML de petició arribat al servel de redirecció indicant
+	 * si ha arribat a l'operació asíncrona (peticionAsincrona). Els serveis que
+	 * accepten peticions asíncrones processades com a síncrones a cada cedent
+	 * les envien a l'emisor SCSP d'EMISERV.
+	 * 
+	 * @param xml
+	 *            El missatge XML de la petició o de la sol·licitud de resposta.
+	 * @param asincrona
+	 *            true si la petició ha arribat a l'operació asíncrona.
+	 * @return la URL del servei destí o la informació per a generar un SOAPFault.
+	 * @throws ScspParseException
+	 *             Si hi ha hagut error processant la petició SCSP.	
+	 */
+	public RedireccioProcessarResultatDto processarPeticio(
+			byte[] xml,
+			boolean asincrona) throws ScspParseException;
+
+	/**
 	 * Processa un missatge XML de resposta arribat al servel de redirecció.
 	 * 
 	 * @param peticioId

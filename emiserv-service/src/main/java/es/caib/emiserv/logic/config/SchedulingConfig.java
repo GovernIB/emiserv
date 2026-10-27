@@ -40,11 +40,16 @@ public class SchedulingConfig implements SchedulingConfigurer, EnvironmentAware 
         scheduledTaskRegistrar.addTriggerTask(
                 () -> backofficeService.peticioBackofficeAsyncProcessarPendents(),
                 triggerContext -> {
+                    // Període del planificador d'enviaments (es.caib.emiserv.async.planificador.periode) o,
+                    // si no està configurat, el de la propietat anterior
+                    String propietat = environment.getProperty("es.caib.emiserv.async.planificador.periode") != null ?
+                            "es.caib.emiserv.async.planificador.periode" :
+                            "es.caib.emiserv.tasca.backoffice.async.processar.pendents";
                     Long periode = 10000L;
                     try {
-                        periode = Long.parseLong(environment.getProperty("es.caib.emiserv.tasca.backoffice.async.processar.pendents", "10000"));
+                        periode = Math.max(1000L, Long.parseLong(environment.getProperty(propietat, "10000").trim()));
                     } catch (NumberFormatException ex) {
-                        log.error("No s'ha configurat un valor enter vàlid per a la propietat 'es.caib.emiserv.tasca.backoffice.async.processar.pendents'.");
+                        log.error("No s'ha configurat un valor enter vàlid per a la propietat '" + propietat + "'.");
                     }
                     PeriodicTrigger trigger = new PeriodicTrigger(periode, TimeUnit.MILLISECONDS);
                     trigger.setFixedRate(true);

@@ -37,6 +37,16 @@ $(document).ready(function() {
 			$('#camps-multi-resolver').show();
 			$('#camps-multi-resolver :input').removeAttr('disabled');
 		}
+		if (tipusVal == 'ENRUTADOR' || tipusVal == 'ENRUTADOR_MULTIPLE') {
+			$('#camps-asincron').show();
+			$('#camps-asincron :input').removeAttr('disabled');
+			$("form input#asyncSincron").trigger('change');
+		}
+	});
+	// Ritme d'enviament als cedents: només si s'accepten peticions asíncrones processades com a síncrones
+	$("form input#asyncSincron").on('change', function() {
+		var actiu = $(this).is(':checked') && !$(this).is(':disabled');
+		$('#asyncInterval, #asyncConcurrencia').prop('disabled', !actiu);
 	});
 	$("form select#tipus").trigger('change');
 });
@@ -71,6 +81,11 @@ $(document).ready(function() {
 		</div>
 		<div id="camps-multi-resolver">
 			<emi:inputSelect name="responseResolverClass" textKey="servei.form.camp.class.responseResolver" required="true" optionItems="${classesResponseResolver}"/>
+		</div>
+		<div id="camps-asincron">
+			<emi:inputCheckbox name="asyncSincron" textKey="servei.form.camp.async.sincron"/>
+			<emi:inputText name="asyncInterval" textKey="servei.form.camp.async.interval" placeholderKey="servei.form.camp.async.valor.global"/>
+			<emi:inputText name="asyncConcurrencia" textKey="servei.form.camp.async.concurrencia" placeholderKey="servei.form.camp.async.valor.global"/>
 		</div>
 		<div id="modal-botons" class="well">
 			<button type="submit" class="btn btn-success"><span class="fa fa-save"></span> <spring:message code="comu.boto.guardar"/></button>

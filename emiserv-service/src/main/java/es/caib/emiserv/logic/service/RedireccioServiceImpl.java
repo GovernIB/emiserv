@@ -37,6 +37,7 @@ import es.caib.emiserv.persist.repository.ServeiRepository;
 import es.caib.emiserv.persist.repository.ServeiRutaDestiRepository;
 import lombok.extern.slf4j.Slf4j;
 import es.caib.emiserv.persist.repository.BackofficePeticioRepository;
+import es.caib.emiserv.persist.repository.scsp.ScspCoreServicioRepository;
 import java.util.LinkedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -88,6 +89,11 @@ public class RedireccioServiceImpl implements RedireccioService {
 	 * de totes les rutes de tipus BACKOFFICE i n'escull una resposta.
 	 */
 	static final String CLAU_BACKOFFICES = "BACKOFFICES";
+	/** Operació asíncrona de l'emisor SCSP d'EMISERV (peticions i sol·licituds de resposta). */
+	static final String OPERACIO_ASINCRONA = "peticionAsincrona";
+	static final String XPATH_SOLICITUD_RESPUESTA = "//*[local-name()='SolicitudRespuesta']";
+	static final String XPATH_CONFIRMACION_PETICION = "//*[local-name()='ConfirmacionPeticion']";
+	static final String ESTAT_EN_PROCES = "0002";
 	/** Detall dels SOAP Fault dels emisors amb les llibreries SCSP 5. */
 	static final String XPATH_FAULT_SCSP5 = "//*[local-name()='fault' and namespace-uri()='http://intermediacion.redsara.es/scsp/esquemas/V3/fault']";
 
@@ -95,6 +101,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 	private Environment environment;
 	@Autowired
 	private BackofficePeticioRepository backofficePeticioRepository;
+	@Autowired
+	private ScspCoreServicioRepository scspCoreServicioRepository;
 	@Autowired
 	private ServeiRepository serveiRepository;
 	@Autowired
@@ -123,6 +131,20 @@ public class RedireccioServiceImpl implements RedireccioService {
 	@Override
 	public RedireccioProcessarResultatDto processarPeticio(
 			byte[] xml) {
+		return processarPeticio(xml, false);
+	}
+
+	/**
+	 * @param asincrona
+	 *            la petició ha arribat a l'operació asíncrona de l'enrutador (.../peticionAsincrona).
+	 *            Als serveis que accepten peticions asíncrones processades com a síncrones
+	 *            (ServeiEntity.asyncSincron) la petició s'envia a l'emisor SCSP d'EMISERV.
+	 */
+	@Transactional
+	@Override
+	public RedireccioProcessarResultatDto processarPeticio(
+			byte[] xml,
+			boolean asincrona) {
 		String xmlstr = xml != null ? new String(xml) : null;
 		log.debug(
 				"Obtenint URL servei SCSP per missatge XML (" +
@@ -136,6 +158,9 @@ public class RedireccioServiceImpl implements RedireccioService {
 			boolean isV3 = xmlHelper.countNodes(
 					document,
 					"//peticion3:Peticion") > 0;
+			if (!isV2 && !isV3 && xmlHelper.countNodes(document, XPATH_SOLICITUD_RESPUESTA) > 0) {
+				return processarSolicitudRespuesta(document);
+			}
 			if (isV2 || isV3) {
 				String nsprefix = (isV2) ? "peticion2" : "peticion3";
 				String numElementosStr = xmlHelper.getTextFromFirstNode(
@@ -232,6 +257,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 					}
 				}
 				int numElementos = (numElementosStr != null) ? Integer.parseInt(numElementosStr) : 0;
+				// Peticions asíncrones a serveis que les processen com a síncrones a cada cedent: les tramita
+				// l'emisor SCSP d'EMISERV (poden tenir més d'una sol·licitud)
+				ServeiEntity serveiAsyncSincron = asincrona ? serveiRepository.findByCodi(codigoCertificado) : null;
+				boolean asyncSincron = serveiAsyncSincron != null && serveiAsyncSincron.isAsyncSincron();
 				if (numElementos != numSolicituds) {
 					resposta = new RedireccioProcessarResultatDto(
 							"0414",
@@ -246,16 +275,19 @@ public class RedireccioServiceImpl implements RedireccioService {
 							"El número de elementos no coincide con el número de solicitudes recibidas");
 					resposta.setNumElements(numElementos);
 					resposta.setScspVersio((isV2) ? 2 : 3);
-				} else if (numElementos != 1) {
+				} else if (numElementos != 1 && !asyncSincron) {
+					String literal = asincrona ?
+							"El servicio no admite peticiones asíncronas con más de una solicitud" :
+							"El número de solicitudes es mayor que uno. Ejecute el servicio en modo asíncrono";
 					resposta = new RedireccioProcessarResultatDto(
 							"0415",
-							"[EMS] El número de solicitudes es mayor que uno. Ejecute el servicio en modo asíncrono",
+							"[EMS] " + literal,
 							idPeticion,
 							timestamp,
 							codigoCertificado,
 							CLIENT,
 							"0415",
-							"El número de solicitudes es mayor que uno. Ejecute el servicio en modo asíncrono");
+							literal);
 					resposta.setNumElements(numElementos);
 					resposta.setScspVersio((isV2) ? 2 : 3);
 				} else {
@@ -297,6 +329,14 @@ public class RedireccioServiceImpl implements RedireccioService {
 								"Error al obtener la respuesta o el resultado del servicio del Backoffice");
 						resposta.setNumElements(numElementos);
 						resposta.setScspVersio((isV2) ? 2 : 3);
+					} else if (xml != null && asyncSincron) {
+						resposta = getResultatEmisorAsincron(
+								servei,
+								(isV2) ? 2 : 3,
+								idPeticion,
+								timestamp,
+								codigoCertificado,
+								numElementos);
 					} else if (xml != null) {
 						if (ServeiTipusEnumDto.ENRUTADOR.equals(servei.getTipus())){
 							// ENRUTADOR SIMPLE
@@ -308,7 +348,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 								Document doc = getDocumentXml(xml);
 								String entitatCodi = entitatResolver.resolve(doc.getDocumentElement());
 								entitatDesti = entitatCodi;
-								ServeiRutaDestiEntity serveiRutaDesti = serveiRutaDestiRepository.findByServeiAndEntitatCodi(
+								ServeiRutaDestiEntity serveiRutaDesti = serveiRutaDestiRepository.findPrimeraByServeiAndEntitatCodi(
 										servei,
 										entitatCodi);
 								if (serveiRutaDesti == null) {
@@ -494,6 +534,85 @@ public class RedireccioServiceImpl implements RedireccioService {
 	}
 
 	/**
+	 * Les peticions asíncrones dels serveis que les processen com a síncrones a cada cedent s'envien
+	 * senceres (totes les sol·licituds) a l'operació asíncrona de l'emisor SCSP d'EMISERV.
+	 */
+	private RedireccioProcessarResultatDto getResultatEmisorAsincron(
+			ServeiEntity servei,
+			int scspVersio,
+			String idPeticion,
+			String timestamp,
+			String codigoCertificado,
+			int numElementos) {
+		RedireccioProcessarResultatDto resposta;
+		if (scspCoreServicioRepository.findByCodigoCertificado(servei.getCodi()) == null) {
+			resposta = new RedireccioProcessarResultatDto(
+					"0504",
+					"[EMS] Error en la configuración: el servicio acepta peticiones asíncronas pero no está configurado en el emisor SCSP (" +
+							"serveiCodi=" + codigoCertificado + ")",
+					idPeticion,
+					timestamp,
+					codigoCertificado,
+					SERVER,
+					"0504",
+					"Error en la configuración: el servicio no está configurado en el emisor SCSP");
+		} else {
+			resposta = new RedireccioProcessarResultatDto(
+					getUrlEmisor() + OPERACIO_ASINCRONA,
+					scspVersio,
+					idPeticion,
+					timestamp,
+					codigoCertificado);
+		}
+		resposta.setNumElements(numElementos);
+		resposta.setScspVersio(scspVersio);
+		return resposta;
+	}
+
+	/**
+	 * Sol·licituds de resposta de les peticions asíncrones. Les dels serveis que processen les asíncrones
+	 * com a síncrones s'envien a l'emisor SCSP d'EMISERV, que va tramitar la petició. No es crea cap
+	 * registre de redirecció nou: la resposta actualitza el de la petició (processarResposta).
+	 */
+	RedireccioProcessarResultatDto processarSolicitudRespuesta(Document document) throws Exception {
+		String idPeticion = xmlHelper.getTextFromFirstNode(
+				document,
+				XPATH_SOLICITUD_RESPUESTA + "/*[local-name()='Atributos']/*[local-name()='IdPeticion']",
+				true);
+		String codigoCertificado = xmlHelper.getTextFromFirstNode(
+				document,
+				XPATH_SOLICITUD_RESPUESTA + "/*[local-name()='Atributos']/*[local-name()='CodigoCertificado']",
+				true);
+		String timestamp = xmlHelper.getTextFromFirstNode(
+				document,
+				XPATH_SOLICITUD_RESPUESTA + "/*[local-name()='Atributos']/*[local-name()='TimeStamp']",
+				true);
+		ServeiEntity servei = codigoCertificado != null ? serveiRepository.findByCodi(codigoCertificado) : null;
+		RedireccioProcessarResultatDto resposta;
+		if (servei == null || !servei.isAsyncSincron()) {
+			resposta = new RedireccioProcessarResultatDto(
+					"0401",
+					"[EMS] El servicio no admite solicitudes de respuesta asíncronas a través del enrutador (" +
+							"serveiCodi=" + codigoCertificado + ")",
+					idPeticion,
+					timestamp,
+					codigoCertificado,
+					CLIENT,
+					"0401",
+					"El servicio no admite solicitudes de respuesta asíncronas");
+		} else {
+			resposta = new RedireccioProcessarResultatDto(
+					getUrlEmisor() + OPERACIO_ASINCRONA,
+					3,
+					idPeticion,
+					timestamp,
+					codigoCertificado);
+		}
+		resposta.setScspVersio(3);
+		return resposta;
+	}
+
+	/**
 	 * Destins de l'enrutador múltiple: les rutes de tipus EMISERV s'envien a l'emisor del cedent i totes
 	 * les de tipus BACKOFFICE s'agrupen en una única petició a l'emisor SCSP d'EMISERV (una petició SCSP
 	 * només es pot registrar una vegada a l'emisor), que consulta els backoffices i n'escull la resposta.
@@ -551,6 +670,11 @@ public class RedireccioServiceImpl implements RedireccioService {
 		if (!serveiRutaDesti.isDestiBackoffice()) {
 			return serveiRutaDesti.getUrl();
 		}
+		return getUrlEmisor();
+	}
+
+	/** URL de l'emisor SCSP d'EMISERV, acabada en "/". */
+	String getUrlEmisor() {
 		String url = environment.getProperty(PROPIETAT_EMISOR_URL, EMISOR_URL_PER_DEFECTE);
 		if (url == null || url.isBlank()) {
 			url = EMISOR_URL_PER_DEFECTE;
@@ -599,6 +723,13 @@ public class RedireccioServiceImpl implements RedireccioService {
 					codigoEstado = xmlHelper.getTextFromFirstNode(
 							document,
 							"//" + nsprefix + ":Atributos/" + nsprefix + ":Estado/" + nsprefix + ":CodigoEstado");
+				} else if (xmlHelper.countNodes(document, XPATH_CONFIRMACION_PETICION) > 0) {
+					// Resposta a una petició asíncrona (serveis que les processen com a síncrones)
+					isV3 = true;
+					codigoEstado = xmlHelper.getTextFromFirstNode(
+							document,
+							XPATH_CONFIRMACION_PETICION + "/*[local-name()='Atributos']/*[local-name()='Estado']/*[local-name()='CodigoEstado']",
+							true);
 				}
 			} else {
 				isV2 = xmlHelper.countNodes(
@@ -629,7 +760,11 @@ public class RedireccioServiceImpl implements RedireccioService {
 							true);
 				}
 			}
-			if (isV2 || isV3) {
+			if ((isV2 || isV3) && ESTAT_EN_PROCES.equals(codigoEstado) && ESTAT_EN_PROCES.equals(redireccioPeticio.getEstat())) {
+				// Sol·licituds de resposta d'una petició asíncrona que encara s'està processant: no es
+				// desa cada consulta, només la confirmació de la petició i la resposta final
+				log.debug("Petició asíncrona en procés (peticioId=" + peticioId + ", serveiCodi=" + serveiCodi + ")");
+			} else if (isV2 || isV3) {
 				redireccioPeticio.updateResposta(
 						codigoEstado,
 						estadoError,

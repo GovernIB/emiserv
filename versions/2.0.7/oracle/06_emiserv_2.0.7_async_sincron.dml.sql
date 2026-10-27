@@ -1,0 +1,16 @@
+-- Configuració de les consultes asíncrones processades com a peticions síncrones a cada cedent
+INSERT INTO ems_config_group (code, position, description_key) VALUES ('ASINCRON', 2, 'propietat.grup.asincron');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.planificador.periode', '10000', 'propietat.async.planificador.periode', 'ASINCRON', '0', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.concurrencia.global', '10', 'propietat.async.concurrencia.global', 'ASINCRON', '1', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.cedent.interval', '1000', 'propietat.async.cedent.interval', 'ASINCRON', '2', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.cedent.concurrencia', '2', 'propietat.async.cedent.concurrencia', 'ASINCRON', '3', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.timeout', '120', 'propietat.async.timeout', 'ASINCRON', '4', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.reintents.maxim', '3', 'propietat.async.reintents.maxim', 'ASINCRON', '5', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.reintents.espera', '300', 'propietat.async.reintents.espera', 'ASINCRON', '6', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.enviament.caducat', '600', 'propietat.async.enviament.caducat', 'ASINCRON', '7', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.ter.marge', '100', 'propietat.async.ter.marge', 'ASINCRON', '8', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.ter.minim', '60', 'propietat.async.ter.minim', 'ASINCRON', '9', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.ter.maxim', '1440', 'propietat.async.ter.maxim', 'ASINCRON', '10', 'DATABASE', 'INT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.idpeticio.prefix', 'EMS', 'propietat.async.idpeticio.prefix', 'ASINCRON', '11', 'DATABASE', 'TEXT');
+INSERT INTO ems_config (key, value, description_key, group_code, position, source_property, type_code) VALUES ('es.caib.emiserv.async.cancelacio.codi', '0227', 'propietat.async.cancelacio.codi', 'ASINCRON', '12', 'DATABASE', 'TEXT');
+COMMIT;

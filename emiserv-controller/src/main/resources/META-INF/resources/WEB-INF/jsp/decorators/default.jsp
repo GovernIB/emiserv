@@ -193,6 +193,10 @@ body {
 							<ul class="dropdown-menu">
 								<li><a href="<c:url value="/auditoriaBackoffice"/>"><spring:message code="decorator.menu.auditoria.backoffice"/></a></li>
 								<li><a href="<c:url value="/auditoriaEnrutador"/>"><spring:message code="decorator.menu.auditoria.enrutador"/></a></li>
+								<c:if test="${isRolActualAdministrador}">
+									<li class="divider"></li>
+									<li><a href="<c:url value="/consultaAsincrona"/>"><spring:message code="decorator.menu.auditoria.consultes.asincrones"/></a></li>
+								</c:if>
 							</ul>
 						</div>
 						<c:if test="${isRolActualAdministrador}">

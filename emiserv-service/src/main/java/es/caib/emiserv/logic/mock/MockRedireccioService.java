@@ -15,6 +15,11 @@ import java.util.Map;
 public class MockRedireccioService implements RedireccioService {
 
     @Override
+    public RedireccioProcessarResultatDto processarPeticio(byte[] xml, boolean asincrona) {
+        return processarPeticio(xml);
+    }
+
+    @Override
     public RedireccioProcessarResultatDto processarPeticio(byte[] xml) {
         String xmlStr = xml != null ? new String(xml, java.nio.charset.StandardCharsets.UTF_8) : "";
         String xmlLower = xmlStr.toLowerCase();

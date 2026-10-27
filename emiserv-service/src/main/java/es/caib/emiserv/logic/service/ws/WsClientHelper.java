@@ -100,4 +100,21 @@ public class WsClientHelper<T> {
 				handlers);
 	}
 
+	/**
+	 * Temps màxim de connexió i d'espera de la resposta del client (JBossWS-CXF i JAX-WS RI).
+	 */
+	public static void configurarTimeout(Object port, int segons) {
+		if (!(port instanceof BindingProvider)) {
+			return;
+		}
+		Integer millis = segons * 1000;
+		java.util.Map<String, Object> context = ((BindingProvider)port).getRequestContext();
+		context.put("javax.xml.ws.client.connectionTimeout", millis);
+		context.put("javax.xml.ws.client.receiveTimeout", millis);
+		context.put("com.sun.xml.ws.connect.timeout", millis);
+		context.put("com.sun.xml.ws.request.timeout", millis);
+		context.put("com.sun.xml.internal.ws.connect.timeout", millis);
+		context.put("com.sun.xml.internal.ws.request.timeout", millis);
+	}
+
 }

@@ -41,6 +41,9 @@ public class ServeiRutaDestiEntity extends AbstractAuditableEntity<Long> {
 	/** Autenticació amb el backoffice del cedent (només per a les rutes de tipus BACKOFFICE). */
 	@Column(name = "backcaib_autenticacio")
 	private BackofficeAutenticacioTipusEnumDto backofficeAutenticacio;
+	/** Enviaments al cedent pausats (consultes asíncrones processades com a síncrones). */
+	@Column(name = "pausada")
+	private boolean pausada;
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinColumn(
 			name = "servei_id",
@@ -68,6 +71,12 @@ public class ServeiRutaDestiEntity extends AbstractAuditableEntity<Long> {
 	}
 	public BackofficeAutenticacioTipusEnumDto getBackofficeAutenticacio() {
 		return backofficeAutenticacio;
+	}
+	public boolean isPausada() {
+		return pausada;
+	}
+	public void updatePausada(boolean pausada) {
+		this.pausada = pausada;
 	}
 	public boolean isDestiBackoffice() {
 		return ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(destiTipus);

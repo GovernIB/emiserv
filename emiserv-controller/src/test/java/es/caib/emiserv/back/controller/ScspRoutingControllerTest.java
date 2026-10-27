@@ -22,6 +22,10 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -81,7 +85,7 @@ public class ScspRoutingControllerTest {
 	public void faultDeLEmissorEsRetornaAmbElCodiHttpDeLEmissor() throws Exception {
 		RedireccioProcessarResultatDto resultat = resultat();
 		resultat.setUrlDesti("http://localhost:" + emissor.getAddress().getPort() + "/services/SCDHPAJU");
-		when(redireccioService.processarPeticio(any())).thenReturn(resultat);
+		when(redireccioService.processarPeticio(any(), anyBoolean())).thenReturn(resultat);
 
 		MockHttpServletResponse response = mockMvc.perform(
 				post("/scspRouting/SCDHPAJU").content("<peticio/>".getBytes(StandardCharsets.UTF_8)))
@@ -97,7 +101,7 @@ public class ScspRoutingControllerTest {
 		resultat.setError(true);
 		resultat.setErrorCodi("0301");
 		resultat.setErrorDescripcio("Organismo no autorizado");
-		when(redireccioService.processarPeticio(any())).thenReturn(resultat);
+		when(redireccioService.processarPeticio(any(), anyBoolean())).thenReturn(resultat);
 		when(redireccioService.generarSoapFault(any())).thenReturn(SOAP_FAULT_EMISSOR);
 
 		MockHttpServletResponse response = mockMvc.perform(
@@ -107,5 +111,19 @@ public class ScspRoutingControllerTest {
 		assertEquals(500, response.getStatus());
 		assertTrue(response.getContentType().startsWith("text/xml"));
 		assertEquals(SOAP_FAULT_EMISSOR, response.getContentAsString(StandardCharsets.UTF_8));
+	}
+
+	@Test
+	public void lOperacioAsincronaEsDetectaPerLaUrl() throws Exception {
+		RedireccioProcessarResultatDto resultat = resultat();
+		resultat.setUrlDesti("http://localhost:" + emissor.getAddress().getPort() + "/services/SCDHPAJU");
+		when(redireccioService.processarPeticio(any(), anyBoolean())).thenReturn(resultat);
+
+		mockMvc.perform(post("/scspRouting/SCDHPAJU/peticionAsincrona").content("<peticio/>".getBytes(StandardCharsets.UTF_8)));
+		mockMvc.perform(post("/scspRouting/SCDHPAJU/peticionAsincrona.peticionAsincronaHttpSoap11Endpoint").content("<peticio/>".getBytes(StandardCharsets.UTF_8)));
+		mockMvc.perform(post("/scspRouting/SCDHPAJU/peticionSincrona").content("<peticio/>".getBytes(StandardCharsets.UTF_8)));
+
+		verify(redireccioService, times(2)).processarPeticio(any(), eq(true));
+		verify(redireccioService, times(1)).processarPeticio(any(), eq(false));
 	}
 }

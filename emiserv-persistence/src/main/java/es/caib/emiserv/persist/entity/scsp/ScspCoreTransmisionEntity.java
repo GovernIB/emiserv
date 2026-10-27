@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
@@ -23,11 +24,15 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "core_transmision")
+@IdClass(ScspCoreTransmisionEntity.ScspCoreTransmisionPk.class)
 public class ScspCoreTransmisionEntity {
 
+	// Clau primària de CORE_TRANSMISION (idpeticion, idsolicitud): amb només idpeticion, totes les
+	// transmissions d'una petició es tractarien com la mateixa entitat dins una transacció
 	@Id
 	@Column(name = "idpeticion", length = 26, nullable = false)
 	private String peticionId;
+	@Id
 	@Column(name = "idsolicitud", length = 64, nullable = false)
 	private String solicitudId;
 	@Column(name = "idtransmision", length = 64)
@@ -292,7 +297,7 @@ public class ScspCoreTransmisionEntity {
 		return true;
 	}
 
-	public class ScspCoreTransmisionPk implements Serializable {
+	public static class ScspCoreTransmisionPk implements Serializable {
 		private String peticionId;
 		private String solicitudId;
 		public ScspCoreTransmisionPk() {}
@@ -305,6 +310,17 @@ public class ScspCoreTransmisionEntity {
 		}
 		public String getSolicitudId() {
 			return solicitudId;
+		}
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (!(o instanceof ScspCoreTransmisionPk)) return false;
+			ScspCoreTransmisionPk pk = (ScspCoreTransmisionPk)o;
+			return java.util.Objects.equals(peticionId, pk.peticionId) && java.util.Objects.equals(solicitudId, pk.solicitudId);
+		}
+		@Override
+		public int hashCode() {
+			return java.util.Objects.hash(peticionId, solicitudId);
 		}
 		private static final long serialVersionUID = 7890819734930461845L;
 	}

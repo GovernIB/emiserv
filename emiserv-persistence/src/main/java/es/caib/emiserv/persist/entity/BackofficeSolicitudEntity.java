@@ -11,7 +11,11 @@ import javax.persistence.ForeignKey;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Version;
+
+import java.util.Date;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -43,6 +47,25 @@ public class BackofficeSolicitudEntity extends AbstractPersistable<Long> {
 			name = "comunicacio_id",
 			foreignKey = @ForeignKey(name = "ems_backsol_backcom_fk"))
 	private BackofficeComunicacioEntity comunicacioDarrera;
+	/** Entitat (cedent) a la qual s'envia la sol·licitud (serveis enrutadors). */
+	@Column(name = "entitat_codi", length = 64)
+	private String entitatCodi;
+	/** IdPeticion de la petició enviada al cedent (consultes asíncrones processades com a síncrones). */
+	@Column(name = "peticio_desti_id", length = 26)
+	private String peticioDestiId;
+	@Column(name = "intents")
+	private int intents;
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "data_enviament")
+	private Date dataEnviament;
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "data_proper_intent")
+	private Date dataProperIntent;
+	@Column(name = "darrer_error", length = 4000)
+	private String darrerError;
+	/** Codi d'estat SCSP de les sol·licituds finalitzades amb error (es retorna a la transmissió). */
+	@Column(name = "error_codi", length = 16)
+	private String errorCodi;
 	@Version
 	private long version = 0;
 
@@ -59,6 +82,75 @@ public class BackofficeSolicitudEntity extends AbstractPersistable<Long> {
 	}
 	public BackofficeComunicacioEntity getComunicacioDarrera() {
 		return comunicacioDarrera;
+	}
+	public String getEntitatCodi() {
+		return entitatCodi;
+	}
+	public String getPeticioDestiId() {
+		return peticioDestiId;
+	}
+	public int getIntents() {
+		return intents;
+	}
+	public Date getDataEnviament() {
+		return dataEnviament;
+	}
+	public Date getDataProperIntent() {
+		return dataProperIntent;
+	}
+	public String getDarrerError() {
+		return darrerError;
+	}
+	public String getErrorCodi() {
+		return errorCodi;
+	}
+	public boolean isFinalitzada() {
+		return BackofficeSolicitudEstatEnumDto.TRAMITADA.equals(estat) || BackofficeSolicitudEstatEnumDto.ERROR.equals(estat);
+	}
+	/** El destí ha retornat la resposta de la sol·licitud. */
+	public void marcarTramitada() {
+		this.estat = BackofficeSolicitudEstatEnumDto.TRAMITADA;
+		this.dataProperIntent = null;
+		this.errorCodi = null;
+	}
+	/** Error definitiu (sense més reintents): la transmissió es retorna amb aquest codi d'estat. */
+	public void finalitzarAmbError(String errorCodi, String error) {
+		this.estat = BackofficeSolicitudEstatEnumDto.ERROR;
+		this.errorCodi = errorCodi;
+		this.darrerError = truncar(error);
+		this.dataProperIntent = null;
+	}
+	public void updateEntitatCodi(String entitatCodi) {
+		this.entitatCodi = entitatCodi;
+	}
+	public void updatePeticioDestiId(String peticioDestiId) {
+		this.peticioDestiId = peticioDestiId;
+	}
+	/** Inici d'un intent d'enviament: la sol·licitud queda reservada (ENVIANT) per a aquest procés. */
+	public void iniciarEnviament(Date ara) {
+		this.estat = BackofficeSolicitudEstatEnumDto.ENVIANT;
+		this.dataEnviament = ara;
+		this.dataProperIntent = null;
+		this.intents++;
+	}
+	/** Intent fallit que es tornarà a fer a partir de la data indicada. */
+	public void reprogramar(String error, Date dataProperIntent) {
+		this.estat = BackofficeSolicitudEstatEnumDto.PENDENT;
+		this.darrerError = truncar(error);
+		this.dataProperIntent = dataProperIntent;
+	}
+	public void updateDarrerError(String error) {
+		this.darrerError = truncar(error);
+	}
+	/** Reintent manual: torna a PENDENT i reinicia el comptador d'intents. */
+	public void reiniciarIntents() {
+		this.estat = BackofficeSolicitudEstatEnumDto.PENDENT;
+		this.intents = 0;
+		this.dataProperIntent = null;
+		this.errorCodi = null;
+	}
+	private static String truncar(String text) {
+		return text != null && text.length() > 4000 ? text.substring(0, 4000) : text;
 	}
 	public void updateComunicacioDarrera(
 			BackofficeComunicacioEntity comunicacioDarrera) {

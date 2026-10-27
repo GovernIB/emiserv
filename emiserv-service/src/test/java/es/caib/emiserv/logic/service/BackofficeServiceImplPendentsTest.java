@@ -1,7 +1,7 @@
 package es.caib.emiserv.logic.service;
 
 import es.caib.emiserv.logic.config.SchedulingConfig;
-import es.caib.emiserv.logic.helper.BackofficeHelper;
+import es.caib.emiserv.logic.helper.PlanificadorAsincronHelper;
 import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.service.BackofficeService;
@@ -52,36 +52,15 @@ class BackofficeServiceImplPendentsTest {
 	}
 
 	@Test
-	void unErrorEnUnaPeticioNoAturaLesAltres() {
+	void laTascaDelegaAlPlanificador() {
 		BackofficeServiceImpl service = new BackofficeServiceImpl();
-		ServeiRepository serveiRepository = mock(ServeiRepository.class);
-		ScspCoreServicioRepository scspCoreServicioRepository = mock(ScspCoreServicioRepository.class);
-		BackofficePeticioRepository backofficePeticioRepository = mock(BackofficePeticioRepository.class);
-		BackofficeHelper backofficeHelper = mock(BackofficeHelper.class);
-		ReflectionTestUtils.setField(service, "serveiRepository", serveiRepository);
-		ReflectionTestUtils.setField(service, "scspCoreServicioRepository", scspCoreServicioRepository);
-		ReflectionTestUtils.setField(service, "backofficePeticioRepository", backofficePeticioRepository);
-		ReflectionTestUtils.setField(service, "backofficeHelper", backofficeHelper);
-		when(serveiRepository.findByBackofficeCaibAsyncTipus(BackofficeAsyncTipusEnumDto.PROCESSAR_SINCRONES)).thenReturn(
-				Collections.singletonList(ServeiEntity.getBuilder("SVDSCDWS01", "Canvi de domicili", ServeiTipusEnumDto.BACKOFFICE).build()));
-		when(serveiRepository.findByTipusIn(anyList())).thenReturn(Collections.emptyList());
-		ScspCoreServicioEntity servicio = ScspCoreServicioEntity.getBuilder("SVDSCDWS01").build();
-		when(scspCoreServicioRepository.findByCodigoCertificadoIn(anyList())).thenReturn(Collections.singletonList(servicio));
-		BackofficePeticioEntity peticio1 = peticio(1L);
-		BackofficePeticioEntity peticio2 = peticio(2L);
-		when(backofficePeticioRepository.findAsincronesPendentsDeProcessar(anyList())).thenReturn(Arrays.asList(peticio1, peticio2));
-		doThrow(new RuntimeException("Row was updated or deleted by another transaction")).when(backofficeHelper).processarPeticioPendent(1L);
+		PlanificadorAsincronHelper planificador = mock(PlanificadorAsincronHelper.class);
+		ReflectionTestUtils.setField(service, "planificadorAsincronHelper", planificador);
 
 		service.peticioBackofficeAsyncProcessarPendents();
 
-		verify(backofficeHelper).processarPeticioPendent(1L);
-		verify(backofficeHelper).processarPeticioPendent(2L);
+		verify(planificador).planificar();
 	}
 
-	private static BackofficePeticioEntity peticio(Long id) {
-		BackofficePeticioEntity peticio = mock(BackofficePeticioEntity.class);
-		when(peticio.getId()).thenReturn(id);
-		return peticio;
-	}
 
 }

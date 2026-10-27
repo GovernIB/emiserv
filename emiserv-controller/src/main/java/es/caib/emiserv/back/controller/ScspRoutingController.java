@@ -135,7 +135,9 @@ public class ScspRoutingController extends BaseController {
 				byte[] xml = baos.toByteArray();
 				RequestEntity requestEntity = new ByteArrayRequestEntity(xml);
 				long inici = System.currentTimeMillis();
-				RedireccioProcessarResultatDto resultat = redireccioService.processarPeticio(xml);
+				RedireccioProcessarResultatDto resultat = redireccioService.processarPeticio(
+						xml,
+						isOperacioAsincrona(request));
 				logger.debug(
 						"Dades del processament de la petició SCSP (" +
 								"tipus=" + resultat.getTipus() + ", " +
@@ -518,6 +520,12 @@ public class ScspRoutingController extends BaseController {
 				method.setRequestHeader(header);
 			}
 		}
+	}
+
+	/** La petició s'ha fet a l'operació asíncrona (.../peticionAsincrona, també amb els sufixos d'Axis2). */
+	static boolean isOperacioAsincrona(HttpServletRequest request) {
+		String path = request.getRequestURI();
+		return path != null && path.contains("/peticionAsincrona");
 	}
 
 	private String getProxyUrl(

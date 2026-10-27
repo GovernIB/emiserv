@@ -4,6 +4,7 @@ import es.caib.emiserv.logic.helper.ConversioTipusHelper;
 import es.caib.emiserv.logic.helper.PermisosHelper;
 import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.intf.dto.ServeiConfigScspDto;
+import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiDto;
 import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
@@ -178,6 +179,24 @@ class ServeiServiceImplEnrutadorScspTest {
 		serveiService.delete(SERVEI_ID);
 
 		verify(scspEmisorBackofficeRepository).deleteById(CORE_SERVICIO_ID);
+	}
+
+	@Test
+	void desarConfiguracioAsincronDUnEnrutador() {
+		ServeiDto dto = new ServeiDto();
+		dto.setId(SERVEI_ID);
+		dto.setNom("Padró de convivència");
+		dto.setTipus(ServeiTipusEnumDto.ENRUTADOR);
+		dto.setResolverClass("es.caib.emiserv.logic.resolver.EmpadronamentEntitatResolver");
+		dto.setAsyncSincron(true);
+		dto.setAsyncInterval(500);
+		dto.setAsyncConcurrencia(3);
+
+		serveiService.update(dto);
+
+		assertTrue(servei.isAsyncSincron());
+		assertEquals(Integer.valueOf(500), servei.getAsyncInterval());
+		assertEquals(Integer.valueOf(3), servei.getAsyncConcurrencia());
 	}
 
 	private static ServeiRutaDestiDto ruta(ServeiRutaDestiTipusEnumDto destiTipus) {

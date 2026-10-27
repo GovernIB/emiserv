@@ -55,6 +55,9 @@ public class BackofficePeticioEntity extends AbstractPersistable<Long> {
 	/** Entitat (organisme cedent) que ha respost la petició, per als serveis enrutadors amb rutes de tipus BACKOFFICE. */
 	@Column(name = "entitat_codi", length = 64)
 	private String entitatCodi;
+	/** Consulta asíncrona pausada des de la pantalla de gestió (no s'envien les sol·licituds pendents). */
+	@Column(name = "pausada")
+	private boolean pausada;
 	@ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
 	@JoinColumn(
 			name = "peticio_id",
@@ -103,6 +106,12 @@ public class BackofficePeticioEntity extends AbstractPersistable<Long> {
 	public String getEntitatCodi() {
 		return entitatCodi;
 	}
+	public boolean isPausada() {
+		return pausada;
+	}
+	public void updatePausada(boolean pausada) {
+		this.pausada = pausada;
+	}
 
 	public void updateSolicitudProcessada(
 			String darreraSolicitudId,
@@ -116,6 +125,18 @@ public class BackofficePeticioEntity extends AbstractPersistable<Long> {
 	public void updateEstat(
 			PeticioEstatEnumDto estat) {
 		this.estat = estat;
+	}
+	/** Sol·licituds processades recomptades (enviaments en paral·lel de les consultes asíncrones). */
+	public void updateProcessades(
+			int processadesTotal,
+			int processadesError,
+			String darreraSolicitudId) {
+		this.processadesTotal = processadesTotal;
+		this.processadesError = processadesError;
+		if (darreraSolicitudId != null) {
+			this.darreraSolicitudId = darreraSolicitudId;
+			this.darreraSolicitudData = new Date();
+		}
 	}
 	public void updateComunicacioDarrera(
 			BackofficeComunicacioEntity comunicacioDarrera) {

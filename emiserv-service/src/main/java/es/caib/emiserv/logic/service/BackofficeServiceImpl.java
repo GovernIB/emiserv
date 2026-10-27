@@ -5,6 +5,7 @@ package es.caib.emiserv.logic.service;
 
 import es.caib.emiserv.logic.helper.BackofficeClassloader;
 import es.caib.emiserv.logic.helper.BackofficeHelper;
+import es.caib.emiserv.logic.helper.PlanificadorAsincronHelper;
 import es.caib.emiserv.logic.helper.BackofficeHelper.ConfirmacionPeticionAmbException;
 import es.caib.emiserv.logic.helper.BackofficeHelper.RespuestaAmbException;
 import es.caib.emiserv.logic.helper.ConversioTipusHelper;
@@ -101,6 +102,8 @@ public class BackofficeServiceImpl implements BackofficeService {
 	private SecurityHelper securityHelper;
 	@Autowired
 	private BackofficeHelper backofficeHelper;
+	@Autowired
+	private PlanificadorAsincronHelper planificadorAsincronHelper;
 
 	@Autowired
 	private BackofficeClassloader backofficeClassloader;
@@ -517,40 +520,7 @@ public class BackofficeServiceImpl implements BackofficeService {
 	@Override
 	public void peticioBackofficeAsyncProcessarPendents() {
 		log.debug("Processant les peticions asíncrones als backoffices pendents");
-		// Obté els codis dels servei amb el tipus de processament asíncron "Processar com síncrones"
-		List<ServeiEntity> serveisPerConsultar = new ArrayList<ServeiEntity>(serveiRepository.findByBackofficeCaibAsyncTipus(
-				BackofficeAsyncTipusEnumDto.PROCESSAR_SINCRONES));
-		// Els enrutadors amb rutes de tipus BACKOFFICE també processen les asíncrones com a síncrones
-		serveisPerConsultar.addAll(serveiRepository.findByTipusIn(
-				Arrays.asList(ServeiTipusEnumDto.ENRUTADOR, ServeiTipusEnumDto.ENRUTADOR_MULTIPLE)));
-		List<String> codisServeisPerConsultar = new ArrayList<String>();
-		for (ServeiEntity servei: serveisPerConsultar) {
-			codisServeisPerConsultar.add(servei.getCodi());
-		}
-		// Obté els ids dels serveis SCSP que corresponen als codis obtinguts
-		if(codisServeisPerConsultar.size() > 0) {
-			List<ScspCoreServicioEntity> servicios = scspCoreServicioRepository.findByCodigoCertificadoIn(codisServeisPerConsultar);
-			List<Long> idsServicios = new ArrayList<Long>();
-			for (ScspCoreServicioEntity servicio: servicios) {
-				idsServicios.add(servicio.getId());
-			}
-			// Es cerquen les peticions que compleixin:
-			//		En estat pendent
-			//		Que siguin de tipus asíncron
-			//		Que no estiguin en estat SCSP d'error (estat ha de començar amb "00")
-			//		Que pertanyin a serveis amb el tipus de processament asíncron "Processar com síncrones"
-			List<BackofficePeticioEntity> peticions = backofficePeticioRepository.findAsincronesPendentsDeProcessar(
-					idsServicios);
-			log.debug("S'han trobat " + peticions.size() + " peticions asíncrones pendents");
-			for (BackofficePeticioEntity peticio: peticions) {
-				// Cada petició es processa en una transacció pròpia: un error no ha d'aturar les altres
-				try {
-					backofficeHelper.processarPeticioPendent(peticio.getId());
-				} catch (Exception ex) {
-					log.error("Error processant la petició asíncrona pendent (id=" + peticio.getId() + ")", ex);
-				}
-			}
-		}
+		planificadorAsincronHelper.planificar();
 	}
 
 	@Override
