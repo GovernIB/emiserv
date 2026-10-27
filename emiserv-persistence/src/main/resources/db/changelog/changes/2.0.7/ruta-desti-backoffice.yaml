@@ -1,0 +1,85 @@
+# Rutes dels serveis enrutadors amb consulta directa al backoffice del cedent
+# (convivència amb les rutes que reenvien la petició a l'emisor SCSP del cedent)
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: hsqldb
+  - changeSet:
+      id: 1761566400000-1
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ems_servei_ruta_desti
+                columnName: desti_tipus
+      changes:
+        - addColumn:
+            tableName: ems_servei_ruta_desti
+            columns:
+              # 0: EMISERV (reenviament a l'emisor del cedent), 1: BACKOFFICE (consulta directa al backoffice)
+              - column:
+                  name: desti_tipus
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: backcaib_autenticacio
+                  type: INTEGER
+  - changeSet:
+      id: 1761566400000-2
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ems_backoffice_pet
+                columnName: entitat_codi
+      changes:
+        - addColumn:
+            tableName: ems_backoffice_pet
+            columns:
+              - column:
+                  name: entitat_codi
+                  type: varchar(64 ${varcharUnit})
+  - changeSet:
+      id: 1761566400000-3
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM ems_config WHERE key = 'es.caib.emiserv.enrutador.emisor.url'
+      changes:
+        # URL de l'emisor SCSP d'EMISERV per a les rutes de tipus BACKOFFICE dels enrutadors
+        - insert:
+            tableName: ems_config
+            columns:
+              - column:
+                  name: key
+                  value: es.caib.emiserv.enrutador.emisor.url
+              - column:
+                  name: description_key
+                  value: propietat.enrutador.emisor.url
+              - column:
+                  name: group_code
+                  value: GENERAL
+              - column:
+                  name: position
+                  valueNumeric: 12
+              - column:
+                  name: source_property
+                  value: DATABASE
+              - column:
+                  name: type_code
+                  value: TEXT

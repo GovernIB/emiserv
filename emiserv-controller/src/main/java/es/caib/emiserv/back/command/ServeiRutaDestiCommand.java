@@ -9,7 +9,9 @@ import javax.validation.constraints.Size;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import es.caib.emiserv.back.helper.ConversioTipusHelper;
+import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiTipusEnumDto;
 
 /**
  * Command pel formulari de rutes d'un servei.
@@ -24,6 +26,9 @@ public class ServeiRutaDestiCommand {
 	private String entitatCodi;
 	@NotEmpty @Size(max=256)
 	private String url;
+	/** EMISERV: reenviament a l'emisor del cedent. BACKOFFICE: consulta directa al backoffice del cedent. */
+	private ServeiRutaDestiTipusEnumDto destiTipus = ServeiRutaDestiTipusEnumDto.EMISERV;
+	private BackofficeAutenticacioTipusEnumDto backofficeAutenticacio;
 
 	public Long getId() {
 		return id;
@@ -48,6 +53,18 @@ public class ServeiRutaDestiCommand {
 	}
 	public void setUrl(String url) {
 		this.url = url;
+	}
+	public ServeiRutaDestiTipusEnumDto getDestiTipus() {
+		return destiTipus;
+	}
+	public void setDestiTipus(ServeiRutaDestiTipusEnumDto destiTipus) {
+		this.destiTipus = destiTipus;
+	}
+	public BackofficeAutenticacioTipusEnumDto getBackofficeAutenticacio() {
+		return backofficeAutenticacio;
+	}
+	public void setBackofficeAutenticacio(BackofficeAutenticacioTipusEnumDto backofficeAutenticacio) {
+		this.backofficeAutenticacio = backofficeAutenticacio;
 	}
 
 	public static ServeiRutaDestiCommand toCommand(ServeiRutaDestiDto dto) {

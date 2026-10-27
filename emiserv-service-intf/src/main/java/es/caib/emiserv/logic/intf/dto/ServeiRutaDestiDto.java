@@ -16,6 +16,12 @@ public class ServeiRutaDestiDto extends ObjecteAmbPermisosDto {
 	private String entitatCodi;
 	private String url;
 	private Long ordre;
+	private ServeiRutaDestiTipusEnumDto destiTipus;
+	private BackofficeAutenticacioTipusEnumDto backofficeAutenticacio;
+	/** Prefix de les propietats de les credencials del backoffice (rutes BACKOFFICE amb autenticació). */
+	private String credencialsPropietats;
+	/** Indica si les credencials del backoffice estan configurades (null si la ruta no en necessita). */
+	private Boolean credencialsConfigurades;
 
 	public Long getId() {
 		return id;
@@ -41,6 +47,30 @@ public class ServeiRutaDestiDto extends ObjecteAmbPermisosDto {
 	}
 	public void setOrdre(Long ordre) {
 		this.ordre = ordre;
+	}
+	public ServeiRutaDestiTipusEnumDto getDestiTipus() {
+		return destiTipus;
+	}
+	public void setDestiTipus(ServeiRutaDestiTipusEnumDto destiTipus) {
+		this.destiTipus = destiTipus;
+	}
+	public BackofficeAutenticacioTipusEnumDto getBackofficeAutenticacio() {
+		return backofficeAutenticacio;
+	}
+	public void setBackofficeAutenticacio(BackofficeAutenticacioTipusEnumDto backofficeAutenticacio) {
+		this.backofficeAutenticacio = backofficeAutenticacio;
+	}
+	public String getCredencialsPropietats() {
+		return credencialsPropietats;
+	}
+	public void setCredencialsPropietats(String credencialsPropietats) {
+		this.credencialsPropietats = credencialsPropietats;
+	}
+	public Boolean getCredencialsConfigurades() {
+		return credencialsConfigurades;
+	}
+	public void setCredencialsConfigurades(Boolean credencialsConfigurades) {
+		this.credencialsConfigurades = credencialsConfigurades;
 	}
 	@Override
 	public String toString() {

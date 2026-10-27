@@ -24,6 +24,14 @@ public interface BackofficePeticioRepository extends JpaRepository<BackofficePet
 	public BackofficePeticioEntity findByScspPeticionRespuesta(
 			ScspCorePeticionRespuestaEntity scspPeticionRespuesta);
 
+	/** Entitat que ha respost la petició (sense carregar la petició SCSP). */
+	@Query(	"select bp.entitatCodi from " +
+			"    BackofficePeticioEntity bp " +
+			"where " +
+			"    bp.scspPeticionRespuesta.peticionId = :peticionId")
+	public List<String> findEntitatCodiByPeticionId(
+			@Param("peticionId") String peticionId);
+
 	public List<BackofficePeticioEntity> findByEstatOrderByIdAsc(
 			PeticioEstatEnumDto estat);
 

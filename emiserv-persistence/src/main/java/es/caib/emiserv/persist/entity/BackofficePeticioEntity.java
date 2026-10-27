@@ -52,6 +52,9 @@ public class BackofficePeticioEntity extends AbstractPersistable<Long> {
 	private int processadesTotal;
 	@Column(name = "processades_error")
 	private int processadesError;
+	/** Entitat (organisme cedent) que ha respost la petició, per als serveis enrutadors amb rutes de tipus BACKOFFICE. */
+	@Column(name = "entitat_codi", length = 64)
+	private String entitatCodi;
 	@ManyToOne(optional = false, fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
 	@JoinColumn(
 			name = "peticio_id",
@@ -97,6 +100,9 @@ public class BackofficePeticioEntity extends AbstractPersistable<Long> {
 	public BackofficeComunicacioEntity getComunicacioDarrera() {
 		return comunicacioDarrera;
 	}
+	public String getEntitatCodi() {
+		return entitatCodi;
+	}
 
 	public void updateSolicitudProcessada(
 			String darreraSolicitudId,
@@ -114,6 +120,10 @@ public class BackofficePeticioEntity extends AbstractPersistable<Long> {
 	public void updateComunicacioDarrera(
 			BackofficeComunicacioEntity comunicacioDarrera) {
 		this.comunicacioDarrera = comunicacioDarrera;
+	}
+	public void updateEntitatCodi(
+			String entitatCodi) {
+		this.entitatCodi = entitatCodi;
 	}
 
 	public static Builder getBuilder(

@@ -234,6 +234,25 @@ public interface ServeiService {
 	public boolean rutaDestiMourePosicio(Long rutaId, int posicio);
 
 	/**
+	 * Prova la connexió amb el destí d'una ruta (emisor SCSP del cedent o backoffice del cedent)
+	 * consultant-ne el WSDL.
+	 * 
+	 * @param id
+	 *            Atribut id del servei.
+	 * @param rutaDestiId
+	 *            Atribut id de la ruta.
+	 * @return el resultat de la prova.
+	 * @throws NotFoundException
+	 *             Si no s'ha trobat el servei o la ruta.
+	 * @throws PermissionDeniedException
+	 *             Si l'usuari no te permisos per administrar el servei.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public ServeiRutaDestiProvaDto rutaDestiProvarConnexio(
+			Long id,
+			Long rutaDestiId) throws NotFoundException, PermissionDeniedException;
+
+	/**
 	 * Crea una ruta a dins un servei.
 	 * 
 	 * @param id

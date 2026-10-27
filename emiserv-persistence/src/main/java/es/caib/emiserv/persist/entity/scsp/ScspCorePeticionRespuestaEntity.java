@@ -13,7 +13,6 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -43,8 +42,8 @@ public class ScspCorePeticionRespuestaEntity {
 	private Date fechaRespuesta;
 	@Column(name = "estado", length = 4)
 	private String estado;
-	@Lob
-	@Column(name = "error")
+	/** VARCHAR(4000) a tots els scripts de creació i actualització (no és un LOB, com a les llibreries SCSP). */
+	@Column(name = "error", length = 4000)
 	private String error;
 	@Column(name = "numeroenvios")
 	private int numEnvios;

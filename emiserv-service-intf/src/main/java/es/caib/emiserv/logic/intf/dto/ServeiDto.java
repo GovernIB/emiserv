@@ -31,6 +31,8 @@ public class ServeiDto extends ObjecteAmbPermisosDto {
 	private boolean xsdGestioActiva;
 	private String xsdEsquemaBackup;
 	private boolean configurat;
+	/** Indica si el servei està configurat a l'emisor SCSP (CORE_SERVICIO), necessari per a les autoritzacions i les rutes de tipus BACKOFFICE. */
+	private boolean configuratScsp;
 	private boolean actiu;
 
 	public String getCodiNom() {

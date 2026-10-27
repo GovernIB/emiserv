@@ -87,10 +87,40 @@
 	
 	function refrescaTaula() {
 		$('#rutes').webutilDatatable('refresh');
-	}	
+	}
+
+	// Prova de connexió amb el destí de la ruta (emisor SCSP o backoffice del cedent)
+	$(document).on('click', '#rutes .btn-provar', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		var $boto = $(this);
+		var $resultat = $('#prova-resultat');
+		$boto.prop('disabled', true);
+		$resultat.attr('class', 'alert alert-info').text('<spring:message code="servei.config.rutes.provar.enviant" javaScriptEscape="true"/>').show();
+		$.ajax({
+			type: 'GET',
+			url: '<c:url value="/servei/${servei.id}/rutes/"/>' + $boto.data('ruta-id') + '/provar',
+			dataType: 'json',
+			success: function(prova) {
+				var text = '[' + $boto.data('entitat') + '] ' + prova.missatge + ' (' + prova.url + ', ' + prova.tempsMs + ' ms)';
+				var classe = !prova.correcta ? 'alert-danger' : (prova.credencialsPendents ? 'alert-warning' : 'alert-success');
+				$resultat.attr('class', 'alert ' + classe).text(text);
+			},
+			error: function() {
+				$resultat.attr('class', 'alert alert-danger').text('<spring:message code="servei.config.rutes.provar.error" javaScriptEscape="true"/>');
+			},
+			complete: function() {
+				$boto.prop('disabled', false);
+				webutilModalAdjustHeight();
+			}
+		});
+	});
 
 </script>
 <style>
+#rutes .label {
+	font-size: 90%;
+}
 #rutes td:last-child,
 #rutes th:last-child {
 	white-space: nowrap;
@@ -110,6 +140,7 @@
 		</div>
 	</form>
 	</c:if>
+	<div id="prova-resultat" class="alert" style="display:none;margin-bottom:6px;word-break:break-all"></div>
 	<form:form method="post" modelAttribute="serveiRutaDestiCommand" role="form">
 		<table id="rutes"
 			data-toggle="datatable"
@@ -129,8 +160,34 @@
 				<tr>
 					<th data-col-name="id" data-visible="false"/>
 					<th data-col-name="ordre" data-orderable="true" width="10%"><spring:message code="servei.config.rutes.ordre"/></th>
-					<th data-col-name="entitatCodi" data-orderable="true" width="20%"><spring:message code="servei.config.rutes.camp.entitat.codi"/></th>
-					<th data-col-name="url" data-orderable="true" width="70%"><spring:message code="servei.config.rutes.camp.url"/></th>
+					<th data-col-name="entitatCodi" data-orderable="true" width="12%"><spring:message code="servei.config.rutes.camp.entitat.codi"/></th>
+					<th data-col-name="destiTipus" data-orderable="true" data-template="#cellDestiTipusTemplate" width="14%">
+						<spring:message code="servei.config.rutes.camp.desti.tipus"/>
+						<script id="cellDestiTipusTemplate" type="text/x-jsrender">
+							{{if destiTipus == 'BACKOFFICE'}}<span class="label label-primary"><spring:message code="servei.ruta.desti.tipus.enum.BACKOFFICE"/></span>{{else}}<span class="label label-default"><spring:message code="servei.ruta.desti.tipus.enum.EMISERV"/></span>{{/if}}
+						</script>
+					</th>
+					<th data-col-name="url" data-orderable="true" width="46%"><spring:message code="servei.config.rutes.camp.url"/></th>
+					<th data-col-name="backofficeAutenticacio" data-orderable="false" data-template="#cellAutenticacioTemplate" width="12%">
+						<spring:message code="servei.config.rutes.camp.autenticacio"/>
+						<script id="cellAutenticacioTemplate" type="text/x-jsrender">
+							{{if destiTipus == 'BACKOFFICE'}}
+								{{if backofficeAutenticacio == 'TOKEN_CAIB'}}<spring:message code="backoffice.auth.tipus.enum.TOKEN_CAIB"/>{{else backofficeAutenticacio == 'TEXT_CLAR'}}<spring:message code="backoffice.auth.tipus.enum.TEXT_CLAR"/>{{else}}<spring:message code="backoffice.auth.tipus.enum.NINGUNA"/>{{/if}}
+								{{if credencialsConfigurades === true}}
+									<span class="fa fa-check text-success" title="<spring:message code="servei.config.rutes.credencials.configurades"/>: {{:credencialsPropietats}}username/password"></span>
+								{{else credencialsConfigurades === false}}
+									<span class="fa fa-warning text-danger" title="<spring:message code="servei.config.rutes.credencials.pendents"/>: {{:credencialsPropietats}}username/password"></span>
+								{{/if}}
+							{{/if}}
+						</script>
+					</th>
+					<th data-col-name="credencialsPropietats" data-visible="false"></th>
+					<th data-col-name="credencialsConfigurades" data-visible="false"></th>
+					<th data-col-name="id" data-orderable="false" data-template="#cellProvarTemplate" width="1%">
+						<script id="cellProvarTemplate" type="text/x-jsrender">
+							<button type="button" class="btn btn-default btn-sm btn-provar" data-ruta-id="{{:id}}" data-entitat="{{:entitatCodi}}" title="<spring:message code="servei.config.rutes.provar"/>"><span class="fa fa-plug"></span></button>
+						</script>
+					</th>
 				</tr>
 			</thead>
 			<tfoot>
@@ -145,8 +202,27 @@
 						<emi:inputText name="entitatCodi" textKey="servei.config.rutes.camp.entitat.codi" inline="true" required="true"/>
 					</th>
 					<th>
+						<%-- Selectors sense select2: la taula editable clona la fila de mostra per editar cada ruta --%>
+						<form:select path="destiTipus" cssClass="form-control">
+							<c:forEach var="opcio" items="${destiTipusEnumOptions}">
+								<form:option value="${opcio.value}"><spring:message code="${opcio.text}"/></form:option>
+							</c:forEach>
+						</form:select>
+					</th>
+					<th>
 						<emi:inputText name="url" textKey="servei.config.rutes.camp.url" inline="true" required="true"/>
 					</th>
+					<th>
+						<form:select path="backofficeAutenticacio" cssClass="form-control">
+							<form:option value=""/>
+							<c:forEach var="opcio" items="${backofficeAutenticacioTipusEnumOptions}">
+								<form:option value="${opcio.value}"><spring:message code="${opcio.text}"/></form:option>
+							</c:forEach>
+						</form:select>
+					</th>
+					<th></th>
+					<th></th>
+					<th></th>
 				</tr>
 			</tfoot>
 		</table>

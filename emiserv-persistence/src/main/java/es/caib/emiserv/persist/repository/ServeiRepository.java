@@ -83,6 +83,9 @@ public interface ServeiRepository extends JpaRepository<ServeiEntity, Long> {
 	public List<ServeiEntity> findByBackofficeCaibAsyncTipus(
 			BackofficeAsyncTipusEnumDto backofficeCaibAsyncTipus);
 
+	public List<ServeiEntity> findByTipusIn(
+			List<ServeiTipusEnumDto> tipus);
+
     List<ServeiEntity> findByActiuTrue();
 
 	@Query(	"select distinct s.codi " +

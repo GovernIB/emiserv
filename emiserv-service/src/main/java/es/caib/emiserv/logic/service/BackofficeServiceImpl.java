@@ -17,6 +17,7 @@ import es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto;
 import es.caib.emiserv.logic.intf.dto.AuditoriaTransmisionDto;
 import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
@@ -51,8 +52,6 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.type.ClassMetadata;
 import org.springframework.core.type.filter.AbstractClassTestingTypeFilter;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.Authentication;
@@ -62,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -509,14 +509,20 @@ public class BackofficeServiceImpl implements BackofficeService {
 		}
 	}
 
+	/**
+	 * Tasca periòdica registrada a SchedulingConfig (el període es llegeix de la configuració a cada
+	 * execució). No s'ha d'anotar amb @Scheduled: la tasca es registraria dues vegades i les dues
+	 * execucions processarien les mateixes peticions alhora (crides duplicades als backoffices).
+	 */
 	@Override
-	@Async
-	@Scheduled(fixedRateString = "${es.caib.emiserv.tasca.backoffice.async.processar.pendents:10000}")
 	public void peticioBackofficeAsyncProcessarPendents() {
 		log.debug("Processant les peticions asíncrones als backoffices pendents");
 		// Obté els codis dels servei amb el tipus de processament asíncron "Processar com síncrones"
-		List<ServeiEntity> serveisPerConsultar = serveiRepository.findByBackofficeCaibAsyncTipus(
-				BackofficeAsyncTipusEnumDto.PROCESSAR_SINCRONES);
+		List<ServeiEntity> serveisPerConsultar = new ArrayList<ServeiEntity>(serveiRepository.findByBackofficeCaibAsyncTipus(
+				BackofficeAsyncTipusEnumDto.PROCESSAR_SINCRONES));
+		// Els enrutadors amb rutes de tipus BACKOFFICE també processen les asíncrones com a síncrones
+		serveisPerConsultar.addAll(serveiRepository.findByTipusIn(
+				Arrays.asList(ServeiTipusEnumDto.ENRUTADOR, ServeiTipusEnumDto.ENRUTADOR_MULTIPLE)));
 		List<String> codisServeisPerConsultar = new ArrayList<String>();
 		for (ServeiEntity servei: serveisPerConsultar) {
 			codisServeisPerConsultar.add(servei.getCodi());
@@ -537,7 +543,12 @@ public class BackofficeServiceImpl implements BackofficeService {
 					idsServicios);
 			log.debug("S'han trobat " + peticions.size() + " peticions asíncrones pendents");
 			for (BackofficePeticioEntity peticio: peticions) {
-				backofficeHelper.processarPeticioPendent(peticio.getId());
+				// Cada petició es processa en una transacció pròpia: un error no ha d'aturar les altres
+				try {
+					backofficeHelper.processarPeticioPendent(peticio.getId());
+				} catch (Exception ex) {
+					log.error("Error processant la petició asíncrona pendent (id=" + peticio.getId() + ")", ex);
+				}
 			}
 		}
 	}

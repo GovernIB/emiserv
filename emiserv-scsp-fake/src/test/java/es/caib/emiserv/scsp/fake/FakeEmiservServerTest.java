@@ -71,6 +71,28 @@ class FakeEmiservServerTest {
 	}
 
 	@Test
+	void backofficeEntitatFamiliaNombrosa() throws Exception {
+		server = FakeEmiservServer.createServer("127.0.0.1", 0);
+		server.start();
+
+		String requestXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+			+ "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:tns=\"http://caib.es/emiserv/backoffice\">"
+			+ "<soapenv:Body>"
+			+ "<tns:peticionSincrona><peticion><atributos><codigoCertificado>SVDSCTFNWS01</codigoCertificado><idPeticion>PET-FN-1</idPeticion></atributos></peticion></tns:peticionSincrona>"
+			+ "</soapenv:Body></soapenv:Envelope>";
+
+		HttpResponse<String> response = post("/ws/EmiservBackoffice/MENORCA", requestXml);
+		HttpResponse<String> responseSenseDades = post("/ws/EmiservBackoffice/MALLORCA/no", requestXml);
+
+		assertEquals(200, response.statusCode());
+		assertTrue(response.body().contains("<datosEspecificos><Retorno>"), response.body());
+		assertTrue(response.body().contains("TFN-MENORCA-"), response.body());
+		assertTrue(response.body().contains("<CodigoEstado>0</CodigoEstado>"), response.body());
+		assertEquals(200, responseSenseDades.statusCode());
+		assertTrue(responseSenseDades.body().contains("<CodigoEstado>7</CodigoEstado>"), responseSenseDades.body());
+	}
+
+	@Test
 	void backofficeKoReturnsErrorStatusResponse() throws Exception {
 		server = FakeEmiservServer.createServer("127.0.0.1", 0);
 		server.start();

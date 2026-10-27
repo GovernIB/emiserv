@@ -101,6 +101,16 @@ public class ServeiEntity extends AbstractAuditableEntity<Long> {
 	public BackofficeAsyncTipusEnumDto getBackofficeCaibAsyncTipus() {
 		return backofficeCaibAsyncTipus;
 	}
+	public boolean isEnrutador() {
+		return ServeiTipusEnumDto.ENRUTADOR.equals(tipus) || ServeiTipusEnumDto.ENRUTADOR_MULTIPLE.equals(tipus);
+	}
+	/**
+	 * Tipus de processament de les peticions asíncrones. Els backoffices dels cedents (rutes de tipus
+	 * BACKOFFICE dels enrutadors) sempre es consulten de forma síncrona: EMISERV gestiona l'asíncron.
+	 */
+	public BackofficeAsyncTipusEnumDto getBackofficeCaibAsyncTipusEfectiu() {
+		return isEnrutador() ? BackofficeAsyncTipusEnumDto.PROCESSAR_SINCRONES : backofficeCaibAsyncTipus;
+	}
 	public int getBackofficeCaibAsyncTer() {
 		return backofficeCaibAsyncTer;
 	}

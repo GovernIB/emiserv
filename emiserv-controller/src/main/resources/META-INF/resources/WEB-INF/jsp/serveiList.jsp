@@ -60,6 +60,7 @@
 				<th data-col-name="nom"><spring:message code="servei.list.columna.nom"/></th>
 				<th data-col-name="tipus"><spring:message code="servei.list.columna.tipus"/></th>
 				<th data-col-name="configurat" data-visible="false"><spring:message code="servei.list.columna.configurat"/></th>
+				<th data-col-name="configuratScsp" data-visible="false"></th>
 				<c:if test="${isRolActualAdministrador}">
 					<th data-col-name="actiu" data-template="#cellActiuTemplate">
 						<spring:message code="servei.list.columna.actiu"/>
@@ -74,7 +75,7 @@
 					</th>
 					<th data-template="#cellAutoritzacionsTemplate" width="1%" data-orderable="false">
 						<script id="cellAutoritzacionsTemplate" type="text/x-jsrender">
-							{{if tipus == 'BACKOFFICE'}}<a href="servei/{{:id}}/autoritzacio" class="btn btn-default{{if !configurat}} disabled{{/if}}"><span class="fa fa-thumbs-o-up"></span>&nbsp;<spring:message code="servei.list.boto.autoritzacions"/></a>{{/if}}
+							<a href="servei/{{:id}}/autoritzacio" class="btn btn-default{{if !configuratScsp}} disabled{{/if}}"><span class="fa fa-thumbs-o-up"></span>&nbsp;<spring:message code="servei.list.boto.autoritzacions"/></a>
 						</script>
 					</th>
 				</c:if>
@@ -92,6 +93,8 @@
 									{{/if}}
 								{{else}}
 									<li><a href="servei/{{:id}}/rutes" data-toggle="modal"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.rutes"/></a></li>
+									<%-- Necessària per a les rutes de tipus BACKOFFICE (consulta directa al backoffice del cedent) --%>
+									<li><a href="servei/{{:id}}/configScsp" data-toggle="modal"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.scsp"/></a></li>
 								{{/if}}
 								<c:if test="${isRolActualAdministrador}">
 									{{if !actiu}}

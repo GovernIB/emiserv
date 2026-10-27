@@ -9,6 +9,8 @@ import es.caib.emiserv.logic.helper.PermisosHelper;
 import es.caib.emiserv.logic.helper.PermisosHelper.ObjectIdentifierExtractor;
 import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.helper.ServeiXsdHelper;
+import es.caib.emiserv.logic.helper.BackofficeDestiHelper;
+import es.caib.emiserv.logic.helper.BackofficeDestiHelper.BackofficeDesti;
 import es.caib.emiserv.logic.intf.dto.*;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
@@ -60,6 +62,8 @@ public class ServeiServiceImpl implements ServeiService {
 
 	//private static final String RESOLVER_PACKAGE_NAME = "es/caib/emiserv/logic/resolver";
 	private static final int DEFAULT_BACKOFFICE_TER = 1;
+	/** Backoffice SCSP dels serveis enrutadors amb rutes de tipus BACKOFFICE (consulta directa al backoffice del cedent). */
+	static final String BACKOFFICE_CLASS_ENRUTADOR = "es.caib.emiserv.backoffice.CaibBackoffice";
 
 	@Autowired
 	private ServeiRepository serveiRepository;
@@ -88,6 +92,8 @@ public class ServeiServiceImpl implements ServeiService {
 	private SecurityHelper securityHelper;
 	@Autowired
 	private ServeiXsdHelper serveiXsdHelper;
+	@Autowired
+	private BackofficeDestiHelper backofficeDestiHelper;
 
 	@Transactional
 	@Override
@@ -194,10 +200,9 @@ public class ServeiServiceImpl implements ServeiService {
 		permisosHelper.deleteAcl(
 				id,
 				ServeiEntity.class);
-		if (servei.isConfigurat() && ServeiTipusEnumDto.BACKOFFICE.equals(servei.getTipus())) {
-			Long coreServicioId = findCoreServicioIdPerServeiCodi(servei.getCodi());
+		if (scspCoreServicio != null && scspEmisorBackofficeRepository.existsById(scspCoreServicio.getId())) {
 			scspEmisorBackofficeRepository.deleteById(
-					coreServicioId);
+					scspCoreServicio.getId());
 		}
 		return conversioTipusHelper.convertir(
 				servei,
@@ -213,6 +218,7 @@ public class ServeiServiceImpl implements ServeiService {
 		ServeiDto dto = conversioTipusHelper.convertir(
 				servei,
 				ServeiDto.class);
+		omplirConfiguratScsp(dto);
 		permisosHelper.omplirPermisos(
 				dto,
 				new ObjectIdentifierExtractor<ServeiDto>() {
@@ -307,6 +313,9 @@ public class ServeiServiceImpl implements ServeiService {
 					},
 					ServeiEntity.class,
 					true);
+			for (ServeiDto servei: resposta.getContingut()) {
+				omplirConfiguratScsp(servei);
+			}
 			return resposta;
 		} else {
 			return paginacioHelper.getPaginaDtoBuida(ServeiDto.class);
@@ -458,11 +467,17 @@ public class ServeiServiceImpl implements ServeiService {
 				"id=" + id + ", " +
 				"rutaDesti=" + rutaDesti + ")");
 		ServeiEntity servei = comprovarServei(id);
+		comprovarServeiConfiguratPerRutaBackoffice(
+				servei,
+				rutaDesti.getDestiTipus(),
+				isConfiguratScsp(servei));
 		ServeiRutaDestiEntity entity = ServeiRutaDestiEntity.getBuilder(
 				servei,
 				rutaDesti.getEntitatCodi(),
 				rutaDesti.getUrl(),
-				serveiRutaDestiRepository.getNextOrdre(servei.getId())).build();
+				serveiRutaDestiRepository.getNextOrdre(servei.getId())).
+				desti(rutaDesti.getDestiTipus(), rutaDesti.getBackofficeAutenticacio()).
+				build();
 		return conversioTipusHelper.convertir(
 				serveiRutaDestiRepository.save(entity),
 				ServeiRutaDestiDto.class);
@@ -484,9 +499,15 @@ public class ServeiServiceImpl implements ServeiService {
 					rutaDesti.getId(),
 					ServeiRutaDestiEntity.class);
 		} else {
+			comprovarServeiConfiguratPerRutaBackoffice(
+					servei,
+					rutaDesti.getDestiTipus(),
+					isConfiguratScsp(servei));
 			entity.get().update(
 					rutaDesti.getEntitatCodi(),
-					rutaDesti.getUrl());
+					rutaDesti.getUrl(),
+					rutaDesti.getDestiTipus(),
+					rutaDesti.getBackofficeAutenticacio());
 			return conversioTipusHelper.convertir(
 					entity,
 					ServeiRutaDestiDto.class);
@@ -520,11 +541,15 @@ public class ServeiServiceImpl implements ServeiService {
 		log.debug("Consulta les rutes d'un servei (" +
 				"id=" + id + ")");
 		ServeiEntity servei = comprovarServei(id);
-		return paginacioHelper.toPaginaDto(
+		PaginaDto<ServeiRutaDestiDto> rutes = paginacioHelper.toPaginaDto(
 				serveiRutaDestiRepository.findByServei(
 						servei,
 						paginacioHelper.toSpringDataPageable(paginacioParams)),
 				ServeiRutaDestiDto.class);
+		for (ServeiRutaDestiDto ruta: rutes.getContingut()) {
+			omplirCredencials(servei, ruta);
+		}
+		return rutes;
 	}
 
 	@Override
@@ -737,7 +762,7 @@ public class ServeiServiceImpl implements ServeiService {
 			return scspEmisorBackofficeRepository.save(
 					ScspCoreEmBackofficeEntity.getBuilder(
 							coreServicioId,
-							servei.getBackofficeClass(),
+							getBackofficeClassScsp(servei),
 							Integer.valueOf(DEFAULT_BACKOFFICE_TER)).
 					build());
 		} else {
@@ -751,8 +776,98 @@ public class ServeiServiceImpl implements ServeiService {
 			ScspCoreEmBackofficeEntity scspEmisorBackoffice = scspEmisorBackofficeRepository.getOne(
 					coreServicioId);
 			scspEmisorBackoffice.update(
-					servei.getBackofficeClass(),
+					getBackofficeClassScsp(servei),
 					Integer.valueOf(DEFAULT_BACKOFFICE_TER));
+		}
+	}
+
+	/**
+	 * Classe de backoffice de l'emisor SCSP (CORE_EM_BACKOFFICE). Els serveis enrutadors no en tenen de
+	 * pròpia: les peticions de les rutes de tipus BACKOFFICE les processa CaibBackoffice.
+	 */
+	static String getBackofficeClassScsp(ServeiEntity servei) {
+		if (ServeiTipusEnumDto.BACKOFFICE.equals(servei.getTipus())) {
+			return servei.getBackofficeClass();
+		}
+		return BACKOFFICE_CLASS_ENRUTADOR;
+	}
+
+	/**
+	 * Les peticions de les rutes de tipus BACKOFFICE les processa l'emisor SCSP d'EMISERV, per tant
+	 * el servei hi ha d'estar configurat (CORE_SERVICIO i CORE_EM_BACKOFFICE).
+	 */
+	static void comprovarServeiConfiguratPerRutaBackoffice(
+			ServeiEntity servei,
+			ServeiRutaDestiTipusEnumDto destiTipus,
+			boolean configuratScsp) {
+		if (ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(destiTipus) && !configuratScsp) {
+			throw new ValidationException(
+					"Per afegir rutes de tipus BACKOFFICE el servei (codi=" + servei.getCodi() + ") " +
+					"s'ha de configurar primer a l'emisor SCSP");
+		}
+	}
+
+	@Transactional(readOnly = true)
+	@Override
+	public ServeiRutaDestiProvaDto rutaDestiProvarConnexio(
+			Long id,
+			Long rutaDestiId) {
+		log.debug("Prova la connexió amb el destí d'una ruta (" +
+				"id=" + id + ", " +
+				"rutaDestiId=" + rutaDestiId + ")");
+		ServeiEntity servei = comprovarServei(id);
+		Optional<ServeiRutaDestiEntity> ruta = serveiRutaDestiRepository.findById(rutaDestiId);
+		if (!ruta.isPresent() || !ruta.get().getServei().equals(servei)) {
+			throw new NotFoundException(
+					rutaDestiId,
+					ServeiRutaDestiEntity.class);
+		}
+		return backofficeDestiHelper.provarConnexio(
+				getBackofficeDesti(servei, ruta.get()),
+				ruta.get().isDestiBackoffice());
+	}
+
+	/**
+	 * Per a les rutes de tipus BACKOFFICE amb autenticació, prefix de les propietats de les credencials
+	 * i si estan configurades (a nivell d'entitat, de servei o global).
+	 */
+	private void omplirCredencials(ServeiEntity servei, ServeiRutaDestiDto ruta) {
+		if (ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(ruta.getDestiTipus()) &&
+				ruta.getBackofficeAutenticacio() != null &&
+				!BackofficeAutenticacioTipusEnumDto.NINGUNA.equals(ruta.getBackofficeAutenticacio())) {
+			BackofficeDesti desti = new BackofficeDesti(
+					servei.getCodi(),
+					ruta.getEntitatCodi(),
+					ruta.getUrl(),
+					ruta.getBackofficeAutenticacio());
+			ruta.setCredencialsPropietats(desti.getPrefixosPropietats()[0] + "caib.auth.");
+			ruta.setCredencialsConfigurades(backofficeDestiHelper.isCredencialsConfigurades(desti));
+		}
+	}
+
+	private static BackofficeDesti getBackofficeDesti(ServeiEntity servei, ServeiRutaDestiEntity ruta) {
+		return new BackofficeDesti(
+				servei.getCodi(),
+				ruta.getEntitatCodi(),
+				ruta.getUrl(),
+				ruta.getBackofficeAutenticacio());
+	}
+
+	/**
+	 * Als serveis BACKOFFICE el camp configurat indica que s'ha desat la configuració SCSP. Als
+	 * enrutadors sempre val true (enrutador configurat), per això es comprova si existeix el CORE_SERVICIO.
+	 */
+	private boolean isConfiguratScsp(ServeiEntity servei) {
+		if (ServeiTipusEnumDto.BACKOFFICE.equals(servei.getTipus())) {
+			return servei.isConfigurat();
+		}
+		return scspCoreServicioRepository.findByCodigoCertificado(servei.getCodi()) != null;
+	}
+	private void omplirConfiguratScsp(ServeiDto servei) {
+		if (ServeiTipusEnumDto.BACKOFFICE.equals(servei.getTipus())) {
+			servei.setConfiguratScsp(servei.isConfigurat());
+		} else {
+			servei.setConfiguratScsp(scspCoreServicioRepository.findByCodigoCertificado(servei.getCodi()) != null);
 		}
 	}
 

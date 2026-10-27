@@ -36,7 +36,10 @@ import es.caib.emiserv.persist.repository.RedireccioSolicitudRepository;
 import es.caib.emiserv.persist.repository.ServeiRepository;
 import es.caib.emiserv.persist.repository.ServeiRutaDestiRepository;
 import lombok.extern.slf4j.Slf4j;
+import es.caib.emiserv.persist.repository.BackofficePeticioRepository;
+import java.util.LinkedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.Authentication;
@@ -76,6 +79,22 @@ public class RedireccioServiceImpl implements RedireccioService {
 
 	private static final SimpleDateFormat scspDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
+	/** URL de l'emisor SCSP d'EMISERV per a les rutes de tipus BACKOFFICE (s'hi afegeix l'operació: peticionSincrona, peticionAsincrona). */
+	static final String PROPIETAT_EMISOR_URL = "es.caib.emiserv.enrutador.emisor.url";
+	static final String EMISOR_URL_PER_DEFECTE = "http://localhost:8080/emiservapi/interna/scsp/services/";
+
+	/**
+	 * Clau de l'enrutador múltiple per a la petició a l'emisor SCSP d'EMISERV, que consulta els backoffices
+	 * de totes les rutes de tipus BACKOFFICE i n'escull una resposta.
+	 */
+	static final String CLAU_BACKOFFICES = "BACKOFFICES";
+	/** Detall dels SOAP Fault dels emisors amb les llibreries SCSP 5. */
+	static final String XPATH_FAULT_SCSP5 = "//*[local-name()='fault' and namespace-uri()='http://intermediacion.redsara.es/scsp/esquemas/V3/fault']";
+
+	@Autowired
+	private Environment environment;
+	@Autowired
+	private BackofficePeticioRepository backofficePeticioRepository;
 	@Autowired
 	private ServeiRepository serveiRepository;
 	@Autowired
@@ -317,7 +336,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 									}
 								} else {
 									resposta = new RedireccioProcessarResultatDto(
-											serveiRutaDesti.getUrl(),
+											getUrlDesti(serveiRutaDesti),
 											(isV2) ? 2 : 3,
 											idPeticion,
 											timestamp,
@@ -352,10 +371,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 							List<ServeiRutaDestiEntity> serveiRutaDestins = serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(
 									servei);
 							if (serveiRutaDestins.size() > 0) {
-								Map<String, String> urlDestins = new HashMap<String, String>();
-								for (ServeiRutaDestiEntity desti : serveiRutaDestins) {
-									urlDestins.put(desti.getEntitatCodi(), desti.getUrl());
-								}
+								Map<String, String> urlDestins = getUrlDestinsEnrutadorMultiple(serveiRutaDestins);
 								resposta = new RedireccioProcessarResultatDto(
 										urlDestins,
 										(isV2) ? 2 : 3,
@@ -477,6 +493,71 @@ public class RedireccioServiceImpl implements RedireccioService {
 		return resposta;
 	}
 
+	/**
+	 * Destins de l'enrutador múltiple: les rutes de tipus EMISERV s'envien a l'emisor del cedent i totes
+	 * les de tipus BACKOFFICE s'agrupen en una única petició a l'emisor SCSP d'EMISERV (una petició SCSP
+	 * només es pot registrar una vegada a l'emisor), que consulta els backoffices i n'escull la resposta.
+	 */
+	Map<String, String> getUrlDestinsEnrutadorMultiple(List<ServeiRutaDestiEntity> serveiRutaDestins) {
+		Map<String, String> urlDestins = new LinkedHashMap<String, String>();
+		for (ServeiRutaDestiEntity desti : serveiRutaDestins) {
+			if (desti.isDestiBackoffice()) {
+				urlDestins.putIfAbsent(CLAU_BACKOFFICES, getUrlDesti(desti));
+			} else {
+				urlDestins.put(desti.getEntitatCodi(), desti.getUrl());
+			}
+		}
+		return urlDestins;
+	}
+
+	/**
+	 * Ordre de preferència de les respostes per al resolutor de respostes: la resposta de l'emisor
+	 * d'EMISERV ocupa la posició de la primera ruta de tipus BACKOFFICE.
+	 */
+	static List<String> getClausOrdenadesEnrutadorMultiple(List<ServeiRutaDestiEntity> serveiRutaDestins) {
+		List<String> claus = new ArrayList<String>();
+		for (ServeiRutaDestiEntity desti: serveiRutaDestins) {
+			String clau = desti.isDestiBackoffice() ? CLAU_BACKOFFICES : desti.getEntitatCodi();
+			if (!claus.contains(clau)) {
+				claus.add(clau);
+			}
+		}
+		return claus;
+	}
+
+	/**
+	 * L'entitat que ha respost la petició de l'enrutador múltiple a l'emisor d'EMISERV és la de la resposta
+	 * que ha escollit l'emisor entre els backoffices (ems_backoffice_pet.entitat_codi).
+	 */
+	String traduirClauBackoffices(String peticioId, String clau) {
+		if (!CLAU_BACKOFFICES.equals(clau) || peticioId == null) {
+			return clau;
+		}
+		// Consulta escalar: no es carrega la petició SCSP (CORE_PETICION_RESPUESTA)
+		for (String entitatCodi: backofficePeticioRepository.findEntitatCodiByPeticionId(peticioId)) {
+			if (entitatCodi != null) {
+				return entitatCodi;
+			}
+		}
+		return clau;
+	}
+
+	/**
+	 * Les rutes de tipus EMISERV reenvien la petició a l'emisor SCSP del cedent. Les de tipus BACKOFFICE
+	 * l'envien a l'emisor SCSP d'EMISERV, que fa d'emisor i consulta el backoffice del cedent configurat
+	 * a la ruta. La URL acaba en "/" perquè l'enrutador hi afegeixi l'operació de la petició.
+	 */
+	String getUrlDesti(ServeiRutaDestiEntity serveiRutaDesti) {
+		if (!serveiRutaDesti.isDestiBackoffice()) {
+			return serveiRutaDesti.getUrl();
+		}
+		String url = environment.getProperty(PROPIETAT_EMISOR_URL, EMISOR_URL_PER_DEFECTE);
+		if (url == null || url.isBlank()) {
+			url = EMISOR_URL_PER_DEFECTE;
+		}
+		return url.endsWith("/") ? url : url + "/";
+	}
+
 	@Transactional
 	@Override
 	public void processarResposta(
@@ -485,6 +566,7 @@ public class RedireccioServiceImpl implements RedireccioService {
 			byte[] xml,
 			String entitatCodiRedireccio,
 			String urlRedireccio) throws Exception {
+		entitatCodiRedireccio = traduirClauBackoffices(peticioId, entitatCodiRedireccio);
 		String xmlstr = xml != null ? new String(xml) : null;
 		log.debug(
 				"Obtenint URL servei SCSP per missatge XML (" +
@@ -533,6 +615,17 @@ public class RedireccioServiceImpl implements RedireccioService {
 					estadoError = xmlHelper.getTextFromFirstNode(
 							document,
 							"//" + nsprefix + ":Atributos/" + nsprefix + ":Estado/" + nsprefix + ":LiteralError",
+							true);
+				} else if (xmlHelper.countNodes(document, XPATH_FAULT_SCSP5) > 0) {
+					// Emisors amb les llibreries SCSP 5 (com el d'EMISERV): detall fault/CodigoEstado (namespace V3/fault)
+					isV3 = true;
+					codigoEstado = xmlHelper.getTextFromFirstNode(
+							document,
+							XPATH_FAULT_SCSP5 + "/*[local-name()='CodigoEstado']",
+							true);
+					estadoError = xmlHelper.getTextFromFirstNode(
+							document,
+							XPATH_FAULT_SCSP5 + "/*[local-name()='LiteralError']",
 							true);
 				}
 			}
@@ -588,8 +681,8 @@ public class RedireccioServiceImpl implements RedireccioService {
 					responseResolver = responseResolverClass.getDeclaredConstructor().newInstance();
 					// Crea la llista de claus de rutes ordenades per ordre
 					List<String> codisEntitatsOrdenades = new ArrayList<String>();
-					for (ServeiRutaDestiEntity rutaDesti: serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(servei))
-						codisEntitatsOrdenades.add(rutaDesti.getEntitatCodi());
+					codisEntitatsOrdenades.addAll(getClausOrdenadesEnrutadorMultiple(
+							serveiRutaDestiRepository.findByServeiOrderByOrdreAsc(servei)));
 					// Crea el mapa d'elements
 					Map<String, Document> documents = new HashMap<String, Document>();
 					for (String codi: xmls.keySet()) {
@@ -662,6 +755,15 @@ public class RedireccioServiceImpl implements RedireccioService {
             List<RedireccioPeticioEntity> redireccioPeticioList = redireccioPeticioRepository.findByPeticioIdAndServeiCodi(peticioId, serveiCodi);
             if (!redireccioPeticioList.isEmpty()) {
                 RedireccioPeticioEntity redireccioPeticio = redireccioPeticioList.get(0);
+				if (respostes.containsKey(CLAU_BACKOFFICES)) {
+					String entitatCodi = traduirClauBackoffices(peticioId, CLAU_BACKOFFICES);
+					respostes = new HashMap<String, String>(respostes);
+					respostes.put(entitatCodi, respostes.remove(CLAU_BACKOFFICES));
+					if (urlsPerEntitat != null) {
+						urlsPerEntitat = new HashMap<String, String>(urlsPerEntitat);
+						urlsPerEntitat.put(entitatCodi, urlsPerEntitat.remove(CLAU_BACKOFFICES));
+					}
+				}
                 saveRedirectionMessages(respostes, urlsPerEntitat, redireccioPeticio);
 			}
 		}

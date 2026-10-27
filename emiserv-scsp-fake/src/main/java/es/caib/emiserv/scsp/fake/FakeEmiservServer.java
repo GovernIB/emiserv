@@ -191,13 +191,15 @@ public final class FakeEmiservServer {
 		}
 
 		private boolean isBackofficeBasePath(String path) {
-			return BACKOFFICE_PATH.equals(path) || "/backoffice".equals(path) || "/backoffice/EmiservBackoffice".equals(path);
+			return BACKOFFICE_PATH.equals(path) || "/backoffice".equals(path) || "/backoffice/EmiservBackoffice".equals(path)
+				|| path.startsWith(BACKOFFICE_PATH + "/");
 		}
 
 		private boolean isBackofficeKoPath(String path) {
 			return (BACKOFFICE_PATH + "/ko").equals(path)
 				|| "/backoffice/ko".equals(path)
-				|| "/backoffice/EmiservBackoffice/ko".equals(path);
+				|| "/backoffice/EmiservBackoffice/ko".equals(path)
+				|| (path.startsWith(BACKOFFICE_PATH + "/") && path.endsWith("/ko"));
 		}
 
 		private String resolveBaseUrl(HttpExchange exchange) {
@@ -570,6 +572,9 @@ public final class FakeEmiservServer {
 		}
 
 		static ScspPathInfo fromPath(String path) {
+			if (path != null && path.startsWith(BACKOFFICE_PATH + "/")) {
+				return fromBackofficePath(path);
+			}
 			if (path == null || !path.startsWith("/scsp/")) {
 				return null;
 			}
@@ -588,6 +593,25 @@ public final class FakeEmiservServer {
 			boolean forceError = parts.size() > 3 && "ko".equalsIgnoreCase(parts.get(3));
 			boolean noData = parts.size() > 3 && "no".equalsIgnoreCase(parts.get(3));
 			return new ScspPathInfo(serviceCode, entityCode, forceError, noData);
+		}
+
+		/**
+		 * Backoffice d'una entitat (rutes de tipus BACKOFFICE dels enrutadors):
+		 * /ws/EmiservBackoffice/<entitat>, /ws/EmiservBackoffice/<entitat>/no, /ws/EmiservBackoffice/<entitat>/ko
+		 */
+		static ScspPathInfo fromBackofficePath(String path) {
+			List<String> parts = new ArrayList<>();
+			for (String rawPart : path.substring(BACKOFFICE_PATH.length()).split("/")) {
+				if (rawPart != null && !rawPart.isBlank()) {
+					parts.add(rawPart);
+				}
+			}
+			if (parts.isEmpty() || "ko".equalsIgnoreCase(parts.get(0))) {
+				return null;
+			}
+			boolean forceError = parts.size() > 1 && "ko".equalsIgnoreCase(parts.get(1));
+			boolean noData = parts.size() > 1 && "no".equalsIgnoreCase(parts.get(1));
+			return new ScspPathInfo(null, parts.get(0), forceError, noData);
 		}
 	}
 
@@ -851,7 +875,7 @@ public final class FakeEmiservServer {
 					.append("<idTransmision>").append(esc(requestInfo.idPeticion)).append("-").append(counter).append("</idTransmision>")
 					.append("</transmision>")
 					.append("</datosGenericos>")
-					.append(backofficeDatosEspecificos())
+					.append(backofficeDatosEspecificos(requestInfo))
 					.append("</transmisionDatos>");
 				counter++;
 			}
@@ -876,7 +900,14 @@ public final class FakeEmiservServer {
 				+ "</atributos>";
 		}
 
-		private static String backofficeDatosEspecificos() {
+		private static String backofficeDatosEspecificos(RequestInfo requestInfo) {
+			if ("SVDSCTFNWS01".equalsIgnoreCase(requestInfo.serviceCode)) {
+				// Mateixes dades que el servei SCSP, dins l'element datosEspecificos del backoffice (sense namespace)
+				String datosEspecificos = familiaNombrosaDatosEspecificos(requestInfo);
+				return "<datosEspecificos>"
+					+ datosEspecificos.substring(datosEspecificos.indexOf('>') + 1, datosEspecificos.lastIndexOf("</DatosEspecificos>"))
+					+ "</datosEspecificos>";
+			}
 			return "<datosEspecificos>"
 				+ "<Retorno>"
 				+ "<Estado>"

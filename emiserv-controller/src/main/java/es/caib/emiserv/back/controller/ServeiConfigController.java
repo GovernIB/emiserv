@@ -48,7 +48,7 @@ public class ServeiConfigController extends BaseController {
 				request,
 				id,
 				model);
-		if (servei.isConfigurat()) {
+		if (servei.isConfiguratScsp()) {
 			ServeiConfigScspCommand command = ServeiConfigScspCommand.toCommand(
 					serveiService.configuracioScspFindByServei(id));
 			if (servei.isXsdGestioActiva()) {

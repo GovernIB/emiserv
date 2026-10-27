@@ -132,6 +132,14 @@ public class ServeiService extends AbstractService<es.caib.emiserv.logic.intf.se
 
 	@Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public ServeiRutaDestiProvaDto rutaDestiProvarConnexio(
+			Long id,
+			Long rutaDestiId) {
+		return getDelegateService().rutaDestiProvarConnexio(id, rutaDestiId);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public void xsdCreate(
 			Long id,
 			ServeiXsdDto xsd,

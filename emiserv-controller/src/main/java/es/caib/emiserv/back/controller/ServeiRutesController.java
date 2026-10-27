@@ -26,7 +26,12 @@ import es.caib.emiserv.back.helper.AjaxHelper;
 import es.caib.emiserv.back.helper.DatatablesHelper;
 import es.caib.emiserv.back.helper.AjaxHelper.AjaxFormResponse;
 import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
+import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
+import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiProvaDto;
+import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiTipusEnumDto;
+import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.logic.intf.service.ServeiService;
 
 /**
@@ -50,6 +55,16 @@ public class ServeiRutesController extends BaseController {
 		model.addAttribute(
 				"servei",
 				servei);
+		model.addAttribute(
+				"destiTipusEnumOptions",
+				HtmlSelectOptionHelper.getOptionsForEnum(
+						ServeiRutaDestiTipusEnumDto.class,
+						"servei.ruta.desti.tipus.enum."));
+		model.addAttribute(
+				"backofficeAutenticacioTipusEnumOptions",
+				HtmlSelectOptionHelper.getOptionsForEnum(
+						BackofficeAutenticacioTipusEnumDto.class,
+						"backoffice.auth.tipus.enum."));
 		ServeiRutaDestiCommand command = new ServeiRutaDestiCommand();
 		model.addAttribute(command);
 		return "serveiRutes";
@@ -79,9 +94,13 @@ public class ServeiRutesController extends BaseController {
 		if (bindingResult.hasErrors()) {
 			return AjaxHelper.generarAjaxFormErrors(command, bindingResult);
 		} else {
-			serveiService.rutaDestiCreate(
-					id,
-					ServeiRutaDestiCommand.toDto(command));
+			try {
+				serveiService.rutaDestiCreate(
+						id,
+						ServeiRutaDestiCommand.toDto(command));
+			} catch (RuntimeException ex) {
+				return errorDesti(command, bindingResult, ex);
+			}
 			return AjaxHelper.generarAjaxFormOk(command);
 		}
 	}
@@ -97,9 +116,13 @@ public class ServeiRutesController extends BaseController {
 			return AjaxHelper.generarAjaxFormErrors(command, bindingResult);
 		} else {
 			command.setId(rutaId);
-			serveiService.rutaDestiUpdate(
-					id,
-					ServeiRutaDestiCommand.toDto(command));
+			try {
+				serveiService.rutaDestiUpdate(
+						id,
+						ServeiRutaDestiCommand.toDto(command));
+			} catch (RuntimeException ex) {
+				return errorDesti(command, bindingResult, ex);
+			}
 			return AjaxHelper.generarAjaxFormOk(command);
 		}
 	}
@@ -132,6 +155,43 @@ public class ServeiRutesController extends BaseController {
 			@PathVariable int posicio) {
 		
 		return serveiService.rutaDestiMourePosicio(rutaId, posicio);
+	}
+
+	/**
+	 * Prova la connexió amb el destí de la ruta (emisor SCSP o backoffice del cedent).
+	 */
+	@RequestMapping(value = "/{id}/rutes/{rutaId}/provar", method = RequestMethod.GET)
+	@ResponseBody
+	public ServeiRutaDestiProvaDto rutesProvar(
+			HttpServletRequest request,
+			@PathVariable Long id,
+			@PathVariable Long rutaId) {
+		return serveiService.rutaDestiProvarConnexio(
+				id,
+				rutaId);
+	}
+
+	/**
+	 * Errors de configuració de la ruta (p.ex. rutes BACKOFFICE d'un servei no configurat a l'emisor SCSP).
+	 */
+	private AjaxFormResponse errorDesti(
+			ServeiRutaDestiCommand command,
+			BindingResult bindingResult,
+			RuntimeException ex) {
+		// A l'EAR l'excepció arriba embolcallada per l'EJB (EJBException)
+		Throwable causa = ex;
+		while (causa != null && !(causa instanceof ValidationException)) {
+			causa = causa.getCause();
+		}
+		if (causa == null) {
+			throw ex;
+		}
+		bindingResult.rejectValue(
+				"destiTipus",
+				"servei.config.rutes.error.desti",
+				new Object[] {causa.getMessage()},
+				causa.getMessage());
+		return AjaxHelper.generarAjaxFormErrors(command, bindingResult);
 	}
 
 	@InitBinder

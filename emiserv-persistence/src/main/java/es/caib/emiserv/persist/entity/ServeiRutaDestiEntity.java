@@ -15,6 +15,9 @@ import javax.persistence.Version;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiTipusEnumDto;
+
 /**
  * Classe del model de dades que representa un Servei.
  * 
@@ -32,6 +35,12 @@ public class ServeiRutaDestiEntity extends AbstractAuditableEntity<Long> {
 	/** Determina l'ordre de preferència de rutes per al resolutor de respostes. */
 	@Column(name = "ordre")
 	private Long ordre;
+	/** EMISERV: reenviament de la petició a l'emisor del cedent. BACKOFFICE: consulta directa al backoffice del cedent (url). */
+	@Column(name = "desti_tipus", nullable = false)
+	private ServeiRutaDestiTipusEnumDto destiTipus = ServeiRutaDestiTipusEnumDto.EMISERV;
+	/** Autenticació amb el backoffice del cedent (només per a les rutes de tipus BACKOFFICE). */
+	@Column(name = "backcaib_autenticacio")
+	private BackofficeAutenticacioTipusEnumDto backofficeAutenticacio;
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinColumn(
 			name = "servei_id",
@@ -54,6 +63,15 @@ public class ServeiRutaDestiEntity extends AbstractAuditableEntity<Long> {
 	public void setOrdre(Long ordre) {
 		this.ordre = ordre;
 	}
+	public ServeiRutaDestiTipusEnumDto getDestiTipus() {
+		return destiTipus;
+	}
+	public BackofficeAutenticacioTipusEnumDto getBackofficeAutenticacio() {
+		return backofficeAutenticacio;
+	}
+	public boolean isDestiBackoffice() {
+		return ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(destiTipus);
+	}
 	public ServeiEntity getServei() {
 		return servei;
 	}
@@ -63,6 +81,29 @@ public class ServeiRutaDestiEntity extends AbstractAuditableEntity<Long> {
 			String url) {
 		this.entitatCodi = entitatCodi;
 		this.url = url;
+	}
+	/**
+	 * Modifica la ruta. Si no s'indica el tipus de destí es manté el que tenia la ruta.
+	 */
+	public void update(
+			String entitatCodi,
+			String url,
+			ServeiRutaDestiTipusEnumDto destiTipus,
+			BackofficeAutenticacioTipusEnumDto backofficeAutenticacio) {
+		update(entitatCodi, url);
+		if (destiTipus != null) {
+			updateDesti(destiTipus, backofficeAutenticacio);
+		}
+	}
+	private void updateDesti(
+			ServeiRutaDestiTipusEnumDto destiTipus,
+			BackofficeAutenticacioTipusEnumDto backofficeAutenticacio) {
+		this.destiTipus = destiTipus;
+		if (ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(destiTipus)) {
+			this.backofficeAutenticacio = backofficeAutenticacio != null ? backofficeAutenticacio : BackofficeAutenticacioTipusEnumDto.NINGUNA;
+		} else {
+			this.backofficeAutenticacio = null;
+		}
 	}
 
 	public static Builder getBuilder(
@@ -89,6 +130,15 @@ public class ServeiRutaDestiEntity extends AbstractAuditableEntity<Long> {
 			built.entitatCodi = entitatCodi;
 			built.url = url;
 			built.ordre = ordre;
+		}
+		/** Tipus de destí de la ruta (si no s'indica, EMISERV). */
+		public Builder desti(
+				ServeiRutaDestiTipusEnumDto destiTipus,
+				BackofficeAutenticacioTipusEnumDto backofficeAutenticacio) {
+			built.updateDesti(
+					destiTipus != null ? destiTipus : ServeiRutaDestiTipusEnumDto.EMISERV,
+					backofficeAutenticacio);
+			return this;
 		}
 		public ServeiRutaDestiEntity build() {
 			return built;
@@ -134,7 +184,7 @@ public class ServeiRutaDestiEntity extends AbstractAuditableEntity<Long> {
 
 	@Override
 	public String toString() {
-		return "ServeiRutaDestiEntity [entitatCodi=" + entitatCodi + ", url=" + url + ", servei=" + servei + ", ordre=" + ordre + "]";
+		return "ServeiRutaDestiEntity [entitatCodi=" + entitatCodi + ", url=" + url + ", servei=" + servei + ", ordre=" + ordre + ", destiTipus=" + destiTipus + ", backofficeAutenticacio=" + backofficeAutenticacio + "]";
 	}
 
 }
