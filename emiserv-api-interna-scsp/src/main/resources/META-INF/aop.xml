@@ -1,6 +1,7 @@
 <aspectj>
     <aspects>
         <aspect name="es.caib.emiserv.api.interna.scsp.aspect.TransmissionAspect"/>
+        <aspect name="es.caib.emiserv.api.interna.scsp.aspect.SincronaContextAspect"/>
         <weaver options="-verbose -showWeaveInfo">
             <include within="es.caib.emiserv.api.interna.scsp.aspect.*"/>
         </weaver>

@@ -1,29 +1,31 @@
 package es.caib.emiserv.api.interna.scsp.aspect;
 
 import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
-import es.scsp.bean.common.Peticion;
-import es.scsp.bean.common.Procedimiento;
-import es.scsp.bean.common.Respuesta;
-import es.scsp.bean.common.SolicitudTransmision;
-import es.scsp.bean.common.TipoDocumentacion;
+import es.scsp.bean.common.peticion.Peticion;
+import es.scsp.bean.common.peticion.Procedimiento;
+import es.scsp.bean.common.peticion.SolicitudTransmision;
+import es.scsp.bean.common.peticion.TipoDocumentacion;
+import es.scsp.bean.common.respuesta.Respuesta;
 import es.scsp.common.dao.PeticionRespuestaDao;
 import es.scsp.common.dao.TransmisionDao;
 import es.scsp.common.domain.core.PeticionRespuesta;
 import es.scsp.common.domain.core.Servicio;
 import es.scsp.common.utils.StaticContextSupport;
 import es.scsp.common.utils.xpath.XpathManager;
-import org.apache.axiom.om.OMElement;
-import org.apache.axis2.context.MessageContext;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.query.NativeQuery;
 import org.slf4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoader;
+import org.springframework.ws.WebServiceMessage;
+import org.springframework.ws.context.MessageContext;
+import org.springframework.ws.soap.SoapMessage;
+import org.w3c.dom.Element;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,9 +35,13 @@ public class TransmissionAspect {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(TransmissionAspect.class);
 
-    @AfterReturning(pointcut = "execution(* es.scsp.modules.AlmacenarMensajeSave.invoke(..))", returning = "result")
+    private static final String XPATH_ID_PETICION = "//*[local-name()='IdPeticion']";
+
+    // A les llibreries SCSP 5 el registre de la petició el fa l'interceptor Spring-WS AlmacenarMensajeSave
+    // (abans el mòdul Axis2 es.scsp.modules.AlmacenarMensajeSave)
+    @AfterReturning(pointcut = "execution(* es.scsp.common.interceptors.AlmacenarMensajeSave.handleRequest(org.springframework.ws.context.MessageContext))", returning = "result")
     public void afegirDadesTransmissio(JoinPoint joinPoint, Object result) {
-        System.out.println("[ASPJ] After returning AlmacenarMensajeSave");
+        System.out.println("[ASPJ] After returning AlmacenarMensajeSave.handleRequest");
         MessageContext messageCtx = (MessageContext)joinPoint.getArgs()[0];
         Object request = messageCtx.getProperty("CURRENT_OBJECT_CONTEXT");
         if (request instanceof Peticion) {
@@ -66,7 +72,8 @@ public class TransmissionAspect {
                     if (solicitudTransmisio.getDatosGenericos().getTitular() != null) {
                         TipoDocumentacion tipoDocumentacion = solicitudTransmisio.getDatosGenericos().getTitular().getTipoDocumentacion();
                         if (tipoDocumentacion != null) {
-                            interessatTipusDoc = tipoDocumentacion != null ? tipoDocumentacion.name() : null;
+                            // value() retorna el valor de l'esquema (DNI, NIF, Pasaporte...), igual que el name() de les llibreries SCSP 4
+                            interessatTipusDoc = tipoDocumentacion != null ? tipoDocumentacion.value() : null;
                         }
                     }
 
@@ -106,19 +113,30 @@ public class TransmissionAspect {
         }
     }
 
-    @AfterReturning(pointcut = "execution(* es.scsp.modules.AlmacenarMensajeUpdate.invoke(..))", returning = "result")
-    public void afegirDadesEstat(JoinPoint joinPoint, Object result) {
-        System.out.println("[ASPJ] After returning AlmacenarMensajeUpdate");
-        MessageContext messageCtx = (MessageContext)joinPoint.getArgs()[0];
+    // A les llibreries SCSP 5 el registre de la resposta el fa l'interceptor Spring-WS AlmacenarMensajeSave
+    // (abans el mòdul Axis2 es.scsp.modules.AlmacenarMensajeUpdate)
+    @AfterReturning(pointcut = "execution(* es.scsp.common.interceptors.AlmacenarMensajeSave.handleResponse(org.springframework.ws.context.MessageContext))", returning = "result")
+    public void afegirDadesEstatResposta(JoinPoint joinPoint, Object result) {
+        System.out.println("[ASPJ] After returning AlmacenarMensajeSave.handleResponse");
+        afegirDadesEstat((MessageContext)joinPoint.getArgs()[0]);
+    }
+
+    @AfterReturning(pointcut = "execution(* es.scsp.common.interceptors.AlmacenarMensajeSave.handleFault(org.springframework.ws.context.MessageContext, Object))", returning = "result")
+    public void afegirDadesEstatFault(JoinPoint joinPoint, Object result) {
+        System.out.println("[ASPJ] After returning AlmacenarMensajeSave.handleFault");
+        afegirDadesEstat((MessageContext)joinPoint.getArgs()[0]);
+    }
+
+    private void afegirDadesEstat(MessageContext messageCtx) {
         Object request = messageCtx.getProperty("CURRENT_OBJECT_CONTEXT");
         try {
             PeticionRespuestaDao dbPeticion = getBean(es.scsp.common.dao.PeticionRespuestaDao.class);
             String idPeticion = null;
 
             if (request == null) {
-                OMElement idPeticionNode = getChildrenWithNameRecursive(messageCtx.getEnvelope(), "IdPeticion");
-                if (idPeticionNode != null) {
-                    idPeticion = idPeticionNode.getText();
+                idPeticion = getIdPeticion(messageCtx.hasResponse() ? messageCtx.getResponse() : null);
+                if (idPeticion == null || idPeticion.isBlank()) {
+                    idPeticion = getIdPeticion(messageCtx.getRequest());
                 }
             }
             if (request instanceof Respuesta) {
@@ -143,15 +161,19 @@ public class TransmissionAspect {
         }
     }
 
-    private static OMElement getChildrenWithNameRecursive(OMElement parent, String name) {
-        XpathManager manager = new XpathManager();
-        return manager.getChildrenWithNameRecursive(parent, name);
+    private static String getIdPeticion(WebServiceMessage message) {
+        if (!(message instanceof SoapMessage)) {
+            return null;
+        }
+        Element element = ((SoapMessage) message).getDocument().getDocumentElement();
+        String idPeticion = new XpathManager().evalXPathExp(XPATH_ID_PETICION, element);
+        return idPeticion != null ? idPeticion.trim() : null;
     }
 
     private String getEntitatCodiByCif(SessionFactory sessionFactory, String cif) {
         Session session = sessionFactory.getCurrentSession();
         Transaction tx = session.beginTransaction();
-        SQLQuery query = session.createSQLQuery("SELECT codi FROM ems_entitat WHERE cif = :cif");
+        NativeQuery<?> query = session.createNativeQuery("SELECT codi FROM ems_entitat WHERE cif = :cif");
         query.setParameter("cif", cif);
         String entitatCodi = (String) query.uniqueResult();
         tx.commit();
@@ -161,7 +183,7 @@ public class TransmissionAspect {
     private Integer getEstatBackoficeByPeticioId(SessionFactory sessionFactory, String peticioId) {
         Session session = sessionFactory.getCurrentSession();
         Transaction tx = session.beginTransaction();
-        SQLQuery query = session.createSQLQuery("SELECT estat FROM ems_backoffice_pet WHERE peticio_id = :peticioId");
+        NativeQuery<?> query = session.createNativeQuery("SELECT estat FROM ems_backoffice_pet WHERE peticio_id = :peticioId");
         query.setParameter("peticioId", peticioId);
         var estatBackoffice = query.uniqueResult();
         tx.commit();
@@ -180,7 +202,7 @@ public class TransmissionAspect {
                                    String entitatCodi) {
         Session session = sessionFactory.getCurrentSession();
         Transaction tx = session.beginTransaction();
-        SQLQuery query = session.createSQLQuery("UPDATE core_transmision " +
+        NativeQuery<?> query = session.createNativeQuery("UPDATE core_transmision " +
                 "SET codigosolicitante = :entitatCodi, tipodoctitular = :interessatTipusDoc " +
                 "WHERE idsolicitud = :idSolicitud " +
                 "AND idpeticion = :idPeticion " +
@@ -227,7 +249,7 @@ public class TransmissionAspect {
                                          PeticioEstatEnumDto estat) {
         Session session = sessionFactory.getCurrentSession();
         Transaction tx = session.beginTransaction();
-        SQLQuery query = session.createSQLQuery("UPDATE core_peticion_respuesta " +
+        NativeQuery<?> query = session.createNativeQuery("UPDATE core_peticion_respuesta " +
                 "SET emscodiprocediment = :codiProcediment, " +
                 "   emsnomprocediment = :nomProcediment, " +
                 "   emscodiservei = :codiServei, " +
@@ -249,7 +271,7 @@ public class TransmissionAspect {
                              PeticioEstatEnumDto estat) {
         Session session = sessionFactory.getCurrentSession();
         Transaction tx = session.beginTransaction();
-        SQLQuery query = session.createSQLQuery("UPDATE core_peticion_respuesta " +
+        NativeQuery<?> query = session.createNativeQuery("UPDATE core_peticion_respuesta " +
                 "SET emsestat = :estat " +
                 "WHERE idpeticion = :idPeticion ");
         query.setParameter("estat", estat.ordinal());

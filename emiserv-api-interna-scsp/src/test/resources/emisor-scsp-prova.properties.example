@@ -1,0 +1,55 @@
+# Configuració de les proves de l'emisor SCSP (EmisorScspPinbalTest).
+# Copiau aquest fitxer fora del repositori (conté contrasenyes) i executau:
+#
+#   mvn -pl emiserv-api-interna-scsp test -DskipTests=false -Dtest='EmisorScspPinbalTest,PeticioPinbalHelperTest' \
+#       -Demiserv.scsp.prova.config=/ruta/emisor-scsp-prova.properties
+#
+# Qualsevol propietat es pot sobreescriure amb -Demiserv.scsp.prova.xxx=...
+# Les dades han de ser les mateixes que té configurades PINBAL per al servei.
+
+# URL base de l'emisor SCSP (context del war emiserv-api-interna-scsp)
+emiserv.scsp.prova.url=http://localhost:8080/emiservapi/interna/scsp
+
+# Certificat amb el qual PINBAL signa les peticions (ha d'estar autoritzat a EMISERV)
+emiserv.scsp.prova.keystore.path=/ruta/pinbal.p12
+#emiserv.scsp.prova.keystore.type=PKCS12
+emiserv.scsp.prova.keystore.password=
+emiserv.scsp.prova.keystore.alias=
+#emiserv.scsp.prova.keystore.alias.password=
+
+# Servei síncron que es consultarà
+emiserv.scsp.prova.servei=SCDCPAJUv3
+# Servei asíncron (opcional, sense aquest valor no s'executen les proves asíncrones)
+#emiserv.scsp.prova.servei.asincron=
+
+# Emisor i organisme sol·licitant (ha d'estar autoritzat al servei)
+emiserv.scsp.prova.emisor.nif=S0711001H
+emiserv.scsp.prova.emisor.nom=CAIB
+emiserv.scsp.prova.solicitant.id=S0711001H
+emiserv.scsp.prova.solicitant.nom=Govern de les Illes Balears
+#emiserv.scsp.prova.unitat=Unitat de proves
+#emiserv.scsp.prova.unitat.codi=
+#emiserv.scsp.prova.procediment.codi=PROVES
+#emiserv.scsp.prova.procediment.nom=Procediment de proves
+#emiserv.scsp.prova.finalitat=
+# Si | Ley
+#emiserv.scsp.prova.consentiment=Si
+#emiserv.scsp.prova.funcionari.nom=Funcionari de proves
+#emiserv.scsp.prova.funcionari.nif=12345678Z
+
+# Titular. Tipus: CIF | NIF | DNI | Pasaporte | NIE | NumeroIdentificacion | Otros | CSV
+#emiserv.scsp.prova.titular.tipus=NIF
+#emiserv.scsp.prova.titular.document=12345678Z
+#emiserv.scsp.prova.titular.nom=
+#emiserv.scsp.prova.titular.llinatge1=
+#emiserv.scsp.prova.titular.llinatge2=
+
+# Fitxer XML amb l'element DatosEspecificos (namespace http://intermediacion.redsara.es/scsp/esquemas/datosespecificos)
+#emiserv.scsp.prova.dades.especifiques=/ruta/datos-especificos.xml
+
+# Codi d'estat esperat a la resposta síncrona
+#emiserv.scsp.prova.estat.esperat=0003
+# PINBAL valida la signatura de les respostes
+#emiserv.scsp.prova.signatura.resposta.obligatoria=true
+#emiserv.scsp.prova.timeout.segons=60
+#emiserv.scsp.prova.idpeticio.prefix=PBLPROVA

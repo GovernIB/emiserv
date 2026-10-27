@@ -7,50 +7,31 @@
 	xmlns:mvc="http://www.springframework.org/schema/mvc"
 	 xmlns:jee="http://www.springframework.org/schema/jee"
 	xsi:schemaLocation="
-			http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans
 	   		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 	   		http://www.springframework.org/schema/context
 	   		http://www.springframework.org/schema/context/spring-context-3.0.xsd
-			http://www.springframework.org/schema/mvc 
+			http://www.springframework.org/schema/mvc
 			http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
 			http://www.springframework.org/schema/util
 			http://www.springframework.org/schema/util/spring-util-3.0.xsd
-			http://www.springframework.org/schema/jee 
+			http://www.springframework.org/schema/jee
 			http://www.springframework.org/schema/jee/spring-jee-3.0.xsd">
 
 	<!-- Este fichero contiene la configuracion de Spring de las librerias    -->
 	<!-- SCSP V3. Evite realizar modificaciones en este fichero ya que la     -->
 	<!-- configuracion se debera realizar a traves de base de datos.          -->
-	
+
+	<!-- Basat en el WEB-INF/applicationContext.xml de scsp-emisor-5.0.12.war. -->
+	<!-- Els beans definits aquí (sessionFactory,                           -->
+	<!-- scspPropertyPlaceholderConfigurer, messageFactory, afirmaWssHandler)  -->
+	<!-- substitueixen els beans amb el mateix nom de es.scsp.config.SpringConfig. -->
+
 	<context:annotation-config />
-	
+
 	<context:component-scan base-package="es.scsp" />
 
- 
-	<bean id="configuracionBackOfficeDao" class="es.scsp.common.dao.EmisorBackOfficeDao"	/>
 	<bean id="gestorSeguridad" class="es.scsp.common.core.LoginManager"	/>
-	 
-	<!-- ==================================================================== -->
-	<!-- Clases que implementan los servicios sincronos y asincronos          -->
-	<!-- ==================================================================== -->
-	<bean id="serviceAsync" class="es.scsp.services.impl.ServiceAsyncImpl">
-		<constructor-arg index="0" ref="configuracionBackOfficeDao" />
-		<constructor-arg index="1" ref="marshaller" />
-		<constructor-arg index="2" ref="unmarshaller" />
-		<constructor-arg index="3" ref="bindingConfiguration" />
-		<constructor-arg index="4" ref="idTransmisionGenerator" />
-		<constructor-arg index="5" ref="serviceManager" />
-	</bean>
-	<bean id="serviceSync" class="es.scsp.services.impl.ServiceSyncImpl">
-		<constructor-arg index="0" ref="configuracionBackOfficeDao" />
-		<constructor-arg index="1" ref="marshaller" />
-		<constructor-arg index="2" ref="unmarshaller" />
-		<constructor-arg index="3" ref="bindingConfiguration" />
-		<constructor-arg index="4" ref="idTransmisionGenerator" />
-		<constructor-arg index="5" ref="serviceManager" />
-	</bean>
-
-	<bean id="applicationContex" class="org.apache.axis2.extensions.spring.receivers.ApplicationContextHolder" />
 
 	<!-- ==================================================================== -->
 	<!-- Gestores de configuracion                                            -->
@@ -66,12 +47,6 @@
 		<property name="ignoreResourceNotFound" value="true"/>
 		<property name="ignoreUnresolvablePlaceholders" value="true"/>
 	</bean>
-
-	<!-- ==================================================================== -->
-	<!-- Configuracion de binding.                                            -->
-	<!-- ==================================================================== -->
-	<alias name="jibxMarshaller" alias="marshaller" />
-	<alias name="jibxMarshaller" alias="unmarshaller" />
 
 	<!-- ==================================================================== -->
 	<!-- Configuracion de acceso base de datos.                               -->
@@ -118,16 +93,11 @@
 	<!-- Cliente Spring de Afirma                                             -->
 	<!-- ==================================================================== -->
 	<bean id="messageFactory" class="org.springframework.ws.soap.axiom.AxiomSoapMessageFactory" />
-	<bean id="afirmaWssHandler" class="org.springframework.ws.soap.security.wss4j.Wss4jSecurityInterceptor">
+	<bean id="afirmaWssHandler" class="org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor">
 		<property name="securementActions" value="Signature" />
 		<property name="securementSignatureKeyIdentifier" value="DirectReference" />
 		<property name="securementMustUnderstand" value="false" />
-		<property name="securementSignatureCrypto">
-			<bean class="org.springframework.ws.soap.security.wss4j.support.CryptoFactoryBean">
-				<property name="keyStorePassword" value="${config:keystorePass}" />
-				<property name="keyStoreLocation" value="${config:keystoreFile}" />
-			</bean>
-		</property>
+		<property name="securementSignatureCrypto" ref="scspCryptoFactoryBean"/>
 	</bean>
  	<bean id="proxyManager" class="es.scsp.common.utils.ProxyManager">
 			<property name="host"  value="${config:proxy.host}" />

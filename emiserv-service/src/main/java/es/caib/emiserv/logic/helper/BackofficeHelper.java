@@ -342,7 +342,7 @@ public class BackofficeHelper {
 				solicitante.setUnidadTramitadora(scspTransmision.getUnidadTramitadora());
 				solicitante.setIdExpediente(scspTransmision.getExpediente());
 				if (scspTransmision.getConsentimiento() != null) {
-					solicitante.setConsentimiento(Consentimiento.valueOf(scspTransmision.getConsentimiento()));
+					solicitante.setConsentimiento(toConsentimiento(scspTransmision.getConsentimiento()));
 				}
 				solicitante.setFinalidad(scspTransmision.getFinalidad());
 				datosGenericos.setSolicitante(solicitante);
@@ -1080,6 +1080,20 @@ public class BackofficeHelper {
 
 	private String crearTimestampScsp(Date data) {
 		return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(data);
+	}
+
+	/**
+	 * Converteix el consentiment guardat a CORE_TRANSMISION. Les llibreries SCSP 4 hi guardaven
+	 * el valor de l'esquema (Si, Ley) i les SCSP 5 hi guarden el nom de l'enum (SI, LEY, NO_OPO).
+	 */
+	static Consentimiento toConsentimiento(String consentimiento) {
+		String valor = consentimiento.trim().replace("_", "");
+		for (Consentimiento c: Consentimiento.values()) {
+			if (c.name().equalsIgnoreCase(valor)) {
+				return c;
+			}
+		}
+		throw new IllegalArgumentException("Valor de consentiment desconegut: " + consentimiento);
 	}
 
 	private String getBackofficePropertyUsername(String serveiCodi) {

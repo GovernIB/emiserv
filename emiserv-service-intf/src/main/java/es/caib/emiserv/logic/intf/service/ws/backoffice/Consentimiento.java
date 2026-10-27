@@ -11,7 +11,8 @@ package es.caib.emiserv.logic.intf.service.ws.backoffice;
  */
 public enum Consentimiento {
 	Si,
-	Ley;
+	Ley,
+	NoOpo;
 
 	private Consentimiento() {
 	}

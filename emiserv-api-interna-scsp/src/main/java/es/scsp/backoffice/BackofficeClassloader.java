@@ -93,6 +93,7 @@ public class BackofficeClassloader extends ClassLoader {
                 ClassLoader cl = getContextClassloader();
                 cp.appendClassPath(new LoaderClassPath(cl));
                 CtClass ctClass = cp.makeClass(new ByteArrayInputStream(b));
+                LegacyBackofficeBridge.adapt(ctClass);
                 clazz = ctClass.toClass();
             } catch (Throwable ex) {
                 throwable = ex;

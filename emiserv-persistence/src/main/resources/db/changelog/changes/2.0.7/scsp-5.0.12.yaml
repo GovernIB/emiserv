@@ -1,0 +1,108 @@
+# Canvis al model de dades de les llibreries SCSP necessaris per a la versió 5.0.12
+# (columnes i taules mapejades per les entitats de scsp-core 5.0.12 que no existien a la 4.20.0)
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: hsqldb
+  - changeSet:
+      id: 1761134400000-1
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: core_clave_privada
+                columnName: bloqueado
+      changes:
+        - addColumn:
+            tableName: core_clave_privada
+            columns:
+              - column:
+                  name: bloqueado
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 1761134400000-2
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: core_servicio
+                columnName: signer
+      changes:
+        - addColumn:
+            tableName: core_servicio
+            columns:
+              - column:
+                  name: signer
+                  type: varchar(512 ${varcharUnit})
+  - changeSet:
+      id: 1761134400000-3
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: core_transmision
+                columnName: automatizado
+      changes:
+        - addColumn:
+            tableName: core_transmision
+            columns:
+              - column:
+                  name: automatizado
+                  type: SMALLINT
+              - column:
+                  name: clasetramite
+                  type: SMALLINT
+  - changeSet:
+      id: 1761134400000-4
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: core_clave_privada_externa
+      changes:
+        - createTable:
+            tableName: core_clave_privada_externa
+            remarks: Claus privades de signatura que resideixen en un magatzem extern a les llibreries SCSP
+            columns:
+              - column:
+                  name: clave_privada
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: core_clave_privada_ext_pk
+                    nullable: false
+              - column:
+                  name: handler
+                  type: varchar(512 ${varcharUnit})
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: core_clave_privada_externa
+            baseColumnNames: clave_privada
+            constraintName: claveprivext_clavepriv
+            referencedTableName: core_clave_privada
+            referencedColumnNames: id
+  - changeSet:
+      id: 1761134400000-5
+      author: limit
+      context: caib
+      changes:
+        - sql:
+            dbms: oracle
+            sql: GRANT SELECT, UPDATE, INSERT, DELETE ON core_clave_privada_externa TO www_emiserv

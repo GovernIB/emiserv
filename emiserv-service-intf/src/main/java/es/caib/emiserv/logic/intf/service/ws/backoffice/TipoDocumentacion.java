@@ -16,7 +16,10 @@ public enum TipoDocumentacion implements Serializable {
 	NIF,
 	DNI,
 	Pasaporte,
-	NIE;
+	NIE,
+	NumeroIdentificacion,
+	Otros,
+	CSV;
 
 	private TipoDocumentacion() {
 	}

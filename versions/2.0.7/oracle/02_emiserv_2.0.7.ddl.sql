@@ -1,0 +1,1 @@
+GRANT SELECT, UPDATE, INSERT, DELETE ON core_clave_privada_externa TO www_emiserv;

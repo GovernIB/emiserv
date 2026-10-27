@@ -3,26 +3,19 @@
  */
 package es.caib.emiserv.backoffice;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import es.scsp.bean.common.Atributos;
-import es.scsp.bean.common.ConfirmacionPeticion;
-import es.scsp.bean.common.DatosGenericos;
-import es.scsp.bean.common.Estado;
-import es.scsp.bean.common.Peticion;
-import es.scsp.bean.common.Respuesta;
-import es.scsp.bean.common.SolicitudRespuesta;
-import es.scsp.bean.common.SolicitudTransmision;
-import es.scsp.bean.common.TransmisionDatos;
-import es.scsp.bean.common.Transmisiones;
+import es.scsp.bean.common.confirmacion.ConfirmacionPeticion;
+import es.scsp.bean.common.peticion.Peticion;
+import es.scsp.bean.common.peticion.SolicitudTransmision;
+import es.scsp.bean.common.respuesta.Respuesta;
+import es.scsp.bean.common.respuesta.TransmisionDatos;
+import es.scsp.bean.common.respuesta.Transmisiones;
+import es.scsp.bean.common.solicitud.SolicitudRespuesta;
 import es.scsp.common.backoffice.BackOffice;
 import es.scsp.common.exceptions.ScspException;
 import lombok.extern.slf4j.Slf4j;
@@ -42,39 +35,34 @@ public class TestBackoffice2 implements BackOffice {
 
 	public Respuesta NotificarSincrono(
 			Peticion peticion) throws ScspException {
-		log.info("Processant petició síncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
+		log.info("Processant petició síncrona " + TestBackofficeHelper.getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
 		Respuesta respuesta = getRespuesta(peticion);
-		log.info("Retornant resposta síncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
+		log.info("Retornant resposta síncrona " + TestBackofficeHelper.getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
 		return respuesta;
 	}
 
 	public ConfirmacionPeticion NotificarAsincrono(
 			Peticion peticion) throws ScspException {
-		log.info("Processant petició asíncrona " + getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
+		log.info("Processant petició asíncrona " + TestBackofficeHelper.getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + ".");
 		int tiempoRespuesta = 5;
 		ConfirmacionPeticion respuesta = new ConfirmacionPeticion();
-		respuesta.setAtributos(peticion.getAtributos());
-		respuesta.getAtributos().setEstado(new Estado());
-		respuesta.getAtributos().getEstado().setCodigoEstado("0002");
-		respuesta.getAtributos().getEstado().setCodigoEstadoSecundario("");
-		respuesta.getAtributos().getEstado().setLiteralError("Peticion procesada correctamente.");
-		respuesta.getAtributos().getEstado().setTiempoEstimadoRespuesta(tiempoRespuesta);
-		respuesta.getAtributos().setTimeStamp(peticion.getAtributos().getTimeStamp());
+		respuesta.setAtributos(TestBackofficeHelper.toConfirmacion(peticion.getAtributos()));
+		es.scsp.bean.common.confirmacion.Estado estado = new es.scsp.bean.common.confirmacion.Estado();
+		estado.setCodigoEstado("0002");
+		estado.setCodigoEstadoSecundario("");
+		estado.setLiteralError("Peticion procesada correctamente.");
+		estado.setTiempoEstimadoRespuesta(tiempoRespuesta);
+		respuesta.getAtributos().setEstado(estado);
 		return respuesta;
 	}
 
 	public Respuesta SolicitudRespuesta(
 			SolicitudRespuesta solicitudRespuesta) throws ScspException {
-		log.info("Processant sol·licitud de resposta " + getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + ".");
+		log.info("Processant sol·licitud de resposta " + TestBackofficeHelper.getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + ".");
 		Respuesta respuesta = new Respuesta();
-		respuesta.setAtributos(solicitudRespuesta.getAtributos());
-		respuesta.getAtributos().setEstado(new Estado());
-		respuesta.getAtributos().getEstado().setCodigoEstado("0002");
-		respuesta.getAtributos().getEstado().setCodigoEstadoSecundario(null);
-		respuesta.getAtributos().getEstado().setLiteralError(null);
-		respuesta.getAtributos().getEstado().setTiempoEstimadoRespuesta(1);
-		respuesta.getAtributos().setTimeStamp(solicitudRespuesta.getAtributos().getTimeStamp());
-		respuesta.getAtributos().setNumElementos("0");
+		respuesta.setAtributos(TestBackofficeHelper.toRespuesta(solicitudRespuesta.getAtributos()));
+		respuesta.getAtributos().setEstado(TestBackofficeHelper.estado("0002", null, null, 1));
+		respuesta.getAtributos().setNumElementos(0);
 		return respuesta;
 	}
 
@@ -87,23 +75,19 @@ public class TestBackoffice2 implements BackOffice {
 					"0237",
 					new String[] {"La petició ha de tenir alguna una sol·licitud"});
 		}
-		respuesta.setAtributos(peticion.getAtributos());
-		respuesta.getAtributos().setEstado(new Estado());
-		respuesta.getAtributos().getEstado().setCodigoEstado("0003");
-		respuesta.getAtributos().getEstado().setLiteralError("Peticion procesada correctamente.");
-		ArrayList<TransmisionDatos> listaTransmisionDatos = new ArrayList<TransmisionDatos>();
+		respuesta.setAtributos(TestBackofficeHelper.toRespuesta(peticion.getAtributos()));
+		respuesta.getAtributos().setEstado(TestBackofficeHelper.estado("0003", null, "Peticion procesada correctamente.", null));
+		Transmisiones transmisiones = new Transmisiones();
 		for (int i = 0; i < peticion.getSolicitudes().getSolicitudTransmision().size(); i++) {
-			SolicitudTransmision solicitudTransmisionPeticion = (SolicitudTransmision)peticion.getSolicitudes().getSolicitudTransmision().get(i);
-			DatosGenericos datosGenericosPeticion = solicitudTransmisionPeticion.getDatosGenericos();
+			SolicitudTransmision solicitudTransmisionPeticion = peticion.getSolicitudes().getSolicitudTransmision().get(i);
 			TransmisionDatos transmisionDatos = new TransmisionDatos();
-			datosGenericosPeticion.getTransmision().setIdTransmision(generateSemilla() + i);
-			transmisionDatos.setDatosGenericos(datosGenericosPeticion);
+			transmisionDatos.setDatosGenericos(
+					TestBackofficeHelper.toRespuesta(solicitudTransmisionPeticion.getDatosGenericos()));
+			transmisionDatos.getDatosGenericos().getTransmision().setIdTransmision(TestBackofficeHelper.generateSemilla() + i);
 			transmisionDatos.setDatosEspecificos(
 					generarDatosEspecificosRespuesta());
-			listaTransmisionDatos.add(transmisionDatos);
+			transmisiones.getTransmisionDatos().add(transmisionDatos);
 		}
-		Transmisiones transmisiones = new Transmisiones();
-        transmisiones.setTransmisionDatos(listaTransmisionDatos);
         respuesta.setTransmisiones(transmisiones);
         return respuesta;
 	}
@@ -143,22 +127,6 @@ public class TestBackoffice2 implements BackOffice {
 		estado.appendChild(literalError);
 		datosEspecificos.appendChild(estado);
 		return datosEspecificos;
-	}
-
-	private String getIdentificacioDelsAtributsScsp(Atributos atributos) {
-		String codigoCertificado = "???";
-		String idPeticion = "???";
-		if (atributos != null) {
-			codigoCertificado = atributos.getCodigoCertificado();
-			idPeticion = atributos.getIdPeticion();
-		}
-		return "(codigoCertificado=" + codigoCertificado + ", idPeticion=" + idPeticion + ")";
-	}
-
-	public static String generateSemilla() {
-		SimpleDateFormat formatoDeFecha = new SimpleDateFormat("ddMMHHss");
-		String fechaString = formatoDeFecha.format(new Date());
-		return "T" + fechaString;
 	}
 
 }

@@ -913,7 +913,7 @@ public final class FakeEmiservServer {
 
 		private static String backofficeConsentimiento(RequestInfo requestInfo) {
 			String value = defaultIfBlank(requestInfo.consentiment, "Si");
-			if ("Ley".equals(value) || "Si".equals(value)) {
+			if ("Ley".equals(value) || "Si".equals(value) || "NoOpo".equals(value)) {
 				return value;
 			}
 			return "Si";
@@ -921,7 +921,8 @@ public final class FakeEmiservServer {
 
 		private static String backofficeTipoDocumentacion(RequestInfo requestInfo) {
 			String value = defaultIfBlank(requestInfo.tipusDocumentacio, "NIF");
-			if ("CIF".equals(value) || "NIF".equals(value) || "DNI".equals(value) || "NIE".equals(value)) {
+			if ("CIF".equals(value) || "NIF".equals(value) || "DNI".equals(value) || "NIE".equals(value)
+					|| "Pasaporte".equals(value) || "NumeroIdentificacion".equals(value) || "Otros".equals(value) || "CSV".equals(value)) {
 				return value;
 			}
 			return "NIF";

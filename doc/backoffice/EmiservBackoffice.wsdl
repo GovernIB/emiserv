@@ -192,6 +192,7 @@
 				<xs:restriction base="xs:string">
 					<xs:enumeration value="Si" />
 					<xs:enumeration value="Ley" />
+					<xs:enumeration value="NoOpo" />
 				</xs:restriction>
 			</xs:simpleType>
 			<xs:simpleType name="tipoDocumentacion">
@@ -201,6 +202,9 @@
 					<xs:enumeration value="DNI" />
 					<xs:enumeration value="Pasaporte" />
 					<xs:enumeration value="NIE" />
+					<xs:enumeration value="NumeroIdentificacion" />
+					<xs:enumeration value="Otros" />
+					<xs:enumeration value="CSV" />
 				</xs:restriction>
 			</xs:simpleType>
 		</xs:schema>

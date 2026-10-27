@@ -25,9 +25,9 @@
 		<springdoc-openapi.version>1.2.25</springdoc-openapi.version>
 		<keycloak.version>17.0.1</keycloak.version>
 		<lombok.version>1.18.28</lombok.version>
-		<scsp.core.version>4.20.0</scsp.core.version>
-		<scsp.beans.version>4.3.0</scsp.beans.version>
-		<scsp.emisor.version>4.22.0</scsp.emisor.version>
+		<scsp.core.version>5.0.12</scsp.core.version>
+		<scsp.beans.version>5.0.12</scsp.beans.version>
+		<scsp.emisor.version>5.0.12</scsp.emisor.version>
 		<scsp.rampart.core.version>1.6.4.1</scsp.rampart.core.version>
 		<scsp.emisor.demo.version>3.3.0</scsp.emisor.demo.version>
 
