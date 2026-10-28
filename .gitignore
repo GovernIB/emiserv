@@ -15,3 +15,7 @@
 /.env
 /application.properties
 /CLAUDE.md
+# Interficie REACT: build del SPA i dependencies npm
+/emiserv-back/src/main/webapp/reactapp/
+node_modules/
+dist/

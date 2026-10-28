@@ -6,6 +6,7 @@
 		<pattern>/font*</pattern>
 		<pattern>/nodeco*</pattern>
 		<pattern>/ws*</pattern>
+		<pattern>/reactapp*</pattern>
 	</excludes>
 	<decorator name="senseCapNiPeus" page="senseCapNiPeus.jsp">
 	</decorator>

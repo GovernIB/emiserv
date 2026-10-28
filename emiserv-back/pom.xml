@@ -9,6 +9,11 @@
 	</parent>
 	<artifactId>emiserv-back</artifactId>
 	<packaging>war</packaging>
+	<properties>
+		<!-- SPA de la interficie REACT. Es construeix amb el perfil "front" (pom.xml arrel), que
+		     posa frontend.skip a false. -->
+		<frontend.app.path>src/main/reactapp/emiserv-back</frontend.app.path>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -149,6 +154,115 @@
 			</resource>
 		</resources>
 		<plugins>
+			<!-- Construeix el SPA (npm run build-jboss) a ${frontend.app.path}/dist -->
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.15.4</version>
+				<configuration>
+					<nodeVersion>${node.version}</nodeVersion>
+					<installDirectory>target</installDirectory>
+					<workingDirectory>${frontend.app.path}</workingDirectory>
+					<skip>${frontend.skip}</skip>
+					<environmentVariables>
+						<VITE_APP_VERSION>${project.version}</VITE_APP_VERSION>
+					</environmentVariables>
+				</configuration>
+				<executions>
+					<execution>
+						<id>install-npm</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>install-node-and-npm</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>npm-install</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>npm-build</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<configuration>
+							<arguments>run build-jboss</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<!-- Copia el build del SPA dins del document root de l'aplicacio web
+					     (src/main/webapp/reactapp, al .gitignore). D'aqui arriba al WAR i, si s'arrenca
+					     l'aplicacio des del codi font, el document root ja el te. No es fa servir
+					     <webResources> sobre dist: el maven-war-plugin falla si la carpeta no existeix
+					     (build sense el perfil "front"). -->
+					<execution>
+						<id>copia-reactapp-a-webapp</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<skip>${frontend.skip}</skip>
+							<outputDirectory>${basedir}/src/main/webapp/reactapp</outputDirectory>
+							<overwrite>true</overwrite>
+							<resources>
+								<resource>
+									<directory>${frontend.app.path}/dist</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<!-- Contingut del JAR "reactapp" (veure maven-jar-plugin) -->
+					<execution>
+						<id>copia-reactapp-a-jar</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<skip>${frontend.skip}</skip>
+							<outputDirectory>${project.build.directory}/reactapp-jar/META-INF/resources/reactapp</outputDirectory>
+							<overwrite>true</overwrite>
+							<resources>
+								<resource>
+									<directory>${frontend.app.path}/dist</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- JAR adjunt amb el SPA a META-INF/resources/reactapp (classificador "reactapp"), perque
+			     emiserv-boot el pugui servir des del classpath (ReactController). Sense el perfil
+			     "front" queda buit. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>reactapp-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>reactapp</classifier>
+							<classesDirectory>${project.build.directory}/reactapp-jar</classesDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
@@ -180,6 +294,26 @@
 							<Implementation-SCM-Revision>${git.commit.id}</Implementation-SCM-Revision>
 						</manifestEntries>
 					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${frontend.app.path}</directory>
+							<includes>
+								<include>dist/**</include>
+								<include>node_modules/**</include>
+							</includes>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/src/main/webapp/reactapp</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+					</filesets>
 				</configuration>
 			</plugin>
 		</plugins>

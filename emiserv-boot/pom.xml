@@ -59,6 +59,20 @@
 			<artifactId>emiserv-service</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- SPA de la interficie REACT a META-INF/resources/reactapp (el serveix ReactController a
+		     /reactapp). Nomes te contingut si emiserv-back s'ha construit amb el perfil "front". -->
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>emiserv-back</artifactId>
+			<version>${project.version}</version>
+			<classifier>reactapp</classifier>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 	<profiles>
 		<profile>

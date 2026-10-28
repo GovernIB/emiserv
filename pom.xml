@@ -49,6 +49,11 @@
 		<maven.compiler.target>${java.compiler.version}</maven.compiler.target>
 		<maven.compiler.source>${java.compiler.version}</maven.compiler.source>
 		<skipTests>true</skipTests>
+		<!-- Interficie REACT (emiserv-back/src/main/reactapp): es construeix nomes amb el perfil "front".
+		     El perfil es declara aqui i no a emiserv-back/emiserv-boot perque activar-hi un perfil amb -P
+		     desactivaria els seus perfils activeByDefault (ejb_container, controladors de BBDD). -->
+		<node.version>v22.13.1</node.version>
+		<frontend.skip>true</frontend.skip>
 	</properties>
 	<modules>
 		<module>emiserv-backend</module>
@@ -132,6 +137,16 @@
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<!-- Construeix el SPA de la interficie REACT (frontend-maven-plugin a emiserv-back) i l'inclou al
+		     WAR i al JAR d'emiserv-boot. Amb -Dfrontend.skip=true es pot activar sense Node. -->
+		<profile>
+			<id>front</id>
+			<properties>
+				<frontend.skip>false</frontend.skip>
+			</properties>
+		</profile>
+	</profiles>
 	<distributionManagement>
 		<repository>
 			<id>github_governib_maven</id>
