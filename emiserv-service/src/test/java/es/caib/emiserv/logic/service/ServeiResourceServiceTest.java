@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Configuration;
@@ -62,11 +63,16 @@ import static org.mockito.Mockito.*;
  * comptadors reals) i ServeiService/ACL simulats.
  */
 @DataJpaTest(properties = {
+		// sql.enforce_types: comparacions entre tipus incompatibles (p. ex. varchar = bigint) donen
+		// error, com a PostgreSQL (on ems_acl_object_identity.object_id_identity és VARCHAR(36))
+		"spring.datasource.url=jdbc:hsqldb:mem:serveiresource;sql.enforce_types=true",
+		"spring.datasource.username=sa",
 		"spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.HSQLDialect",
 		"spring.jpa.hibernate.ddl-auto=create-drop",
 		"spring.liquibase.enabled=false",
 		"spring.sql.init.schema-locations=classpath:servei-resource-test-schema.sql",
 		"es.caib.emiserv.exportacio.max=3" })
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ContextConfiguration(classes = ServeiResourceServiceTest.Config.class)
 class ServeiResourceServiceTest {
 
