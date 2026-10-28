@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.config;
 
+import es.caib.emiserv.back.base.config.BaseWebSecurityConfig;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
 import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
@@ -49,6 +50,10 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 		//antMatchers("/test").hasRole("tothom").
 		antMatchers(AUTH_WHITELIST).permitAll().
 		anyRequest().authenticated();
+		// Les peticions sense autenticar a l'API REST responen 401 amb un JSON en lloc de
+		// redirigir al login de Keycloak. La resta de peticions mantenen el comportament.
+		http.exceptionHandling().authenticationEntryPoint(
+				BaseWebSecurityConfig.apiAuthenticationEntryPoint(authenticationEntryPoint()));
 		http.cors();
 		http.csrf().disable();
 		http.headers().frameOptions().disable();

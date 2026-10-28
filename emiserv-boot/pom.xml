@@ -37,6 +37,18 @@
 			<artifactId>emiserv-controller</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- ResourceGlobalExceptionHandler (emiserv-backend) tracta EJBException; a JBoss la proporciona el contenidor -->
+		<dependency>
+			<groupId>javax.ejb</groupId>
+			<artifactId>javax.ejb-api</artifactId>
+			<version>3.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.transaction</groupId>
+					<artifactId>javax.transaction-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>emiserv-service-intf</artifactId>

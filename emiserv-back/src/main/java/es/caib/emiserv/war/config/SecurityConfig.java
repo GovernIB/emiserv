@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.war.config;
 
+import es.caib.emiserv.back.base.config.BaseWebSecurityConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.representations.AccessToken.Access;
@@ -20,6 +21,7 @@ import org.springframework.security.core.authority.mapping.SimpleAttributes2Gran
 import org.springframework.security.core.authority.mapping.SimpleMappableAttributesRetriever;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedGrantedAuthoritiesUserDetailsService;
@@ -77,6 +79,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		antMatchers(AUTH_WHITELIST).permitAll().
 		//anyRequest().permitAll();
 		anyRequest().authenticated();
+		// Les peticions sense autenticar a l'API REST responen 401 amb un JSON. La resta de
+		// peticions mantenen el punt d'entrada que configura jee() (403).
+		http.exceptionHandling().authenticationEntryPoint(
+				BaseWebSecurityConfig.apiAuthenticationEntryPoint(new Http403ForbiddenEntryPoint()));
 		http.cors();
 		http.csrf().disable();
 		http.headers().frameOptions().disable();

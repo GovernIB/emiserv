@@ -23,6 +23,8 @@
 			<url-pattern>/mock/desti/*</url-pattern>
 			<url-pattern>/mock/backoffice/*</url-pattern>
 			<url-pattern>/webjars/*</url-pattern>
+			<!-- L'API REST empra la sessió de Keycloak si existeix; si no n'hi ha, Spring Security respon 401 en lloc de redirigir al login -->
+			<url-pattern>/api/*</url-pattern>
 		</web-resource-collection>
 	</security-constraint>
 	<security-constraint>

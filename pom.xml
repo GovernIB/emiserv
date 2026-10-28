@@ -51,6 +51,7 @@
 		<skipTests>true</skipTests>
 	</properties>
 	<modules>
+		<module>emiserv-backend</module>
 		<module>emiserv-controller</module>
 		<module>emiserv-scsp</module>
 <!--		<module>emiserv-scsp-fake</module>-->

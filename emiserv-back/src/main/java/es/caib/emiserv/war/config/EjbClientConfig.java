@@ -3,6 +3,8 @@
  */
 package es.caib.emiserv.war.config;
 
+import es.caib.emiserv.logic.intf.base.service.PermissionEvaluatorService;
+import es.caib.emiserv.logic.intf.base.service.ResourceApiService;
 import es.caib.emiserv.logic.intf.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -64,6 +66,16 @@ public class EjbClientConfig {
 	@Bean
 	public LocalStatelessSessionProxyFactoryBean configService() {
 		return getLocalEjbFactoyBean(ConfigService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean resourceApiService() {
+		return getLocalEjbFactoyBean(ResourceApiService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean permissionEvaluatorService() {
+		return getLocalEjbFactoyBean(PermissionEvaluatorService.class);
 	}
 
 	private LocalStatelessSessionProxyFactoryBean getLocalEjbFactoyBean(Class<?> serviceClass) {
