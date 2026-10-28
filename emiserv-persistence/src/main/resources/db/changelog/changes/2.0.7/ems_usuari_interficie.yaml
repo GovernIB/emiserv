@@ -1,0 +1,61 @@
+# Preferència d'interfície (JSP o REACT) per usuari i propietat de la interfície per defecte
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: hsqldb
+  - changeSet:
+      id: 1761652800000-1
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ems_usuari
+                columnName: interficie
+      changes:
+        - addColumn:
+            tableName: ems_usuari
+            columns:
+              - column:
+                  name: interficie
+                  type: varchar(5 ${varcharUnit})
+  - changeSet:
+      id: 1761652800000-2
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM ems_config WHERE key = 'es.caib.emiserv.interface.defecte'
+      changes:
+        # Interfície per defecte dels usuaris sense preferència (JSP o REACT; JSP si no s'informa)
+        - insert:
+            tableName: ems_config
+            columns:
+              - column:
+                  name: key
+                  value: es.caib.emiserv.interface.defecte
+              - column:
+                  name: description_key
+                  value: propietat.interface.defecte
+              - column:
+                  name: group_code
+                  value: GENERAL
+              - column:
+                  name: position
+                  valueNumeric: 13
+              - column:
+                  name: source_property
+                  value: DATABASE
+              - column:
+                  name: type_code
+                  value: TEXT

@@ -25,6 +25,7 @@ pageContext.setAttribute(
 		<emi:inputText name="codi" textKey="usuari.form.camp.codi" disabled="true"/>
 		<emi:inputText name="nom" textKey="usuari.form.camp.nom" disabled="true"/>
 		<emi:inputSelect name="idioma" optionItems="${idiomaEnumOptions}" textKey="usuari.form.camp.idioma" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" emptyOptionTextKey="comu.opcio.sense.definir"/>
+		<emi:inputSelect name="interficie" optionItems="${interficieEnumOptions}" textKey="usuari.form.camp.interficie" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true" emptyOptionTextKey="usuari.form.camp.interficie.defecte"/>
 		<div id="modal-botons">
 			<button type="submit" class="btn btn-success"><span class="fa fa-save"></span> <spring:message code="comu.boto.guardar"/></button>
 			<a href="<c:url value="/"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.cancelar"/></a>

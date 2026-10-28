@@ -4,6 +4,7 @@ import es.caib.emiserv.back.command.UsuariCommand;
 import es.caib.emiserv.back.helper.EnumHelper;
 import es.caib.emiserv.back.helper.LocaleHelper;
 import es.caib.emiserv.logic.intf.dto.IdiomaEnumDto;
+import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
 import es.caib.emiserv.logic.intf.keycloak.KeycloakHelper;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import org.keycloak.KeycloakPrincipal;
@@ -40,7 +41,8 @@ public class UsuariController extends BaseController {
 				request.getUserPrincipal().getName(),
 				KeycloakHelper.getCurrentUserFullName(),
 				KeycloakHelper.getCurrentUserEmail(),
-				aplicacioService.getIdiomaUsuariActual()));
+				aplicacioService.getIdiomaUsuariActual(),
+				aplicacioService.getInterficiePreferida()));
 		addIdiomaOptionsToModel(model);
 		return "usuariForm";
 	}
@@ -57,6 +59,7 @@ public class UsuariController extends BaseController {
 			return "usuariForm";
 		}
 		aplicacioService.updateIdiomaUsuariActual(command.getIdioma());
+		aplicacioService.updateInterficie(command.getInterficie());
 		LocaleHelper.processarLocale(
 				request,
 				response,
@@ -87,6 +90,11 @@ public class UsuariController extends BaseController {
 				EnumHelper.getOptionsForEnum(
 						IdiomaEnumDto.class,
 						"usuari.form.camp.idioma.enum."));
+		model.addAttribute(
+				"interficieEnumOptions",
+				EnumHelper.getOptionsForEnum(
+						InterficieUsuariEnumDto.class,
+						"usuari.form.camp.interficie.enum."));
 	}
 
 }

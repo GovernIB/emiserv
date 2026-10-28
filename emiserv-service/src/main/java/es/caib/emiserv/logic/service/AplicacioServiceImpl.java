@@ -9,6 +9,7 @@ import es.caib.comanda.ms.log.helper.LogHelper;
 import es.caib.comanda.ms.salut.helper.EstatHelper;
 import es.caib.emiserv.logic.helper.PropertiesHelper;
 import es.caib.emiserv.logic.helper.SalutHelper;
+import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import es.caib.emiserv.persist.entity.ServeiEntity;
@@ -46,6 +47,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class AplicacioServiceImpl implements AplicacioService {
+
+	static final String PROPIETAT_INTERFICIE_DEFECTE = "es.caib.emiserv.interface.defecte";
 
 	@Autowired
 	private UsuariRepository usuariRepository;
@@ -94,6 +97,53 @@ public class AplicacioServiceImpl implements AplicacioService {
 			usuariRepository.save(
 					UsuariEntity.getBuilder(auth.getName()).
 					idioma(idioma).
+					build());
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public InterficieUsuariEnumDto getInterficiePreferida() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String userName = auth != null ? auth.getName() : null;
+		if (userName == null) {
+			return null;
+		}
+		return usuariRepository.findById(userName).map(UsuariEntity::getInterficie).orElse(null);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public InterficieUsuariEnumDto getInterficieEfectiva() {
+		InterficieUsuariEnumDto preferida = getInterficiePreferida();
+		if (preferida != null) {
+			return preferida;
+		}
+		String defecte = environment.getProperty(PROPIETAT_INTERFICIE_DEFECTE);
+		if (defecte != null) {
+			try {
+				return InterficieUsuariEnumDto.valueOf(defecte.trim().toUpperCase());
+			} catch (IllegalArgumentException ex) {
+				log.warn("Valor no vàlid per a la propietat " + PROPIETAT_INTERFICIE_DEFECTE + ": " + defecte);
+			}
+		}
+		return InterficieUsuariEnumDto.JSP;
+	}
+
+	@Override
+	@Transactional
+	public void updateInterficie(InterficieUsuariEnumDto interficie) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		log.debug("Actualitzant interfície de l'usuari actual (" +
+				"usuari=" + auth.getName() + "," +
+				"interficie=" + interficie + ")");
+		Optional<UsuariEntity> usuari = usuariRepository.findById(auth.getName());
+		if (usuari.isPresent()) {
+			usuari.get().updateInterficie(interficie);
+		} else {
+			usuariRepository.save(
+					UsuariEntity.getBuilder(auth.getName()).
+					interficie(interficie).
 					build());
 		}
 	}

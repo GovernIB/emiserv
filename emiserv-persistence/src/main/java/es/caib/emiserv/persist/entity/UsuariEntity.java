@@ -1,11 +1,14 @@
 package es.caib.emiserv.persist.entity;
 
+import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
 import lombok.Data;
 
 import java.io.Serializable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Version;
@@ -25,11 +28,18 @@ public class UsuariEntity implements Serializable {
 	private String codi;
 	@Column(name="idioma", length = 2)
 	private String idioma;
+	@Enumerated(EnumType.STRING)
+	@Column(name="interficie", length = 5)
+	private InterficieUsuariEnumDto interficie;
 	@Version
 	private long version = 0;
 
 	public void update(String idioma) {
 		this.idioma = idioma;
+	}
+
+	public void updateInterficie(InterficieUsuariEnumDto interficie) {
+		this.interficie = interficie;
 	}
 
 	public static Builder getBuilder(String codi) {
@@ -44,6 +54,10 @@ public class UsuariEntity implements Serializable {
 		}
 		public Builder idioma(String idioma) {
 			built.idioma = idioma;
+			return this;
+		}
+		public Builder interficie(InterficieUsuariEnumDto interficie) {
+			built.interficie = interficie;
 			return this;
 		}
 		public UsuariEntity build() {
@@ -78,7 +92,7 @@ public class UsuariEntity implements Serializable {
 
 	@Override
 	public String toString() {
-		return "UsuariEntity [codi=" + codi + ", idioma=" + idioma + "]";
+		return "UsuariEntity [codi=" + codi + ", idioma=" + idioma + ", interficie=" + interficie + "]";
 	}
 
 	private static final long serialVersionUID = -6657066865382086237L;

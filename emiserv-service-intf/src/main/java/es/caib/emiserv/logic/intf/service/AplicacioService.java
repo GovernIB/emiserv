@@ -12,6 +12,7 @@ import es.caib.comanda.model.server.monitoring.MissatgeSalut;
 import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
 import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
 import es.caib.comanda.ms.log.helper.LogFileStream;
+import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -42,6 +43,31 @@ public interface AplicacioService {
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public void updateIdiomaUsuariActual(String idioma);
 
+	/**
+	 * Obté la interfície efectiva de l'usuari actual: la seva preferència o, si no n'hi ha,
+	 * la propietat es.caib.emiserv.interface.defecte (JSP si no està definida o no és vàlida).
+	 *
+	 * @return La interfície efectiva.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public InterficieUsuariEnumDto getInterficieEfectiva();
+
+	/**
+	 * Obté la preferència d'interfície de l'usuari actual, sense aplicar la propietat per defecte.
+	 *
+	 * @return La preferència, o null si no n'ha definit cap.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public InterficieUsuariEnumDto getInterficiePreferida();
+
+	/**
+	 * Configura la preferència d'interfície de l'usuari actual (crea l'usuari si no existeix).
+	 *
+	 * @param interficie
+	 *            interfície preferida, o null per esborrar la preferència.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public void updateInterficie(InterficieUsuariEnumDto interficie);
 
 	/**
 	 * Carrega les propietats de la base de dades a l'environment

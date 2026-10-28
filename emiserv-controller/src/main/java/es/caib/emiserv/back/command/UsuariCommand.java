@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.back.command;
 
+import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,5 +22,6 @@ public class UsuariCommand {
 	private String nom;
 	private String email;
 	private String idioma;
+	private InterficieUsuariEnumDto interficie;
 
 }

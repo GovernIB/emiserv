@@ -158,6 +158,11 @@ body {
 										<span class="fa fa-cog"></span> <spring:message code="decorator.menu.configuracio.user"/>
 									</a>
 								</li>
+								<li>
+									<a href="<c:url value="/reactapp"/>">
+										<span class="fa fa-rocket"></span> <spring:message code="decorator.menu.interficie.nova"/>
+									</a>
+								</li>
 								<c:choose>
 									<c:when test="${isRolActualAdministrador}">
 										<li>

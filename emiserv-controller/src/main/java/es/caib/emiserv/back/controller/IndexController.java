@@ -5,6 +5,7 @@ package es.caib.emiserv.back.controller;
 
 import es.caib.emiserv.back.helper.AjaxHelper;
 import es.caib.emiserv.back.helper.ModalHelper;
+import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,9 @@ public class IndexController {
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String root(HttpServletRequest request) {
+		if (aplicacioService.getInterficieEfectiva() == InterficieUsuariEnumDto.REACT) {
+			return "redirect:/reactapp";
+		}
 		return "redirect:/servei";
 	}
 
