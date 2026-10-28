@@ -92,6 +92,23 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Exportació a XLSX dels llistats de la interfície REACT (mateixa versió que poi) -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>${poi.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>stax</groupId>
+					<artifactId>stax-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>es.caib.jboss</groupId>
 			<artifactId>seyconsession-common</artifactId>
 			<version>1.5</version>

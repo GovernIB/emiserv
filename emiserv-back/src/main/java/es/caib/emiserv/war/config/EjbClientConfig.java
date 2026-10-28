@@ -78,6 +78,11 @@ public class EjbClientConfig {
 		return getLocalEjbFactoyBean(PermissionEvaluatorService.class);
 	}
 
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean serveiResourceService() {
+		return getLocalEjbFactoyBean(ServeiResourceService.class);
+	}
+
 	private LocalStatelessSessionProxyFactoryBean getLocalEjbFactoyBean(Class<?> serviceClass) {
 		String jndiName = EJB_JNDI_PREFIX + serviceClass.getSimpleName() + EJB_JNDI_SUFFIX;
 		log.info("Creating EJB proxy for serviceClass with JNDI name " + jndiName);

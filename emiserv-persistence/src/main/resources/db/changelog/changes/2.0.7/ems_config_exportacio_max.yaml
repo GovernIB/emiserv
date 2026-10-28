@@ -1,0 +1,33 @@
+# Màxim de files de les exportacions dels llistats de la interfície REACT
+databaseChangeLog:
+  - changeSet:
+      id: 1761667200000-1
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM ems_config WHERE key = 'es.caib.emiserv.exportacio.max'
+      changes:
+        # Sense valor: s'aplica el valor per defecte (10000)
+        - insert:
+            tableName: ems_config
+            columns:
+              - column:
+                  name: key
+                  value: es.caib.emiserv.exportacio.max
+              - column:
+                  name: description_key
+                  value: propietat.exportacio.max
+              - column:
+                  name: group_code
+                  value: GENERAL
+              - column:
+                  name: position
+                  valueNumeric: 14
+              - column:
+                  name: source_property
+                  value: DATABASE
+              - column:
+                  name: type_code
+                  value: INT

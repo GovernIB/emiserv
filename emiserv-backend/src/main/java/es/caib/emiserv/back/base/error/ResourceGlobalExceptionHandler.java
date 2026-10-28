@@ -4,6 +4,9 @@ import es.caib.emiserv.back.base.controller.BaseController;
 import es.caib.emiserv.back.base.controller.RestApiController;
 import es.caib.emiserv.logic.intf.base.config.BaseBootConfig;
 import es.caib.emiserv.logic.intf.base.exception.*;
+import es.caib.emiserv.logic.intf.exception.ExportacioMassaGranException;
+import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
+import es.caib.emiserv.logic.intf.exception.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -221,6 +224,73 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 				request);
 	}
 
+	/**
+	 * Adaptació d'EMISERV: exportació que supera el màxim de files (es.caib.emiserv.exportacio.max).
+	 * Es torna 422 amb un missatge traduït que inclou el total i el màxim.
+	 */
+	@ExceptionHandler(ExportacioMassaGranException.class)
+	@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+	public ResponseEntity<Object> handleExportacioMassaGranException(
+			ExportacioMassaGranException ex,
+			WebRequest request) {
+		log.warn(ex.getMessage());
+		String message = messageSource.getMessage(
+				"error.exportacio.massa.gran",
+				new Object[] { ex.getTotal(), ex.getMaxim() },
+				ex.getMessage(),
+				request.getLocale());
+		return buildErrorResponse(
+				ex,
+				message,
+				HttpStatus.UNPROCESSABLE_ENTITY,
+				request);
+	}
+
+	/**
+	 * Adaptació d'EMISERV: errors de validació de negoci dels serveis existents (per exemple, un
+	 * servei amb peticions que no es pot esborrar). Es torna 409 amb el missatge del servei.
+	 */
+	@ExceptionHandler(ValidationException.class)
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public ResponseEntity<Object> handleValidationException(
+			ValidationException ex,
+			WebRequest request) {
+		log.warn(ex.getMessage());
+		return buildErrorResponse(
+				ex,
+				ex.getMessage(),
+				HttpStatus.CONFLICT,
+				request);
+	}
+
+	/** Adaptació d'EMISERV: permís denegat pels serveis existents. */
+	@ExceptionHandler(PermissionDeniedException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ResponseEntity<Object> handlePermissionDeniedException(
+			PermissionDeniedException ex,
+			WebRequest request) {
+		log.warn(ex.getMessage());
+		return buildErrorResponse(
+				ex,
+				ex.getMessage(),
+				HttpStatus.FORBIDDEN,
+				request);
+	}
+
+	/** Adaptació d'EMISERV: objecte no trobat pels serveis existents. */
+	@ExceptionHandler(es.caib.emiserv.logic.intf.exception.NotFoundException.class)
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ResponseEntity<Object> handleEmiservNotFoundException(
+			es.caib.emiserv.logic.intf.exception.NotFoundException ex,
+			WebRequest request) {
+		log.warn(ex.getMessage());
+		return buildErrorResponse(
+				ex,
+				ex.getMessage(),
+				HttpStatus.NOT_FOUND,
+				request);
+	}
+
 	@ExceptionHandler(EJBException.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public ResponseEntity<Object> handleEJBException(
@@ -247,6 +317,14 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 			return handleReportGenerationException((ReportGenerationException)causedBy, request);
 		} else if (causedBy instanceof ActionExecutionException) {
 			return handleActionExecutionException((ActionExecutionException)causedBy, request);
+		} else if (causedBy instanceof ExportacioMassaGranException) {
+			return handleExportacioMassaGranException((ExportacioMassaGranException)causedBy, request);
+		} else if (causedBy instanceof ValidationException) {
+			return handleValidationException((ValidationException)causedBy, request);
+		} else if (causedBy instanceof PermissionDeniedException) {
+			return handlePermissionDeniedException((PermissionDeniedException)causedBy, request);
+		} else if (causedBy instanceof es.caib.emiserv.logic.intf.exception.NotFoundException) {
+			return handleEmiservNotFoundException((es.caib.emiserv.logic.intf.exception.NotFoundException)causedBy, request);
 		} else {
 			return handleAllUncaughtException(causedBy, request);
 		}
