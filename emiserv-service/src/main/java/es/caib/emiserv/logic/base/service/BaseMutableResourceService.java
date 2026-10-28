@@ -1,0 +1,929 @@
+package es.caib.emiserv.logic.base.service;
+
+import es.caib.emiserv.logic.base.helper.ResourceReferenceToEntityHelper;
+import es.caib.emiserv.logic.intf.base.annotation.ResourceConfig;
+import es.caib.emiserv.logic.intf.base.exception.*;
+import es.caib.emiserv.logic.intf.base.model.*;
+import es.caib.emiserv.logic.intf.base.service.MutableResourceService;
+import es.caib.emiserv.logic.intf.base.util.TypeUtil;
+import es.caib.emiserv.persist.base.entity.ReorderableEntity;
+import es.caib.emiserv.persist.base.entity.ResourceEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Persistable;
+import org.springframework.lang.Nullable;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ReflectionUtils;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Servei amb la funcionalitat básica per a la gestió d'un recurs que es pot modificar.
+ *
+ * @param <R> classe del recurs.
+ * @param <ID> classe de la clau primària del recurs.
+ * @param <E> classe de l'entitat de base de dades del recurs.
+ *
+ * @author Límit Tecnologies
+ */
+@Slf4j
+public abstract class BaseMutableResourceService<R extends Resource<ID>, ID extends Serializable, E extends ResourceEntity<R, ID>>
+		extends BaseReadonlyResourceService<R, ID, E>
+		implements MutableResourceService<R, ID>, BaseReadonlyResourceService.OnChangeLogicProcessor<R> {
+
+	@Autowired
+	private ResourceReferenceToEntityHelper resourceReferenceToEntityHelper;
+
+	private final Map<String, ActionExecutor<E, ?, ?>> actionExecutorMap = new HashMap<>();
+	private final Map<String, OnChangeLogicProcessor<R>> onChangeLogicProcessorMap = new HashMap<>();
+	private final Map<String, FieldFileManager<E>> fieldFileManagerMap = new HashMap<>();
+	private final Map<String, FieldOptionsProvider> fieldOptionsProviderMap = new HashMap<>();
+
+	@Override
+	public R newResourceInstance() {
+		log.debug("Creating new resource instance");
+		return newClassInstance(getResourceClass());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>Internament, el mètode segueix aquestes passes:
+	 * <ol>
+	 *   <li>Crida al mètode completeResource.</li>
+	 *   <li>Converteix el recurs en una entitat de persistència.</li>
+	 *   <li>Crida al mètode beforeCreateEntity.</li>
+	 *   <li>Modifica l'entitat amb la informació del recurs.</li>
+	 *   <li>Crida al mètode beforeCreateSave.</li>
+	 *   <li>Configura l'ordre de l'entitat (si és reordenable).</li>
+	 *   <li>Desa els canvis del recurs a la base de dades.</li>
+	 *   <li>Desa els fitxers associats a algun dels camps del recurs.</li>
+	 *   <li>Crida al mètode afterCreateSave.</li>
+	 *   <li>Converteix l'entitat en un recurs fent un detach just abans i un merge just després.</li>
+	 *   <li>Crida al mètode afterConversion.</li>
+	 *   <li>Crida al mètode afterCreate.</li>
+	 * </ol>
+	 */
+	@Override
+	@Transactional
+	public R create(
+			R resource,
+			Map<String, AnswerRequiredException.AnswerValue> answers) {
+		log.debug("Creating resource (resource={})", resource);
+		completeResource(resource);
+		ID pk = buildPkChechingIfEntityAlreadyExists(resource);
+		Map<String, Persistable<?>> referencedEntities = resourceReferenceToEntityHelper.getReferencedEntitiesForResource(
+				resource,
+				getEntityClass());
+		E entity = resourceToEntity(resource, pk, referencedEntities);
+		beforeCreateEntity(entity, resource, answers);
+		updateEntityWithResource(entity, resource, referencedEntities);
+		beforeCreateSave(entity, resource, answers);
+		boolean anyOrderChanged = reorderIfReorderable(
+				entity,
+				null,
+				null,
+				null,
+				false);
+		E saved = entitySaveFlushAndRefresh(entity);
+		fieldFilesSave(resource, saved);
+		afterCreateSave(saved, resource, answers, anyOrderChanged);
+		return entityDetachConvertAndMerge(saved, answers, true);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>Internament, el mètode segueix aquestes passes:
+	 * <ol>
+	 *   <li>Crida al mètode completeResource.</li>
+	 *   <li>Consulta l'entitat a modificar a la base de dades.</li>
+	 *   <li>Crida al mètode beforeUpdateEntity.</li>
+	 *   <li>Modifica l'entitat amb la informació del recurs.</li>
+	 *   <li>Crida al mètode beforeUpdateSave.</li>
+	 *   <li>Desa els canvis del recurs a la base de dades.</li>
+	 *   <li>Configura l'ordre de l'entitat (si és reordenable).</li>
+	 *   <li>Desa els fitxers associats a algun dels camps del recurs.</li>
+	 *   <li>Crida al mètode afterUpdateSave.</li>
+	 *   <li>Converteix l'entitat en un recurs fent un detach just abans i un merge just després.</li>
+	 *   <li>Crida al mètode afterConversion.</li>
+	 *   <li>Crida al mètode afterUpdate.</li>
+	 * </ol>
+	 */
+	@Override
+	@Transactional
+	public R update(
+			ID id,
+			R resource,
+			Map<String, AnswerRequiredException.AnswerValue> answers) throws ResourceNotFoundException {
+		log.debug("Updating resource (id={}, resource={})", id, resource);
+		completeResource(resource);
+		E entity = getEntity(id);
+		Long reorderPreviousSequence = reorderGetPreviousSequence(entity);
+		Long reorderNewSequence = reorderGetNewSequence(resource);
+		ID reorderPreviousParentId = reorderGetParentId(entity);
+		beforeUpdateEntity(entity, resource, answers);
+		Map<String, Persistable<?>> referencedEntities = resourceReferenceToEntityHelper.getReferencedEntitiesForResource(
+				resource,
+				getEntityClass());
+		updateEntityWithResource(entity, resource, referencedEntities);
+		beforeUpdateSave(entity, resource, answers);
+		E saved = entitySaveFlushAndRefresh(entity);
+		boolean anyOrderChanged = reorderIfReorderable(
+				saved,
+				reorderPreviousSequence,
+				reorderNewSequence,
+				reorderPreviousParentId,
+				false);
+		fieldFilesSave(resource, saved);
+		afterUpdateSave(saved, resource, answers, anyOrderChanged);
+		return entityDetachConvertAndMerge(saved, answers, false);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>Internament, el mètode segueix aquestes passes:
+	 * <ol>
+	 *   <li>Consulta l'entitat a esborrar a la base de dades.</li>
+	 *   <li>Crida al mètode beforeDelete.</li>
+	 *   <li>Esborra l'entitat a la base de dades.</li>
+	 *   <li>Configura l'ordre de les demés entitats (si és reordenable).</li>
+	 *   <li>Esborra els fitxers associats a algun dels camps del recurs.</li>
+	 *   <li>Fa un flush del repository.</li>
+	 *   <li>Crida al mètode afterDelete.</li>
+	 * </ol>
+	 */
+	@Override
+	@Transactional
+	public void delete(
+			ID id,
+			Map<String, AnswerRequiredException.AnswerValue> answers) throws ResourceNotFoundException {
+		log.debug("Deleting resource (id={})", id);
+		E entity = getEntity(id);
+		beforeDelete(entity, answers);
+		entityRepositoryDelete(entity);
+		reorderIfReorderable(
+				entity,
+				null,
+				null,
+				null,
+				true);
+		fieldFilesDelete(entity);
+		entityRepositoryFlush();
+		afterDelete(entity, answers);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public Map<String, Object> onChange(
+			ID id,
+			R previous,
+			String fieldName,
+			Object fieldValue,
+			Map<String, AnswerRequiredException.AnswerValue> answers) throws ResourceFieldNotFoundException, AnswerRequiredException {
+		log.debug("Processing onChange event (previous={}, fieldName={}, fieldValue={}, answers={})",
+				previous,
+				fieldName,
+				fieldValue,
+				answers);
+		onChangeCheckIfFieldExists(getResourceClass(), fieldName);
+		return onChangeProcessRecursiveLogic(
+				id,
+				previous,
+				fieldName,
+				fieldValue,
+				null,
+				this,
+				answers);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@Transactional
+	public R sync(R resource) throws ResourceNotSyncedException {
+		throw new ResourceNotSyncedException(getResourceClass(), "Not implemented");
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@Transactional
+	public <P extends Serializable> Serializable artifactActionExec(
+			ID id,
+			String code,
+			P params) throws ArtifactNotFoundException, ActionExecutionException {
+		log.debug("Executing action (code={}, params={})", code, params);
+		ActionExecutor<E, P, ?> executor = (ActionExecutor<E, P, ?>)actionExecutorMap.get(code);
+		if (executor != null) {
+			E entity = null;
+			if (id != null) {
+				entity = getEntity(id);
+			} else if (artifactRequiresId(ResourceArtifactType.ACTION, code)) {
+				throw new ActionExecutionException(
+						getResourceClass(),
+						null,
+						code,
+						"This action requires id");
+			}
+			try {
+				return executor.exec(code, entity, params);
+			} catch (ActionExecutionException ex) {
+				throw ex;
+			} catch (Exception ex) {
+				ActionExecutionException aex = new ActionExecutionException(
+						getResourceClass(),
+						id,
+						code,
+						"",
+						ex);
+				log.error(aex.getMessage(), ex);
+				throw aex;
+			}
+		} else {
+			throw new ArtifactNotFoundException(getResourceClass(), ResourceArtifactType.ACTION, code);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public List<FieldOption> fieldEnumOptions(
+			String fieldName,
+			Map<String,String[]> requestParameterMap) {
+		log.debug("Querying field enum options (fieldName={}, requestParameterMap={})", fieldName, requestParameterMap);
+		FieldOptionsProvider fieldOptionsProvider = fieldOptionsProviderMap.get(fieldName);
+		if (fieldOptionsProvider != null) {
+			return fieldOptionsProvider.getOptions(fieldName, requestParameterMap);
+		} else {
+			log.warn("Couldn't find FieldOptionsProvider (resourceClass={}, fieldName={}, requestParameterMap={})",
+					getResourceClass(),
+					fieldName,
+					requestParameterMap);
+			return null;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public List<ResourceArtifact> artifactFindAll(ResourceArtifactType type) {
+		log.debug("Querying allowed artifacts (type={})", type);
+		List<ResourceArtifact> artifacts = new ArrayList<>(super.artifactFindAll(type));
+		if (type == null || type == ResourceArtifactType.ACTION) {
+			artifacts.addAll(
+					actionExecutorMap.keySet().stream().
+							filter(code -> permissionHelper.checkResourceArtifactPermission(
+									getResourceClass(),
+									ResourceArtifactType.ACTION,
+									code)).
+							map(code -> new ResourceArtifact(
+									ResourceArtifactType.ACTION,
+									code,
+									artifactRequiresId(ResourceArtifactType.ACTION, code),
+									artifactGetFormClass(ResourceArtifactType.ACTION, code))).
+							collect(Collectors.toList()));
+		}
+		return artifacts;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public ResourceArtifact artifactGetOne(ResourceArtifactType type, String code) throws ArtifactNotFoundException {
+		log.debug("Querying artifact form class (type={}, code={})", type, code);
+		if (type == ResourceArtifactType.ACTION) {
+			ActionExecutor<E, ?, ?> generator = actionExecutorMap.get(code);
+			if (generator != null) {
+				boolean allowed = permissionHelper.checkResourceArtifactPermission(
+						getResourceClass(),
+						ResourceArtifactType.ACTION,
+						code);
+				if (allowed) {
+					return new ResourceArtifact(
+							ResourceArtifactType.ACTION,
+							code,
+							artifactRequiresId(ResourceArtifactType.ACTION, code),
+							artifactGetFormClass(ResourceArtifactType.ACTION, code));
+				}
+			}
+		}
+		return super.artifactGetOne(type, code);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<DownloadableFile> fieldDownload(
+			ID id,
+			String fieldName,
+			OutputStream out) throws ResourceNotFoundException, ResourceFieldNotFoundException, FieldArtifactNotFoundException, IOException {
+		Field field = ReflectionUtils.findField(getResourceClass(), fieldName);
+		if (field != null) {
+			FieldFileManager<E> fieldFileManager = fieldFileManagerMap.get(fieldName);
+			if (fieldFileManager != null) {
+				Optional<FileReference> fileReference = fieldFileManager.read(
+						getEntity(id),
+						fieldName,
+						true);
+				if (fileReference.isPresent()) {
+					out.write(fileReference.get().getContent());
+					return Optional.of(
+							new DownloadableFile(fileReference.get().getName(), fileReference.get().getContentType(), null));
+				} else {
+					return Optional.empty();
+				}
+			} else {
+				return super.fieldDownload(id, fieldName, out);
+			}
+		} else {
+			throw new ResourceFieldNotFoundException(getResourceClass(), fieldName);
+		}
+	}
+
+	protected ID getPkFromResource(R resource) {
+		if (resource.getId() == null) {
+			return null;
+		}
+		return resource.getId();
+	}
+
+	@Override
+	protected R entityToResource(E entity) {
+		R resource = super.entityToResource(entity);
+		fieldFilesRead(resource, entity);
+		return resource;
+	}
+
+	/**
+	 * Permet completar la informació del recurs abans de crear-lo / modificar-lo.
+	 *
+	 * @param resource
+	 *            el recurs a completar
+	 */
+	protected void completeResource(R resource) {}
+
+	/**
+	 * Permet canviar l'entitat abans de la seva creació.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param resource
+	 *            la informació del recurs
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 * @throws ResourceNotCreatedException
+	 *            si es vol interrompre la creació de l'entitat
+	 */
+	protected void beforeCreateEntity(E entity, R resource, Map<String, AnswerRequiredException.AnswerValue> answers) throws ResourceNotCreatedException {}
+
+	/**
+	 * Mètode que s'executa abans de crear el recurs a la base de dades.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param resource
+	 *            la informació del recurs
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 * @throws ResourceNotCreatedException
+	 *            si es vol interrompre la creació de l'entitat
+	 */
+	protected void beforeCreateSave(E entity, R resource, Map<String, AnswerRequiredException.AnswerValue> answers) {}
+
+	/**
+	 * Mètode que s'executa després de crear el recurs a la base de dades.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param resource
+	 *            la informació del recurs
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 * @param anyOrderChanged
+	 *            indica si la creació d'aquesta entitat s'ha canviat l'ordre a algun recurs
+	 */
+	protected void afterCreateSave(E entity, R resource, Map<String, AnswerRequiredException.AnswerValue> answers, boolean anyOrderChanged) {}
+
+	/**
+	 * Mètode que s'executa després de crear el recurs a base de dades i just abans de finalitzar el mètode de creació.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param resource
+	 *            la informació del recurs
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 */
+	protected void afterCreate(E entity, R resource, Map<String, AnswerRequiredException.AnswerValue> answers) {}
+
+	/**
+	 * Mètode que s'executa abans de fer cap modificació al recurs.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param resource
+	 *            la informació del recurs
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 * @throws ResourceNotUpdatedException
+	 *            si es vol interrompre la modificació de l'entitat
+	 */
+	protected void beforeUpdateEntity(E entity, R resource, Map<String, AnswerRequiredException.AnswerValue> answers) throws ResourceNotUpdatedException {}
+
+	/**
+	 * Mètode que s'executa abans de modificar el recurs a la base de dades.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param resource
+	 *            la informació del recurs
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 */
+	protected void beforeUpdateSave(E entity, R resource, Map<String, AnswerRequiredException.AnswerValue> answers) {}
+
+	/**
+	 * Mètode que s'executa després de modificar el recurs a la base de dades.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param resource
+	 *            la informació del recurs
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 */
+	protected void afterUpdateSave(E entity, R resource, Map<String, AnswerRequiredException.AnswerValue> answers, boolean anyOrderChanged) {}
+
+	/**
+	 * Mètode que s'executa després de modificar el recurs a base de dades i just abans de finalitzar el mètode de modificació.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param resource
+	 *            la informació del recurs
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 */
+	protected void afterUpdate(E entity, R resource, Map<String, AnswerRequiredException.AnswerValue> answers) {}
+
+	/**
+	 * Mètode que s'executa just abans d'esborrar l'entitat a la base de dades.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 * @throws ResourceNotDeletedException
+	 *            si es vol interrompre l'esborrat de l'entitat
+	 */
+	protected void beforeDelete(E entity, Map<String, AnswerRequiredException.AnswerValue> answers) throws ResourceNotDeletedException {}
+
+	/**
+	 * Mètode que s'executa just després d'esborrar l'entitat a la base de dades.
+	 *
+	 * @param entity
+	 *            la informació de l'entitat
+	 * @param answers
+	 *            respostes a les preguntes formulades en el front
+	 */
+	protected void afterDelete(E entity, Map<String, AnswerRequiredException.AnswerValue> answers) {}
+
+	@Override
+	public void onChange(
+			Serializable id,
+			R previous,
+			String fieldName,
+			Object fieldValue,
+			Map<String, AnswerRequiredException.AnswerValue> answers,
+			String[] previousFieldsChanged,
+			R target) {
+		if (onChangeLogicProcessorMap.get(fieldName) != null) {
+			onChangeLogicProcessorMap.get(fieldName).onChange(
+					id,
+					previous,
+					fieldName,
+					fieldValue,
+					answers,
+					previousFieldsChanged,
+					target);
+		}
+	}
+
+	@Override
+	protected <P extends Serializable> void internalArtifactOnChange(
+			ResourceArtifactType type,
+			String code,
+			Serializable id,
+			P previous,
+			String fieldName,
+			Object fieldValue,
+			Map<String, AnswerRequiredException.AnswerValue> answers,
+			String[] previousFieldsChanged,
+			P target) {
+		super.internalArtifactOnChange(
+				type,
+				code,
+				id,
+				previous,
+				fieldName,
+				fieldValue,
+				answers,
+				previousFieldsChanged,
+				target);
+		if (type == ResourceArtifactType.ACTION) {
+			ActionExecutor<E, P, ?> actionExecutor = (ActionExecutor<E, P, ?>)actionExecutorMap.get(code);
+			if (actionExecutor != null) {
+				actionExecutor.onChange(
+						id,
+						previous,
+						fieldName,
+						fieldValue,
+						answers,
+						previousFieldsChanged,
+						target);
+			}
+		}
+	}
+
+	@Override
+	protected BaseMutableResourceService.FieldOptionsProvider artifactGetFieldOptionsProvider(
+			ResourceArtifactType type,
+			String code) {
+		BaseMutableResourceService.FieldOptionsProvider fieldOptionsProvider = null;
+		if (type == ResourceArtifactType.ACTION) {
+			fieldOptionsProvider = actionExecutorMap.get(code);
+		} else {
+			fieldOptionsProvider = super.artifactGetFieldOptionsProvider(type, code);
+		}
+		return fieldOptionsProvider;
+	}
+
+	protected ID buildPkChechingIfEntityAlreadyExists(R resource) {
+		// Es crea la pk a partir de la informació del recurs
+		ID pk = getPkFromResource(resource);
+		// Si la pk no és null comprova si el recurs ja existeix
+		if (pk != null) {
+			Optional<E> existingEntity = entityRepositoryFindOne(pk);
+			if (existingEntity.isPresent()) {
+				throw new ResourceAlreadyExistsException(
+						resource.getClass(),
+						pk.toString());
+			}
+		}
+		return pk;
+	}
+
+	protected E resourceToEntity(
+			R resource,
+			ID pk,
+			Map<String, Persistable<?>> referencedEntities) {
+		return resourceEntityMappingHelper.resourceToEntity(
+				resource,
+				pk,
+				getEntityClass(),
+				referencedEntities);
+	}
+
+	protected void updateEntityWithResource(
+			E entity,
+			R resource,
+			Map<String, Persistable<?>> referencedEntities) {
+		resourceEntityMappingHelper.updateEntityWithResource(entity, resource, referencedEntities);
+	}
+
+	protected List<E> reorderFindLinesWithParentAndSorted(Serializable parentId) {
+		return Collections.emptyList();
+	}
+	protected Integer reorderGetIncrement() {
+		return null;
+	}
+	protected Long reorderGetPreviousSequence(E entity) {
+		if (entity instanceof ReorderableEntity<?>) {
+			ReorderableEntity<ID> reorderableEntity = (ReorderableEntity<ID>)entity;
+			return reorderableEntity.getOrder();
+		} else {
+			return null;
+		}
+	}
+	protected Long reorderGetNewSequence(R resource) {
+		Long sequence = null;
+		ResourceConfig resourceConfig = resource.getClass().getAnnotation(ResourceConfig.class);
+		if (resourceConfig != null && !resourceConfig.orderField().isEmpty()) {
+			sequence = TypeUtil.getFieldOrGetterValue(resourceConfig.orderField(), resource, Long.class);
+		}
+		return sequence;
+	}
+	protected ID reorderGetParentId(E entity) {
+		if (entity instanceof ReorderableEntity<?>) {
+			ReorderableEntity<ID> reorderableEntity = (ReorderableEntity<ID>)entity;
+			return reorderableEntity.getOrderParentId();
+		} else {
+			return null;
+		}
+	}
+	protected long reorderSetNextSequence(ReorderableEntity<ID> reorderableEntity, long index) {
+		Integer increment = reorderGetIncrement();
+		long nextValue = index * (increment != null ? increment : 1);
+		reorderableEntity.setOrder(nextValue);
+		return nextValue;
+	}
+	protected boolean reorderIfReorderable(
+			E entity,
+			Long previousSequence,
+			Long newSequence,
+			ID previousParentId,
+			boolean isDelete) {
+		boolean anyOrderChanged = false;
+		if (entity instanceof ReorderableEntity<?>) {
+			ReorderableEntity<ID> reorderableEntity = (ReorderableEntity<ID>)entity;
+			boolean parentIdChanged = !Objects.equals(reorderableEntity.getOrderParentId(), previousParentId);
+			if (!isDelete) {
+				log.debug("\tReordenant entitat {} {} cap a la seqüència {} (previousParentId={})",
+						entity,
+						previousSequence != null ? "amb seqüència actual " + previousSequence : "<new>",
+						newSequence,
+						previousParentId);
+			} else {
+				log.debug("\tReordenant entitat {} eliminada", entity);
+			}
+			boolean goingUp = (previousSequence != null ? previousSequence : 0) > (newSequence != null ? newSequence : 0);
+			if (parentIdChanged) {
+				goingUp = true;
+			}
+			Long reorderSequence = (newSequence == null && !parentIdChanged) ? previousSequence : newSequence;
+			boolean anyOrderChanged1 = reorderWithParentId(
+					reorderableEntity,
+					reorderSequence,
+					reorderableEntity.getOrderParentId(),
+					goingUp,
+					isDelete);
+			if (anyOrderChanged1) anyOrderChanged = true;
+			if (parentIdChanged) {
+				boolean anyOrderChanged2 = reorderWithParentId(
+						null,
+						null,
+						previousParentId,
+						false,
+						false);
+				if (anyOrderChanged2) anyOrderChanged = true;
+			}
+		}
+		return anyOrderChanged;
+	}
+	protected boolean reorderWithParentId(
+			@Nullable ReorderableEntity<ID> reorderableEntity,
+			@Nullable Long newSequence,
+			@Nullable ID parentId,
+			boolean sameSequenceInsertBefore,
+			boolean isDelete) {
+		boolean anyOrderChanged = false;
+		List<E> linesToReorder = reorderFindLinesWithParentAndSorted(parentId);
+		log.debug("\tConsulta d'entitats a reordenar (pareId={}): {} entitats trobades",
+				parentId,
+				linesToReorder.size());
+		boolean inserted = isDelete;
+		long index = 1;
+		for (E value: linesToReorder) {
+			ReorderableEntity<ID> line = (ReorderableEntity<ID>)value;
+			if (!line.equals(reorderableEntity)) {
+				Long currentSequence = line.getOrder();
+				boolean insertHere = newSequence != null && (sameSequenceInsertBefore ?
+						currentSequence != null && currentSequence.compareTo(newSequence) >= 0 :
+						currentSequence != null && currentSequence.compareTo(newSequence) > 0);
+				if (!inserted && insertHere) {
+					long sequence = reorderSetNextSequence(reorderableEntity, index++);
+					log.debug("\tInsertant entitat {} amb ordre {}", reorderableEntity, sequence);
+					inserted = true;
+					anyOrderChanged = true;
+				}
+				long sequence = reorderSetNextSequence(line, index++);
+				log.debug("\tConfigurant ordre de l'entitat {}: {} (abans {})", line, sequence, currentSequence);
+				if (currentSequence == null || sequence != currentSequence) {
+					anyOrderChanged = true;
+				}
+			} else {
+				log.debug("\tIgnorant ordre de l'entitat {}", line);
+			}
+		}
+		if (!inserted && reorderableEntity != null) {
+			long sequence = reorderSetNextSequence(reorderableEntity, index);
+			log.debug("\tConfigurant ordre de l'entitat {}: {}", reorderableEntity, sequence);
+			anyOrderChanged = true;
+		}
+		return anyOrderChanged;
+	}
+
+	protected void register(
+			String actionCode,
+			ActionExecutor<E, ?, ?> actionExecutor) {
+		if (artifactIsPresentInResourceConfig(ResourceArtifactType.ACTION, actionCode)) {
+			actionExecutorMap.put(actionCode, actionExecutor);
+		} else {
+			log.error("Artifact not registered because it doesn't exist in ResourceConfig annotation (" +
+					"resourceClass=" + getResourceClass() + ", " +
+					"artifactType=" + ResourceArtifactType.ACTION + ", " +
+					"artifactCode=" + actionCode + ")");
+		}
+	}
+
+	protected void register(
+			String fieldName,
+			OnChangeLogicProcessor<R> logicProcessor) {
+		onChangeLogicProcessorMap.put(fieldName, logicProcessor);
+	}
+
+	protected void register(
+			String fieldName,
+			FieldFileManager<E> fieldFileManager) {
+		fieldFileManagerMap.put(fieldName, fieldFileManager);
+	}
+
+	protected void register(
+			String fieldName,
+			FieldOptionsProvider fieldOptionsProvider) {
+		fieldOptionsProviderMap.put(fieldName, fieldOptionsProvider);
+	}
+
+	protected E entitySaveFlushAndRefresh(E entity) {
+		E saved = entityRepository.saveAndFlush(entity);
+		entityRepository.refresh(saved);
+		return saved;
+	}
+
+	protected R entityDetachConvertAndMerge(
+			E entity,
+			Map<String, AnswerRequiredException.AnswerValue> answers,
+			boolean create) {
+		entityRepository.detach(entity);
+		R response = entityToResource(entity);
+		E merged = entityRepository.merge(entity);
+		entityAfterMergeLogic(response, merged, answers, create);
+		return response;
+	}
+
+	protected void entityRepositoryDelete(E entity) {
+		entityRepository.delete(entity);
+	}
+
+	protected void entityRepositoryFlush() {
+		entityRepository.flush();
+	}
+
+	protected void entityAfterMergeLogic(
+			R response,
+			E merged,
+			Map<String, AnswerRequiredException.AnswerValue> answers,
+			boolean create) {
+		afterConversion(merged, response);
+		if (create) {
+			afterCreate(merged, response, answers);
+		} else {
+			afterUpdate(merged, response, answers);
+		}
+	}
+
+	private void fieldFilesRead(R resource, E entity) {
+		ReflectionUtils.doWithFields(resource.getClass(), field -> {
+			FieldFileManager<E> fieldFileManager = fieldFileManagerMap.get(field.getName());
+			if (fieldFileManager != null) {
+				Optional<FileReference> fileReference = fieldFileManager.read(entity, field.getName(), false);
+				fileReference.ifPresent(reference -> TypeUtil.setFieldOrSetterValue(field, resource, reference));
+			}
+		}, field -> FileReference.class.isAssignableFrom(TypeUtil.getFieldTypeMultipleAware(field)));
+	}
+
+	private void fieldFilesSave(R resource, E entity) {
+		ReflectionUtils.doWithFields(resource.getClass(), field -> {
+			FieldFileManager<E> fieldFileManager = fieldFileManagerMap.get(field.getName());
+			if (fieldFileManager != null) {
+				fieldFileManager.save(
+						entity,
+						field.getName(),
+						TypeUtil.getFieldOrGetterValue(field, resource));
+			}
+		}, field -> FileReference.class.isAssignableFrom(TypeUtil.getFieldTypeMultipleAware(field)));
+	}
+
+	private void fieldFilesDelete(E entity) {
+		ReflectionUtils.doWithFields(getResourceClass(), field -> {
+			FieldFileManager<E> fieldFileManager = fieldFileManagerMap.get(field.getName());
+			if (fieldFileManager != null) {
+				fieldFileManager.delete(
+						entity,
+						field.getName());
+			}
+		}, field -> FileReference.class.isAssignableFrom(TypeUtil.getFieldTypeMultipleAware(field)));
+	}
+
+	/**
+	 * Interfície a implementar per a gestionar els arxius associats a un camp del recurs.
+	 *
+	 * @param <E> classe de l'entitat.
+	 */
+	public interface FieldFileManager<E extends ResourceEntity<?, ?>> {
+		/**
+		 * Lògica per a retornar la informació de l'arxiu.
+		 *
+		 * @param entity
+		 *            l'entitat amb els valors previs a la modificació.
+		 * @param fieldName
+		 *            el nom del camp de l'entitat.
+		 * @param isDownload
+		 *            indica si s'està processant una petició de descàrrega.
+		 * @return la referència al fitxer o empty si no hi ha cap fitxer associat a aquest camp.
+		 */
+		Optional<FileReference> read(
+				E entity,
+				String fieldName,
+				boolean isDownload);
+		/**
+		 * Lògica per a emmagatzemar l'arxiu associat al camp.
+		 *
+		 * @param entity
+		 *            l'entitat amb els valors previs a la modificació.
+		 * @param fieldName
+		 *            el nom del camp de l'entitat.
+		 * @param fileReference
+		 *            la informació de l'arxiu adjunt.
+		 */
+		void save(
+				E entity,
+				String fieldName,
+				FileReference fileReference);
+		/**
+		 * Lògica per a esborrar l'arxiu associat al camp.
+		 *
+		 * @param entity
+		 *            l'entitat amb els valors previs a la modificació.
+		 * @param fieldName
+		 *            el nom del camp de l'entitat.
+		 */
+		void delete(
+				E entity,
+				String fieldName);
+	}
+
+	/**
+	 * Interfície a implementar pels artefactes encarregats d'executar accions.
+	 *
+	 * @param <E> classe de l'entitat a la que està associada l'acció.
+	 * @param <P> classe dels paràmetres necessaris per a executar l'acció.
+	 * @param <R> classe de la resposta retornada com a resultat.
+	 */
+	public interface ActionExecutor<E extends ResourceEntity<?, ?>, P extends Serializable, R extends Serializable>
+			extends OnChangeLogicProcessor<P>, FieldOptionsProvider {
+		/**
+		 * Executa l'acció.
+		 *
+		 * @param code
+		 *            el codi de l'acció.
+		 * @param entity
+		 *            entitat sobre la que s'executa l'acció (pot ser null si l'acció no s'executa sobre una entitat en
+		 *            concret).
+		 * @param params
+		 *            els paràmetres per a l'execució.
+		 * @return el resultat de l'execució (pot ser null).
+		 * @throws ActionExecutionException
+		 *             si es produeix algun error generant les dades.
+		 */
+		R exec(String code, E entity, P params) throws ActionExecutionException;
+		@Override
+		default List<FieldOption> getOptions(String fieldName, Map<String,String[]> requestParameterMap) {
+			return new ArrayList<>();
+		}
+	}
+
+	/**
+	 * Interfície a implementar per a retornar les opcions de camps enumerats.
+	 */
+	public interface FieldOptionsProvider {
+		/**
+		 * Retorna la llista d'opcions que correspon al camp especificat.
+		 *
+		 * @param fieldName
+		 *            el nom del camp.
+		 * @param requestParameterMap
+		 *            Els paràmetres de la petició.
+		 * @return la llista d'opcions (si es retorna null s'indica que no hi ha opcions).
+		 */
+		List<FieldOption> getOptions(String fieldName, Map<String,String[]> requestParameterMap);
+	}
+
+}

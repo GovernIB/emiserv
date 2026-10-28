@@ -22,6 +22,60 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-acl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.turkraft</groupId>
+			<artifactId>spring-filter</artifactId>
+			<version>${spring-filter.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports</artifactId>
+			<version>${jasperreports.version}</version>
+			<exclusions>
+				<!-- Spring ja proporciona l'API de commons-logging (spring-jcl) i l'EAR no l'ha d'incloure -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<!--
+					Només s'empra per als adaptadors de dades XML, la taula/crosstab interactius i l'exportació
+					JSON de JasperReports (no per als informes de base-boot). A JBoss provoca un NoSuchMethodError
+					en crear el MappingJackson2XmlHttpMessageConverter del context dels EJBs i, a més, faria que
+					Spring MVC pogués respondre en XML. S'exclou perquè l'EAR mantengui les mateixes llibreries
+					Jackson que abans.
+				-->
+				<exclusion>
+					<groupId>com.fasterxml.jackson.dataformat</groupId>
+					<artifactId>jackson-dataformat-xml</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.dynamicreports</groupId>
+			<artifactId>dynamicreports-core</artifactId>
+			<version>${dynamicreports.version}</version>
+			<exclusions>
+				<!-- Spring ja proporciona l'API de commons-logging (spring-jcl) i l'EAR no l'ha d'incloure -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<!-- Les classes de xml-apis ja les proporciona la JDK -->
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 			<version>2.9.5</version>

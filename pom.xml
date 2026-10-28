@@ -19,7 +19,9 @@
 		<orika.starter.version>1.8.0</orika.starter.version>
 		<reflections.version>0.9.11</reflections.version>
 		<rsql.version>2.1.0</rsql.version>
-		<jasperreports.version>6.12.2</jasperreports.version>
+		<jasperreports.version>6.21.4</jasperreports.version>
+		<dynamicreports.version>6.12.1</dynamicreports.version>
+		<spring-filter.version>2.1.6</spring-filter.version>
 		<xdocreport.version>2.0.2</xdocreport.version>
 		<opencsv.version>4.6</opencsv.version>
 		<springdoc-openapi.version>1.2.25</springdoc-openapi.version>
