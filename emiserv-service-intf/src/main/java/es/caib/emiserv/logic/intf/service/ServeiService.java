@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Declaració dels mètodes per a la gestió de serveis.
@@ -388,5 +389,25 @@ public interface ServeiService {
 	public void permisDelete(
 			Long id,
 			Long permisId) throws NotFoundException;
+
+	/**
+	 * Calcula en bloc els motius pels quals els serveis indicats no estan completament configurats.
+	 * Pensat per a una pàgina de serveis: s'empra un nombre fix de consultes, independent del
+	 * nombre de serveis.
+	 * 
+	 * Comprovacions per tipus de servei:
+	 * - BACKOFFICE: FALTA_CONFIG_SCSP (sense CORE_SERVICIO) o FALTA_EMISOR (CORE_SERVICIO sense emisor).
+	 * - ENRUTADOR i ENRUTADOR_MULTIPLE: ENRUTADOR_SENSE_RUTES, RUTA_BACKOFFICE_SENSE_CREDENCIALS i,
+	 *   només si tenen alguna ruta de tipus BACKOFFICE (les rutes BACKOFFICE requereixen la
+	 *   configuració SCSP del servei), també FALTA_CONFIG_SCSP / FALTA_EMISOR.
+	 * FALTA_CONFIG_SCSP i FALTA_EMISOR són excloents.
+	 * 
+	 * @param serveiIds
+	 *            Atributs id dels serveis.
+	 * @return Per a cada id de servei existent, els motius en l'ordre de l'enumeració (llista buida
+	 *         si el servei està correcte). Si la llista d'ids és buida, un mapa buit.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public Map<Long, List<ServeiDiagnosticEnumDto>> diagnosticFindByServeis(List<Long> serveiIds);
 
 }

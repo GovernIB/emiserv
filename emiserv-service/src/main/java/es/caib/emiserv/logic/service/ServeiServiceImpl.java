@@ -47,6 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -328,6 +330,93 @@ public class ServeiServiceImpl implements ServeiService {
 		} else {
 			return paginacioHelper.getPaginaDtoBuida(ServeiDto.class);
 		}
+	}
+
+	/** Màxim d'ids per consulta (límit de l'IN d'Oracle). */
+	private static final int MAX_IN = 1000;
+
+	@Transactional(readOnly = true)
+	@Override
+	public Map<Long, List<ServeiDiagnosticEnumDto>> diagnosticFindByServeis(List<Long> serveiIds) {
+		log.debug("Diagnòstic de configuració de serveis (n=" + (serveiIds != null ? serveiIds.size() : 0) + ")");
+		Map<Long, List<ServeiDiagnosticEnumDto>> resultat = new HashMap<>();
+		if (serveiIds == null || serveiIds.isEmpty()) {
+			return resultat;
+		}
+		List<ServeiEntity> serveis = new ArrayList<>();
+		List<Long> enrutadorIds = new ArrayList<>();
+		List<String> codis = new ArrayList<>();
+		for (List<Long> trosso: trossejar(new ArrayList<>(new java.util.LinkedHashSet<>(serveiIds)))) {
+			for (ServeiEntity servei: serveiRepository.findAllById(trosso)) {
+				serveis.add(servei);
+				codis.add(servei.getCodi());
+				if (servei.isEnrutador()) {
+					enrutadorIds.add(servei.getId());
+				}
+			}
+		}
+		Map<String, ScspCoreServicioEntity> coreServicios = new HashMap<>();
+		for (List<String> trosso: trossejar(codis)) {
+			for (ScspCoreServicioEntity core: scspCoreServicioRepository.findByCodigoCertificadoIn(trosso)) {
+				coreServicios.put(core.getCodigoCertificado(), core);
+			}
+		}
+		Map<Long, List<ServeiRutaDestiEntity>> rutes = new HashMap<>();
+		for (List<Long> trosso: trossejar(enrutadorIds)) {
+			for (ServeiRutaDestiEntity ruta: serveiRutaDestiRepository.findByServeiIdIn(trosso)) {
+				rutes.computeIfAbsent(ruta.getServei().getId(), k -> new ArrayList<>()).add(ruta);
+			}
+		}
+		for (ServeiEntity servei: serveis) {
+			ScspCoreServicioEntity core = coreServicios.get(servei.getCodi());
+			List<ServeiDiagnosticEnumDto> motius = new ArrayList<>();
+			boolean requereixScsp;
+			if (servei.isEnrutador()) {
+				List<ServeiRutaDestiEntity> rutesServei = rutes.getOrDefault(servei.getId(), new ArrayList<>());
+				requereixScsp = false;
+				boolean credencialsPendents = false;
+				for (ServeiRutaDestiEntity ruta: rutesServei) {
+					requereixScsp |= ruta.isDestiBackoffice();
+					if (requereixCredencials(ruta.getDestiTipus(), ruta.getBackofficeAutenticacio())) {
+						credencialsPendents |= !backofficeDestiHelper.isCredencialsConfigurades(getBackofficeDesti(servei, ruta));
+					}
+				}
+				if (requereixScsp) {
+					afegirMotiusScsp(motius, servei, core);
+				}
+				if (rutesServei.isEmpty()) {
+					motius.add(ServeiDiagnosticEnumDto.ENRUTADOR_SENSE_RUTES);
+				}
+				if (credencialsPendents) {
+					motius.add(ServeiDiagnosticEnumDto.RUTA_BACKOFFICE_SENSE_CREDENCIALS);
+				}
+			} else {
+				afegirMotiusScsp(motius, servei, core);
+			}
+			motius.sort(java.util.Comparator.naturalOrder());
+			resultat.put(servei.getId(), motius);
+		}
+		return resultat;
+	}
+
+	private void afegirMotiusScsp(
+			List<ServeiDiagnosticEnumDto> motius,
+			ServeiEntity servei,
+			ScspCoreServicioEntity core) {
+		// Sense CORE_SERVICIO sempre falta la configuració (encara que el flag configurat diguin el contrari)
+		if (core == null || !isConfiguratScsp(servei.getTipus(), servei.isConfigurat(), () -> true)) {
+			motius.add(ServeiDiagnosticEnumDto.FALTA_CONFIG_SCSP);
+		} else if (core.getEmisor() == null) {
+			motius.add(ServeiDiagnosticEnumDto.FALTA_EMISOR);
+		}
+	}
+
+	private static <T> List<List<T>> trossejar(List<T> llista) {
+		List<List<T>> trossos = new ArrayList<>();
+		for (int i = 0; i < llista.size(); i += MAX_IN) {
+			trossos.add(llista.subList(i, Math.min(llista.size(), i + MAX_IN)));
+		}
+		return trossos;
 	}
 
 	@Override
@@ -840,9 +929,7 @@ public class ServeiServiceImpl implements ServeiService {
 	 * i si estan configurades (a nivell d'entitat, de servei o global).
 	 */
 	private void omplirCredencials(ServeiEntity servei, ServeiRutaDestiDto ruta) {
-		if (ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(ruta.getDestiTipus()) &&
-				ruta.getBackofficeAutenticacio() != null &&
-				!BackofficeAutenticacioTipusEnumDto.NINGUNA.equals(ruta.getBackofficeAutenticacio())) {
+		if (requereixCredencials(ruta.getDestiTipus(), ruta.getBackofficeAutenticacio())) {
 			BackofficeDesti desti = new BackofficeDesti(
 					servei.getCodi(),
 					ruta.getEntitatCodi(),
@@ -851,6 +938,15 @@ public class ServeiServiceImpl implements ServeiService {
 			ruta.setCredencialsPropietats(desti.getPrefixosPropietats()[0] + "caib.auth.");
 			ruta.setCredencialsConfigurades(backofficeDestiHelper.isCredencialsConfigurades(desti));
 		}
+	}
+
+	/** Una ruta requereix credencials si és de tipus BACKOFFICE i té una autenticació diferent de NINGUNA. */
+	static boolean requereixCredencials(
+			ServeiRutaDestiTipusEnumDto destiTipus,
+			BackofficeAutenticacioTipusEnumDto autenticacio) {
+		return ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(destiTipus) &&
+				autenticacio != null &&
+				!BackofficeAutenticacioTipusEnumDto.NINGUNA.equals(autenticacio);
 	}
 
 	private static BackofficeDesti getBackofficeDesti(ServeiEntity servei, ServeiRutaDestiEntity ruta) {
@@ -866,17 +962,26 @@ public class ServeiServiceImpl implements ServeiService {
 	 * enrutadors sempre val true (enrutador configurat), per això es comprova si existeix el CORE_SERVICIO.
 	 */
 	private boolean isConfiguratScsp(ServeiEntity servei) {
-		if (ServeiTipusEnumDto.BACKOFFICE.equals(servei.getTipus())) {
-			return servei.isConfigurat();
-		}
-		return scspCoreServicioRepository.findByCodigoCertificado(servei.getCodi()) != null;
+		return isConfiguratScsp(
+				servei.getTipus(),
+				servei.isConfigurat(),
+				() -> scspCoreServicioRepository.findByCodigoCertificado(servei.getCodi()) != null);
 	}
 	private void omplirConfiguratScsp(ServeiDto servei) {
-		if (ServeiTipusEnumDto.BACKOFFICE.equals(servei.getTipus())) {
-			servei.setConfiguratScsp(servei.isConfigurat());
-		} else {
-			servei.setConfiguratScsp(scspCoreServicioRepository.findByCodigoCertificado(servei.getCodi()) != null);
+		servei.setConfiguratScsp(isConfiguratScsp(
+				servei.getTipus(),
+				servei.isConfigurat(),
+				() -> scspCoreServicioRepository.findByCodigoCertificado(servei.getCodi()) != null));
+	}
+	/** Regla de configuració SCSP compartida (el CORE_SERVICIO només es consulta si cal). */
+	static boolean isConfiguratScsp(
+			ServeiTipusEnumDto tipus,
+			boolean configurat,
+			java.util.function.BooleanSupplier existeixCoreServicio) {
+		if (ServeiTipusEnumDto.BACKOFFICE.equals(tipus)) {
+			return configurat;
 		}
+		return existeixCoreServicio.getAsBoolean();
 	}
 
 	private Long findCoreServicioIdPerServeiCodi(

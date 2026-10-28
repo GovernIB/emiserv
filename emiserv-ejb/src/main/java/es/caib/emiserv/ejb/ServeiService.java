@@ -10,6 +10,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.ejb.Stateless;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Implementació de ServeiService com a EJB que empra una clase
@@ -203,6 +204,12 @@ public class ServeiService extends AbstractService<es.caib.emiserv.logic.intf.se
 			Long id,
 			Long permisId) {
 		getDelegateService().permisDelete(id, permisId);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public Map<Long, List<ServeiDiagnosticEnumDto>> diagnosticFindByServeis(List<Long> serveiIds) {
+		return getDelegateService().diagnosticFindByServeis(serveiIds);
 	}
 
 }

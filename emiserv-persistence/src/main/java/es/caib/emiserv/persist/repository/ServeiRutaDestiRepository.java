@@ -48,6 +48,9 @@ public interface ServeiRutaDestiRepository extends JpaRepository<ServeiRutaDesti
 	/** Troba totes les rutes per a un servei ordenades per l'ordre donat a la columna ordre. */
 	public List<ServeiRutaDestiEntity> findByServeiOrderByOrdreAsc(ServeiEntity servei);
 
+	/** Totes les rutes d'un conjunt de serveis (màxim 1000 ids per l'IN d'Oracle). */
+	public List<ServeiRutaDestiEntity> findByServeiIdIn(java.util.Collection<Long> serveiIds);
+
 	/** Consulta el següent valor per a ordre de les agrupacions. */
 	@Query(	"select coalesce( max( r.ordre), -1) + 1 " +
 			"from ServeiRutaDestiEntity r " +
