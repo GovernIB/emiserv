@@ -38,10 +38,84 @@ const translationEs: typeof translationCa = {
         cancelar: 'Cancelar',
         errorDesar: 'No se ha podido guardar la interfaz preferida.',
     },
-    page: {
-        serveis: {
-            titol: 'Servicios',
+    serveis: {
+        titol: 'Servicios',
+        columna: {
+            codi: 'Código',
+            nom: 'Nombre',
+            tipus: 'Tipo',
+            actiu: 'Activo',
+            permisos: 'Permisos',
+            rutes: 'Rutas',
         },
+        tipus: {
+            BACKOFFICE: 'Backoffice',
+            ENRUTADOR: 'Enrutador',
+            ENRUTADOR_MULTIPLE: 'Enrutador múltiple',
+        },
+        estat: {
+            actiu: 'Activo',
+            inactiu: 'Inactivo',
+        },
+        permisos: {
+            titol_one: '{{count}} permiso',
+            titol_other: '{{count}} permisos',
+        },
+        rutes: {
+            titol_one: '{{count}} ruta',
+            titol_other: '{{count}} rutas',
+        },
+        diagnostic: {
+            titol: 'El servicio no está bien configurado:',
+            accio: 'Haga clic para ir a la ficha del servicio',
+            motiu: {
+                FALTA_CONFIG_SCSP: 'Falta la configuración SCSP',
+                FALTA_EMISOR: 'Falta el emisor en la configuración SCSP',
+                ENRUTADOR_SENSE_RUTES: 'Enrutador sin rutas',
+                RUTA_BACKOFFICE_SENSE_CREDENCIALS: 'Ruta BACKOFFICE sin credenciales',
+            },
+        },
+        filtre: {
+            codi: 'Código',
+            nom: 'Nombre',
+            tipus: 'Tipo',
+            actiu: 'Estado',
+            mostra: 'Mostrar el filtro',
+            amaga: 'Ocultar el filtro',
+        },
+        accio: {
+            activar: 'Activar',
+            desactivar: 'Desactivar',
+            esborrar: 'Eliminar',
+            activarOk: 'El servicio se ha activado correctamente',
+            desactivarOk: 'El servicio se ha desactivado correctamente',
+            esborrarOk: 'El servicio se ha eliminado correctamente',
+            confirmacioEsborrarTitol: 'Eliminar el servicio',
+            confirmacioEsborrar: '¿Está seguro de querer eliminar este servicio?',
+            error: 'No se ha podido ejecutar la acción',
+        },
+        exportar: {
+            boto: 'Exportar',
+            csv: 'CSV',
+            xlsx: 'Excel (XLSX)',
+            error: 'No se ha podido exportar',
+        },
+        fitxa: {
+            titol: 'Servicio {{codi}}',
+            avis: 'La ficha completa del servicio (con sus pestañas) llega en la próxima fase de la interfaz nueva. Mientras tanto, puede gestionarla desde la interfaz clásica.',
+            pestanya: 'Pestaña solicitada: {{pestanya}}',
+            pestanyes: {
+                configScsp: 'Configuración SCSP',
+                rutes: 'Rutas',
+            },
+            tornar: 'Volver al listado',
+            errorCarrega: 'No se ha podido cargar el servicio.',
+            configuratScsp: 'Configurado SCSP',
+            si: 'Sí',
+            no: 'No',
+        },
+    },
+    page: {
         notFound: {
             titol: 'Página no encontrada',
             missatge: 'La página que busca no existe.',

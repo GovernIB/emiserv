@@ -36,6 +36,8 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import com.opensymphony.sitemesh.webapp.SiteMeshFilter;
 
+import es.caib.emiserv.back.base.config.BaseWebMvcConfig;
+import es.caib.emiserv.back.base.controller.BaseController;
 import es.caib.emiserv.back.interceptor.AjaxInterceptor;
 import es.caib.emiserv.back.interceptor.AplicacioInterceptor;
 import es.caib.emiserv.back.interceptor.CanviRolInterceptor;
@@ -103,6 +105,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+		// Controladors de l'API REST (base-boot): sense paràmetres de paginació ni d'ordenació el
+		// Pageable ha de ser null, perquè el find torni només els enllaços del recurs (find, getOne,
+		// artifacts...), que és el que consulta la interfície REACT (base-react).
+		resolvers.add(new ApiPageableHandlerMethodArgumentResolver());
 		CustomPageableHandlerMethodArgumentResolver resolver = new CustomPageableHandlerMethodArgumentResolver();
 		resolver.setFallbackPageable(Pageable.unpaged());
 		resolvers.add(resolver);
@@ -123,7 +129,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		}
 		@Override
 		public boolean supportsParameter(MethodParameter parameter) {
-			return Pageable.class.equals(parameter.getParameterType());
+			return Pageable.class.equals(parameter.getParameterType()) && !isApiController(parameter);
 		}
 		@Override
 		public Pageable resolveArgument(
@@ -140,6 +146,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
 			}
 			return pageable;
 		}
+	}
+
+	/**
+	 * Resolució del Pageable dels controladors de l'API REST: la de base-boot
+	 * (BaseWebMvcConfig, que l'aplicació no registra perquè ja té aquesta configuració).
+	 */
+	public static class ApiPageableHandlerMethodArgumentResolver extends BaseWebMvcConfig.CustomPageableHandlerMethodArgumentResolver {
+		@Override
+		public boolean supportsParameter(MethodParameter parameter) {
+			return super.supportsParameter(parameter) && isApiController(parameter);
+		}
+	}
+
+	private static boolean isApiController(MethodParameter parameter) {
+		return BaseController.class.isAssignableFrom(parameter.getContainingClass());
 	}
 
 	public static class CustomLocaleResolver extends SessionLocaleResolver {

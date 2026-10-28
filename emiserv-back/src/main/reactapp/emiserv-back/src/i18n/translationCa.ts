@@ -36,10 +36,84 @@ const translationCa = {
         cancelar: 'Cancel·la',
         errorDesar: "No s'ha pogut desar la interfície preferida.",
     },
-    page: {
-        serveis: {
-            titol: 'Serveis',
+    serveis: {
+        titol: 'Serveis',
+        columna: {
+            codi: 'Codi',
+            nom: 'Nom',
+            tipus: 'Tipus',
+            actiu: 'Actiu',
+            permisos: 'Permisos',
+            rutes: 'Rutes',
         },
+        tipus: {
+            BACKOFFICE: 'Backoffice',
+            ENRUTADOR: 'Enrutador',
+            ENRUTADOR_MULTIPLE: 'Enrutador múltiple',
+        },
+        estat: {
+            actiu: 'Actiu',
+            inactiu: 'Inactiu',
+        },
+        permisos: {
+            titol_one: '{{count}} permís',
+            titol_other: '{{count}} permisos',
+        },
+        rutes: {
+            titol_one: '{{count}} ruta',
+            titol_other: '{{count}} rutes',
+        },
+        diagnostic: {
+            titol: 'El servei no està ben configurat:',
+            accio: 'Clicau per anar a la fitxa del servei',
+            motiu: {
+                FALTA_CONFIG_SCSP: 'Falta la configuració SCSP',
+                FALTA_EMISOR: "Falta l'emissor a la configuració SCSP",
+                ENRUTADOR_SENSE_RUTES: 'Enrutador sense rutes',
+                RUTA_BACKOFFICE_SENSE_CREDENCIALS: 'Ruta BACKOFFICE sense credencials',
+            },
+        },
+        filtre: {
+            codi: 'Codi',
+            nom: 'Nom',
+            tipus: 'Tipus',
+            actiu: 'Estat',
+            mostra: 'Mostra el filtre',
+            amaga: 'Amaga el filtre',
+        },
+        accio: {
+            activar: 'Activa',
+            desactivar: 'Desactiva',
+            esborrar: 'Esborra',
+            activarOk: "El servei s'ha activat correctament",
+            desactivarOk: "El servei s'ha desactivat correctament",
+            esborrarOk: "El servei s'ha esborrat correctament",
+            confirmacioEsborrarTitol: 'Esborra el servei',
+            confirmacioEsborrar: 'Estau segur que voleu esborrar aquest servei?',
+            error: "No s'ha pogut executar l'acció",
+        },
+        exportar: {
+            boto: 'Exporta',
+            csv: 'CSV',
+            xlsx: 'Excel (XLSX)',
+            error: "No s'ha pogut exportar",
+        },
+        fitxa: {
+            titol: 'Servei {{codi}}',
+            avis: 'La fitxa completa del servei (amb les seves pestanyes) arriba a la propera fase de la interfície nova. Mentrestant, la podeu gestionar des de la interfície clàssica.',
+            pestanya: 'Pestanya sol·licitada: {{pestanya}}',
+            pestanyes: {
+                configScsp: 'Configuració SCSP',
+                rutes: 'Rutes',
+            },
+            tornar: 'Torna al llistat',
+            errorCarrega: "No s'ha pogut carregar el servei.",
+            configuratScsp: 'Configurat SCSP',
+            si: 'Sí',
+            no: 'No',
+        },
+    },
+    page: {
         notFound: {
             titol: 'Pàgina no trobada',
             missatge: 'La pàgina que cercau no existeix.',

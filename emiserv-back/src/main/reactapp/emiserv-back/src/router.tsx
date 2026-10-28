@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from './App';
-import ServeiList from './pages/servei/ServeiList';
+import ServeisLlistat from './pages/serveis/ServeisLlistat';
+import ServeiFitxa from './pages/serveis/ServeiFitxa';
 import NotFound from './pages/NotFound';
 
 export const router = createBrowserRouter(
@@ -15,7 +16,12 @@ export const router = createBrowserRouter(
                 },
                 {
                     path: 'serveis',
-                    element: <ServeiList />,
+                    element: <ServeisLlistat />,
+                },
+                {
+                    // Fitxa provisional de només lectura fins a la fase 2.
+                    path: 'serveis/:id',
+                    element: <ServeiFitxa />,
                 },
                 {
                     path: '*',

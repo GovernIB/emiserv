@@ -62,6 +62,19 @@ export const useSessioUsuari = (): SessioUsuariContextType => {
     return context;
 };
 
+/** Rol d'administrador d'EMISERV. */
+export const ROL_ADMIN = 'EMS_ADMIN';
+
+/**
+ * Indica si l'usuari de la sessió és administrador (`EMS_ADMIN`). Només serveix per a decidir què es
+ * mostra: els permisos els comprova sempre el servidor.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export const useEsAdmin = (): boolean => {
+    const { usuari } = useSessioUsuari();
+    return usuari?.rols.includes(ROL_ADMIN) ?? false;
+};
+
 /** Temps mínim entre dues comprovacions provocades per l'activitat de l'usuari. */
 const INTERVAL_ACTIVITAT_MS = 60000;
 /** Temps mínim entre dues comprovacions provocades per la pestanya. */
