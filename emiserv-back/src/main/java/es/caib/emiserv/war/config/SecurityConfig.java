@@ -72,6 +72,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		invalidateHttpSession(true).
 		logoutSuccessUrl("/").
 		permitAll(false);
+		// API REST: requereix algun rol d'Emiserv (403 JSON altrament) i sense autenticar respon
+		// 401 JSON. La resta de peticions mantenen el punt d'entrada que configura jee() (403).
+		BaseWebSecurityConfig.configureApi(http, new Http403ForbiddenEntryPoint(), mappableRoles);
 		http.authorizeRequests().
 		//antMatchers("/test").hasRole("tothom").
 		//antMatchers("/api/**/*").permitAll().
@@ -79,10 +82,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		antMatchers(AUTH_WHITELIST).permitAll().
 		//anyRequest().permitAll();
 		anyRequest().authenticated();
-		// Les peticions sense autenticar a l'API REST responen 401 amb un JSON. La resta de
-		// peticions mantenen el punt d'entrada que configura jee() (403).
-		http.exceptionHandling().authenticationEntryPoint(
-				BaseWebSecurityConfig.apiAuthenticationEntryPoint(new Http403ForbiddenEntryPoint()));
 		http.cors();
 		http.csrf().disable();
 		http.headers().frameOptions().disable();

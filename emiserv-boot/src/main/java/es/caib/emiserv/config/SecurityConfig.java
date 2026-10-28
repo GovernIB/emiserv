@@ -8,6 +8,7 @@ import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
 import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,13 +27,15 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 //@EnableGlobalMethodSecurity(jsr250Enabled = true)
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
+	@Value("${es.caib.emiserv.security.mappableRoles:EMS_ADMIN,EMS_RESP}")
+	private String mappableRoles;
+
 	private static final String ROLE_PREFIX = "";
 
 	private static final String[] AUTH_WHITELIST = {
 			"/scspRouting/**/*",
 			"/swagger-resources/**",
 			"/swagger-ui/**",
-			"/api/rest",
 			"/api-docs",
 			"/webjars/**"
 	};
@@ -46,14 +49,13 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 		invalidateHttpSession(true).
 		logoutSuccessUrl("/").
 		permitAll(false);
+		// API REST: requereix algun rol d'Emiserv (403 JSON altrament) i sense autenticar respon
+		// 401 JSON en lloc de redirigir al login de Keycloak.
+		BaseWebSecurityConfig.configureApi(http, authenticationEntryPoint(), mappableRoles);
 		http.authorizeRequests().
 		//antMatchers("/test").hasRole("tothom").
 		antMatchers(AUTH_WHITELIST).permitAll().
 		anyRequest().authenticated();
-		// Les peticions sense autenticar a l'API REST responen 401 amb un JSON en lloc de
-		// redirigir al login de Keycloak. La resta de peticions mantenen el comportament.
-		http.exceptionHandling().authenticationEntryPoint(
-				BaseWebSecurityConfig.apiAuthenticationEntryPoint(authenticationEntryPoint()));
 		http.cors();
 		http.csrf().disable();
 		http.headers().frameOptions().disable();

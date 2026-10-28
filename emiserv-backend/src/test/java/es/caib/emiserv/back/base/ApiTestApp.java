@@ -29,13 +29,12 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 public class ApiTestApp {
 
 	public static final String LOGIN_URL = "/login";
+	public static final String MAPPABLE_ROLES = "EMS_ADMIN,EMS_RESP";
 
 	@Bean
 	public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
+		BaseWebSecurityConfig.configureApi(http, new LoginUrlAuthenticationEntryPoint(LOGIN_URL), MAPPABLE_ROLES);
 		http.authorizeRequests().anyRequest().authenticated();
-		http.exceptionHandling().authenticationEntryPoint(
-				BaseWebSecurityConfig.apiAuthenticationEntryPoint(
-						new LoginUrlAuthenticationEntryPoint(LOGIN_URL)));
 		return http.build();
 	}
 

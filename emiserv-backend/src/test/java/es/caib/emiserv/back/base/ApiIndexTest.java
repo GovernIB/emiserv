@@ -45,6 +45,31 @@ class ApiIndexTest {
 	}
 
 	@Test
+	@WithMockUser(username = "resp", authorities = "EMS_RESP")
+	void indexAmbRolResponsableRetorna200() throws Exception {
+		when(resourceApiService.resourceFindAllowed()).thenReturn(Collections.emptyList());
+		mockMvc.perform(get("/api").accept(MediaTypes.HAL_FORMS_JSON)).
+				andExpect(status().isOk());
+	}
+
+	@Test
+	@WithMockUser(username = "altre", authorities = "ALTRE_ROL")
+	void indexSenseRolEmiservRetorna403Json() throws Exception {
+		mockMvc.perform(get("/api").accept(MediaType.TEXT_HTML, MediaType.ALL)).
+				andExpect(status().isForbidden()).
+				andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON)).
+				andExpect(jsonPath("$.status").value(403));
+	}
+
+	@Test
+	@WithMockUser(username = "altre", authorities = "ALTRE_ROL")
+	void altresRutesNoExigeixenRolEmiserv() throws Exception {
+		// Fora de l'API no s'aplica la restricció de rols (la resta de rutes es controlen com abans).
+		mockMvc.perform(get("/servei").accept(MediaType.TEXT_HTML)).
+				andExpect(status().isNotFound());
+	}
+
+	@Test
 	void indexSenseSessioRetorna401() throws Exception {
 		mockMvc.perform(get("/api").accept(MediaType.TEXT_HTML, MediaType.ALL)).
 				andExpect(status().isUnauthorized()).
