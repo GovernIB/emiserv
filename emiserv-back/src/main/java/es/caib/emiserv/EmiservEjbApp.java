@@ -5,6 +5,7 @@ package es.caib.emiserv;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWarDeployment;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -16,10 +17,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 
 /**
- * Aplicació Spring Boot de EMISERV per a ser executada des de JBoss.
+ * Aplicació Spring Boot de EMISERV per a ser executada des de JBoss: accedeix als serveis per EJB.
+ * Per a executar-la des de l'IDE es fa servir {@link es.caib.emiserv.boot.EmiservBackBootApp}.
  *
  * @author Limit Tecnologies <limit@limit.es>
  */
+@ConditionalOnWarDeployment
 @SpringBootApplication(exclude = {
 		DataSourceAutoConfiguration.class, 
 		DataSourceTransactionManagerAutoConfiguration.class,
@@ -36,7 +39,8 @@ import org.springframework.context.annotation.FilterType;
 						"es\\.caib\\.emiserv\\.logic\\..*",
 						"es\\.caib\\.emiserv\\.persist\\..*",
 						"es\\.caib\\.emiserv\\.ejb\\..*",
-						"es\\.caib\\.emiserv\\.api\\..*"}))
+						"es\\.caib\\.emiserv\\.api\\..*",
+						"es\\.caib\\.emiserv\\.boot\\..*"}))
 public class EmiservEjbApp extends EmiservApp {
 
 	public static void main(String[] args) {

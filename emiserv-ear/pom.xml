@@ -63,27 +63,24 @@
 			<version>${project.version}</version>
 			<type>war</type>
 		</dependency>
-		<!-- 
-			 La següent dependència ja està inclosa a dins el .war. Només s'inclou aquí per a que l'ear
-			 contengui les seves dependències. Després s'haurà d'excloure el fitxer emiserv-controller*.jar
-			 de dins la carpeta lib per a evitar conflictes per classes duplicades.
+		<!--
+			Llibreries de l'aplicació web emiserv-back. El WAR no les inclou (veure el seu
+			maven-war-plugin): van a la carpeta lib de l'EAR a través de les dependències del seu pom.
 		-->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>emiserv-controller</artifactId>
+			<artifactId>emiserv-back</artifactId>
 			<version>${project.version}</version>
+			<type>pom</type>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
-				<!--
-					Excloem la dependència de keycloak perquè si no ho feim ens dona errors en les classes
-					org.keycloak.* perquè estan carregades a dos classloaders diferents.
-				-->
+				<!-- Va dins el WAR -->
 				<exclusion>
-					<groupId>org.keycloak</groupId>
-					<artifactId>keycloak-core</artifactId>
+					<groupId>org.reactivestreams</groupId>
+					<artifactId>reactive-streams</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -194,7 +191,6 @@
 					<generateApplicationXml>true</generateApplicationXml>
 					<defaultLibBundleDir>/lib</defaultLibBundleDir>
 					<includeLibInApplicationXml>false</includeLibInApplicationXml>
-					<packagingExcludes>lib/es.caib.emiserv-emiserv-controller-*.jar</packagingExcludes>
 					<version>6</version>
 					<initializeInOrder>true</initializeInOrder>
 					<archive>

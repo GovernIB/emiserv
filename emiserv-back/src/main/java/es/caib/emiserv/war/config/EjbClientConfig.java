@@ -8,6 +8,7 @@ import es.caib.emiserv.logic.intf.base.service.ResourceApiService;
 import es.caib.emiserv.logic.intf.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWarDeployment;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ejb.access.LocalStatelessSessionProxyFactoryBean;
 
@@ -18,6 +19,7 @@ import org.springframework.ejb.access.LocalStatelessSessionProxyFactoryBean;
  */
 @Slf4j
 @Configuration
+@ConditionalOnWarDeployment
 public class EjbClientConfig {
 
 	private static final String EJB_JNDI_PREFIX = "java:app/emiserv-ejb/";

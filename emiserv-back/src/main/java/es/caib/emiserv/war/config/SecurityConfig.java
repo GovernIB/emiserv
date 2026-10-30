@@ -10,6 +10,7 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.representations.AccessToken.Access;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWarDeployment;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -46,6 +47,7 @@ import java.util.Set;
  */
 @Slf4j
 @Configuration
+@ConditionalOnWarDeployment
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 

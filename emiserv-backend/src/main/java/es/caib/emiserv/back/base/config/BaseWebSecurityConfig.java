@@ -22,8 +22,8 @@ import java.util.LinkedHashMap;
  * Configuració de Spring Security per a l'API REST.
  * <p/>
  * Adaptació d'EMISERV: a diferència de base-boot, aquesta classe no defineix cap
- * {@code SecurityFilterChain} ni activa {@code @EnableWebSecurity}. Les aplicacions
- * (emiserv-back i emiserv-boot) ja tenen la seva pròpia configuració de seguretat basada
+ * {@code SecurityFilterChain} ni activa {@code @EnableWebSecurity}. emiserv-back (tant a JBoss
+ * com executat des de l'IDE) ja té la seva pròpia configuració de seguretat basada
  * en {@code WebSecurityConfigurerAdapter} (que no pot conviure amb un
  * {@code SecurityFilterChain}) i l'API REST empra la mateixa sessió que la interfície JSP.
  * Per això aquí només hi ha les peces que aquestes configuracions han d'aplicar a les
