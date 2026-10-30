@@ -163,11 +163,22 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		return BaseController.class.isAssignableFrom(parameter.getContainingClass());
 	}
 
+	/**
+	 * Idioma de la sessió o, si no se n'ha triat cap, el primer idioma suportat de la capçalera
+	 * Accept-Language. Si el navegador no en demana cap de suportat (p. ex. en_US), es fa servir
+	 * l'idioma per defecte: els missatges només existeixen en català i castellà.
+	 */
 	public static class CustomLocaleResolver extends SessionLocaleResolver {
 		private AcceptHeaderLocaleResolver acceptHeaderLocaleResolver;
 		public CustomLocaleResolver(List<Locale> supportedLocales) {
 			acceptHeaderLocaleResolver = new AcceptHeaderLocaleResolver();
 			acceptHeaderLocaleResolver.setSupportedLocales(supportedLocales);
+		}
+		@Override
+		public void setDefaultLocale(Locale defaultLocale) {
+			super.setDefaultLocale(defaultLocale);
+			// Sense idioma per defecte, AcceptHeaderLocaleResolver torna l'idioma demanat encara que no sigui suportat
+			acceptHeaderLocaleResolver.setDefaultLocale(defaultLocale);
 		}
 		@Override
 		protected Locale determineDefaultLocale(HttpServletRequest request) {
