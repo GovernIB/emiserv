@@ -111,7 +111,9 @@ export default defineConfig(({ command, mode }) => {
             // `/emiservback/manifest` NO es reenvia: el serveix el plugin devManifest.
             proxy: {
                 '/emiservback/sysenv': { target: backendUrl, changeOrigin: true },
-                '/emiservback/api': { target: backendUrl, changeOrigin: true },
+                // Sense changeOrigin: el backend rep el Host de Vite (localhost:5173) i hi genera els
+                // enllaços HAL. Amb el del backend, ketting els seguiria fora del proxy (CORS).
+                '/emiservback/api': { target: backendUrl },
             },
         },
         plugins: [react(), tsconfigPaths(), fixBackendEndpointsBase(), devManifest()],
