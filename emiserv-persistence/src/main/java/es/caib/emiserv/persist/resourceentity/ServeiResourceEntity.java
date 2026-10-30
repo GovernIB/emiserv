@@ -1,5 +1,7 @@
 package es.caib.emiserv.persist.resourceentity;
 
+import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.model.ServeiResource;
 import es.caib.emiserv.persist.base.entity.BaseResourceEntity;
@@ -63,6 +65,32 @@ public class ServeiResourceEntity extends BaseResourceEntity<ServeiResource, Lon
 	@Enumerated(EnumType.ORDINAL)
 	@Column(name = "tipus", nullable = false)
 	private ServeiTipusEnumDto tipus;
+	@Column(name = "descripcio", length = 1024)
+	private String descripcio;
+	@Column(name = "backoffice_class", length = 256)
+	private String backofficeClass;
+	@Column(name = "backcaib_url", length = 256)
+	private String backofficeCaibUrl;
+	@Enumerated(EnumType.ORDINAL)
+	@Column(name = "backcaib_autenticacio")
+	private BackofficeAutenticacioTipusEnumDto backofficeCaibAutenticacio;
+	@Enumerated(EnumType.ORDINAL)
+	@Column(name = "backcaib_async_tipus")
+	private BackofficeAsyncTipusEnumDto backofficeCaibAsyncTipus;
+	@Column(name = "backcaib_async_ter")
+	private Integer backofficeCaibAsyncTer;
+	@Column(name = "resolver_class", length = 256)
+	private String resolverClass;
+	@Column(name = "url_per_defecte", length = 256)
+	private String urlPerDefecte;
+	@Column(name = "response_resolver_class", length = 256)
+	private String responseResolverClass;
+	@Column(name = "async_sincron")
+	private boolean asyncSincron;
+	@Column(name = "async_interval")
+	private Integer asyncInterval;
+	@Column(name = "async_concurrencia")
+	private Integer asyncConcurrencia;
 	@Column(name = "actiu")
 	private boolean actiu;
 	@Column(name = "configurat")

@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { icons } from '../../lot2';
-import { type MotiuDiagnostic, rutaFitxaDiagnostic } from './serveiModel';
+import { type MotiuDiagnostic, rutaServeiDiagnostic } from './serveiModel';
 
 type DiagnosticAvisProps = {
     /** Id del servei. */
@@ -18,7 +18,7 @@ type DiagnosticAvisProps = {
 
 /**
  * Avís de «servei no configurat» (millora 2 de la spec §5.1): icona d'advertència amb un tooltip que
- * llista els motius traduïts. En clicar-la, obre la fitxa del servei a la pestanya del primer motiu.
+ * llista els motius traduïts. En clicar-la, obre la finestra del servei a la pestanya del primer motiu.
  */
 export const DiagnosticAvis: React.FC<DiagnosticAvisProps> = ({ id, motius }) => {
     const { t } = useTranslation();
@@ -48,9 +48,9 @@ export const DiagnosticAvis: React.FC<DiagnosticAvisProps> = ({ id, motius }) =>
                 color="warning"
                 aria-label={t('serveis.diagnostic.titol') + ' ' + textos.join(', ')}
                 onClick={(event) => {
-                    // No ha d'arribar al clic de la fila, que obre la fitxa sense pestanya.
+                    // No ha d'arribar al clic de la fila, que obre la finestra a la pestanya de dades.
                     event.stopPropagation();
-                    navigate(rutaFitxaDiagnostic(id, motius));
+                    navigate(rutaServeiDiagnostic(id, motius));
                 }}
                 sx={{ ml: 0.5 }}
             >

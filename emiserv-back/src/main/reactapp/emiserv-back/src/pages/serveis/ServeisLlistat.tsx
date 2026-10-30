@@ -1,7 +1,8 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Icon from '@mui/material/Icon';
 import IconButton from '@mui/material/IconButton';
@@ -27,8 +28,17 @@ import { emiservIcons } from '../../components/EmiservBaseApp';
 import { useEsAdmin } from '../../components/EmiservAuthProvider';
 import { descarregarFitxer } from '../../util/descarregarFitxer';
 import DiagnosticAvis from './DiagnosticAvis';
+import ServeiDialog from './ServeiDialog';
 import ServeisFiltre from './ServeisFiltre';
-import { rutaFitxaServei, type Servei } from './serveiModel';
+import { missatgeError } from './serveiErrors';
+import {
+    esEnrutador,
+    ID_NOU,
+    PESTANYES_SERVEI,
+    type PestanyaServei,
+    rutaServei,
+    type Servei,
+} from './serveiModel';
 
 /** Nom del recurs de l'API (rel de l'índex, veure ServeiApiController). */
 const RECURS = 'servei';
@@ -40,14 +50,6 @@ const ACCIO_ESBORRAR = 'ESBORRAR';
 const INFORME_EXPORTAR = 'EXPORTAR';
 
 type FormatExportacio = 'CSV' | 'XLSX';
-
-type ErrorApi = { description?: string; message?: string };
-
-/** Missatge d'un error de l'API: el del servidor (409, 422...) si n'hi ha, si no el genèric. */
-const missatgeError = (error: unknown): string => {
-    const e = error as ErrorApi | undefined;
-    return e?.description ?? e?.message ?? String(error);
-};
 
 /**
  * Botó d'exportar de la barra de títol: CSV o Excel amb el filtre ràpid, el filtre plegable i
@@ -126,8 +128,13 @@ const FiltreBoto: React.FC<{ obert: boolean; onClick: () => void }> = ({ obert, 
     );
 };
 
-/** Xip amb un comptador (permisos, rutes). */
-const XipComptador: React.FC<{ icona: string; valor?: number; title: string }> = ({ icona, valor, title }) => (
+/** Xip amb un comptador (permisos, rutes); en clicar-lo obre la pestanya corresponent del servei. */
+const XipComptador: React.FC<{ icona: string; valor?: number; title: string; onClick: () => void }> = ({
+    icona,
+    valor,
+    title,
+    onClick,
+}) => (
     <Tooltip title={title}>
         <Chip
             size="small"
@@ -135,27 +142,52 @@ const XipComptador: React.FC<{ icona: string; valor?: number; title: string }> =
             icon={<Icon fontSize="small">{icona}</Icon>}
             label={valor ?? 0}
             aria-label={title}
+            onClick={(event) => {
+                // No ha d'arribar al clic de la fila, que obre la pestanya de dades
+                event.stopPropagation();
+                onClick();
+            }}
         />
     </Tooltip>
 );
 
 /**
- * Accions de cada fila, només per a administradors: activar o desactivar (segons l'estat) i esborrar
- * amb confirmació. Totes són accions del recurs (`ACTIVAR`, `DESACTIVAR`, `ESBORRAR`): la graella
- * només les mostra si el servidor publica l'artefacte per a l'usuari, i el servidor torna a comprovar
- * el rol en executar-les. Els errors de negoci (409, p. ex. esborrar un servei amb dependències) es
- * mostren amb el missatge del servidor.
+ * Accions de cada fila, com el menú «Accions» de la JSP:
+ * - per a tothom (EMS_RESP només veu els seus serveis): modificar i, als enrutadors, configurar les
+ *   rutes; obren la finestra del servei a la pestanya corresponent;
+ * - només per a administradors: permisos, autoritzacions (serveis configurats a l'emissor SCSP),
+ *   activar o desactivar (segons l'estat) i esborrar amb confirmació. Aquestes tres darreres són
+ *   accions del recurs (`ACTIVAR`, `DESACTIVAR`, `ESBORRAR`): la graella només les mostra si el servidor
+ *   publica l'artefacte per a l'usuari, i el servidor torna a comprovar el rol en executar-les. Els
+ *   errors de negoci (409, p. ex. esborrar un servei amb dependències) es mostren amb el missatge del
+ *   servidor.
  */
 const useAccionsFila = (
     esAdmin: boolean,
-    refresh: () => void
+    refresh: () => void,
+    obrir: (id: unknown, pestanya: PestanyaServei) => void
 ): NonNullable<MuiDataGridProps['rowAdditionalActions']> => {
     const { t } = useTranslation();
     const { temporalMessageShow, messageDialogShow } = useBaseAppContext();
     const confirmDialogButtons = useConfirmDialogButtons();
     const { isReady, artifactAction } = useResourceApiService(RECURS);
+    const accionsServei = [
+        {
+            label: t('serveis.accio.modificar'),
+            icon: icons.modifica,
+            showInMenu: true,
+            onClick: (id: unknown) => obrir(id, 'dades'),
+        },
+        {
+            label: t('serveis.accio.rutes'),
+            icon: emiservIcons.auditoriaEnrutador,
+            showInMenu: true,
+            hidden: (row: Servei) => !esEnrutador(row?.tipus),
+            onClick: (id: unknown) => obrir(id, 'rutes'),
+        },
+    ];
     if (!esAdmin) {
-        return [];
+        return accionsServei;
     }
     const executar = (id: unknown, code: string, clauOk: string) => {
         if (!isReady) {
@@ -184,6 +216,20 @@ const useAccionsFila = (
             .catch(() => undefined);
     };
     return [
+        ...accionsServei,
+        {
+            label: t('serveis.accio.permisos'),
+            icon: 'key',
+            showInMenu: true,
+            onClick: (id: unknown) => obrir(id, 'permisos'),
+        },
+        {
+            label: t('serveis.accio.autoritzacions'),
+            icon: 'thumb_up',
+            showInMenu: true,
+            hidden: (row: Servei) => !row?.configuratScsp,
+            onClick: (id: unknown) => obrir(id, 'autoritzacions'),
+        },
         {
             label: t('serveis.accio.activar'),
             icon: icons.activa,
@@ -216,8 +262,9 @@ const useAccionsFila = (
  * - Columnes: codi (amb l'avís de diagnòstic), nom i tipus; només per a administradors, també actiu,
  *   permisos i rutes. El recurs torna aquests valors també als responsables: s'amaguen a la interfície.
  * - Filtre ràpid (codi/nom) a la barra de títol i filtre plegable (`ServeisFiltre`), desat per usuari.
- * - Clicar una fila obre la fitxa del servei (`/serveis/:id`). Fins a la fase 2 és una fitxa de
- *   només lectura; per això no hi ha botó de crear (el recurs no permet la creació genèrica).
+ * - Clicar una fila, les accions, els xips de permisos i rutes i el botó d'autoritzacions obren la
+ *   finestra del servei (`ServeiDialog`) a la pestanya corresponent. Els administradors poden crear
+ *   serveis (botó «Nou servei»).
  */
 export const ServeisLlistat: React.FC = () => {
     const { t } = useTranslation();
@@ -227,7 +274,27 @@ export const ServeisLlistat: React.FC = () => {
     const apiRef = useMuiDataGridApiRef();
     const [filtreObert, setFiltreObert] = React.useState(false);
     const refresh = React.useCallback(() => apiRef.current?.refresh?.(), [apiRef]);
-    const accions = useAccionsFila(esAdmin, refresh);
+    // Finestra del servei: la decideix la URL (/serveis/:id?pestanya=...), de manera que el clic de la
+    // fila, les accions, els xips i l'avís de diagnòstic hi naveguen i un enllaç directe també l'obre.
+    const { id: idParam } = useParams();
+    const [searchParams] = useSearchParams();
+    const pestanyaParam = searchParams.get('pestanya');
+    const pestanya: PestanyaServei = PESTANYES_SERVEI.find((p) => p === pestanyaParam) ?? 'dades';
+    const dialogObert = idParam != null && (idParam === ID_NOU || /^\d+$/.test(idParam));
+    const serveiId = dialogObert && idParam !== ID_NOU ? Number(idParam) : undefined;
+    const canvisRef = React.useRef(false);
+    const obrir = React.useCallback(
+        (id: unknown, p: PestanyaServei) => navigate(rutaServei(String(id), p)),
+        [navigate]
+    );
+    const tancar = () => {
+        navigate('/serveis');
+        if (canvisRef.current) {
+            canvisRef.current = false;
+            refresh();
+        }
+    };
+    const accions = useAccionsFila(esAdmin, refresh, obrir);
 
     const columns = React.useMemo<MuiDataGridColDef[]>(() => {
         const comunes: MuiDataGridColDef[] = [
@@ -283,6 +350,7 @@ export const ServeisLlistat: React.FC = () => {
                         icona="key"
                         valor={params.row.permisosCount}
                         title={t('serveis.permisos.titol', { count: params.row.permisosCount ?? 0 })}
+                        onClick={() => obrir(params.row.id, 'permisos')}
                     />
                 ),
             },
@@ -299,11 +367,38 @@ export const ServeisLlistat: React.FC = () => {
                             icona={emiservIcons.auditoriaEnrutador}
                             valor={params.row.rutesCount}
                             title={t('serveis.rutes.titol', { count: params.row.rutesCount ?? 0 })}
+                            onClick={() => obrir(params.row.id, 'rutes')}
                         />
                     ),
             },
+            {
+                field: 'autoritzacions',
+                headerName: t('serveis.columna.autoritzacions'),
+                width: 130,
+                align: 'center',
+                headerAlign: 'center',
+                sortable: false,
+                // Com el botó de la JSP: només per als serveis configurats a l'emissor SCSP
+                renderCell: (params: GridRenderCellParams<Servei>) => (
+                    <Tooltip title={t(params.row.configuratScsp ? 'serveis.accio.autoritzacions' : 'serveis.autoritzacions.noConfigurat')}>
+                        <span>
+                            <IconButton
+                                size="small"
+                                aria-label={t('serveis.accio.autoritzacions')}
+                                disabled={!params.row.configuratScsp}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    obrir(params.row.id, 'autoritzacions');
+                                }}
+                            >
+                                <Icon fontSize="small">thumb_up</Icon>
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                ),
+            },
         ];
-    }, [t, esAdmin]);
+    }, [t, esAdmin, obrir]);
 
     const toolbarElements = [
         {
@@ -311,6 +406,23 @@ export const ServeisLlistat: React.FC = () => {
             element: <FiltreBoto obert={filtreObert} onClick={() => setFiltreObert((obert) => !obert)} />,
         },
         ...(esAdmin ? [{ position: 2, element: <ServeisExportar /> }] : []),
+        ...(esAdmin
+            ? [
+                  {
+                      position: 2,
+                      element: (
+                          <Button
+                              variant="contained"
+                              size="small"
+                              startIcon={<Icon>{icons.crea}</Icon>}
+                              onClick={() => navigate(rutaServei(ID_NOU))}
+                          >
+                              {t('serveis.accio.nou')}
+                          </Button>
+                      ),
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -329,8 +441,20 @@ export const ServeisLlistat: React.FC = () => {
                 toolbarElementsWithPositions={toolbarElements}
                 toolbarAdditionalRow={<ServeisFiltre obert={filtreObert} />}
                 rowAdditionalActions={accions}
-                onRowClick={(params) => navigate(rutaFitxaServei(params.id as number))}
+                onRowClick={(params) => obrir(params.id, 'dades')}
             />
+            {dialogObert && (
+                <ServeiDialog
+                    serveiId={serveiId}
+                    pestanya={pestanya}
+                    onPestanyaChange={(p) => navigate(rutaServei(idParam!, p), { replace: true })}
+                    onCreat={(id) => navigate(rutaServei(id), { replace: true })}
+                    onCanvi={() => {
+                        canvisRef.current = true;
+                    }}
+                    onClose={tancar}
+                />
+            )}
         </ScreenFrame>
     );
 };

@@ -3,31 +3,42 @@ package es.caib.emiserv.logic.intf.model;
 import es.caib.emiserv.logic.intf.base.annotation.ResourceAccessConstraint;
 import es.caib.emiserv.logic.intf.base.annotation.ResourceArtifact;
 import es.caib.emiserv.logic.intf.base.annotation.ResourceConfig;
+import es.caib.emiserv.logic.intf.base.annotation.ResourceField;
 import es.caib.emiserv.logic.intf.base.model.BaseResource;
 import es.caib.emiserv.logic.intf.base.model.ResourceArtifactType;
 import es.caib.emiserv.logic.intf.base.permission.PermissionEnum;
+import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDiagnosticEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.logic.intf.validation.ServeiValid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.data.domain.Sort;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.List;
 
 /**
- * Informació d'un servei per a la interfície REACT (llistat de serveis).
+ * Servei per a la interfície REACT (llistat i formulari de serveis).
  * <p/>
  * Permisos (idèntics als de la JSP):
  * <ul>
- *   <li>consulta: EMS_ADMIN (tots els serveis) i EMS_RESP (només els serveis amb permís ACL
- *   ADMINISTRATION, filtrats al servei);</li>
- *   <li>accions ACTIVAR, DESACTIVAR, ESBORRAR i informe EXPORTAR: només EMS_ADMIN.</li>
+ *   <li>consulta i modificació: EMS_ADMIN (tots els serveis) i EMS_RESP (només els serveis amb
+ *   permís ACL ADMINISTRATION, filtrats al servei);</li>
+ *   <li>creació, accions ACTIVAR, DESACTIVAR, ESBORRAR i informe EXPORTAR: només EMS_ADMIN.</li>
  * </ul>
- * Les operacions genèriques de creació, modificació i esborrat no estan permeses: les accions
- * deleguen a ServeiService perquè les regles de negoci i l'auditoria siguin les de la JSP.
+ * La creació i la modificació deleguen a ServeiService, com la JSP. L'esborrat genèric no està
+ * permès: es fa amb l'acció ESBORRAR.
+ * <p/>
+ * Els camps obligatoris depenen del tipus ({@link ServeiValid}), com els grups de validació de
+ * ServeiCommand de la JSP.
  *
  * @author Limit Tecnologies
  */
@@ -44,8 +55,12 @@ import java.util.List;
 		accessConstraints = {
 				@ResourceAccessConstraint(
 						type = ResourceAccessConstraint.ResourceAccessConstraintType.ROLE,
-						roles = { ServeiResource.ROL_ADMIN, ServeiResource.ROL_RESP },
-						grantedPermissions = { PermissionEnum.READ })
+						roles = { ServeiResource.ROL_ADMIN },
+						grantedPermissions = { PermissionEnum.READ, PermissionEnum.WRITE, PermissionEnum.CREATE }),
+				@ResourceAccessConstraint(
+						type = ResourceAccessConstraint.ResourceAccessConstraintType.ROLE,
+						roles = { ServeiResource.ROL_RESP },
+						grantedPermissions = { PermissionEnum.READ, PermissionEnum.WRITE })
 		},
 		artifacts = {
 				@ResourceArtifact(
@@ -77,6 +92,7 @@ import java.util.List;
 								type = ResourceAccessConstraint.ResourceAccessConstraintType.ROLE,
 								roles = { ServeiResource.ROL_ADMIN }))
 		})
+@ServeiValid
 public class ServeiResource extends BaseResource<Long> {
 
 	public static final String ROL_ADMIN = "EMS_ADMIN";
@@ -87,9 +103,44 @@ public class ServeiResource extends BaseResource<Long> {
 	public static final String ACTION_ESBORRAR_CODE = "ESBORRAR";
 	public static final String REPORT_EXPORTAR_CODE = "EXPORTAR";
 
+	@NotEmpty
+	@Size(max = 64)
 	private String codi;
+	@NotEmpty
+	@Size(max = 256)
 	private String nom;
+	@NotNull
 	private ServeiTipusEnumDto tipus;
+	@Size(max = 1024)
+	private String descripcio;
+	/** Backoffice: classe que processa les peticions (opcions: BackofficeService.getBackofficeClasses). */
+	@Size(max = 256)
+	@ResourceField(enumType = true)
+	private String backofficeClass;
+	@Size(max = 256)
+	private String backofficeCaibUrl;
+	private BackofficeAutenticacioTipusEnumDto backofficeCaibAutenticacio;
+	private BackofficeAsyncTipusEnumDto backofficeCaibAsyncTipus;
+	@Min(0)
+	private Integer backofficeCaibAsyncTer;
+	/** Enrutador: classe que tria la ruta (opcions: ServeiService.resolverClassesFindAll). */
+	@Size(max = 256)
+	@ResourceField(enumType = true)
+	private String resolverClass;
+	@Size(max = 256)
+	private String urlPerDefecte;
+	/** Enrutador múltiple: classe que combina les respostes (opcions: ServeiService.responseResolverClassesFindAll). */
+	@Size(max = 256)
+	@ResourceField(enumType = true)
+	private String responseResolverClass;
+	/** Enrutadors: acceptar peticions asíncrones encara que els cedents només admetin síncrones. */
+	private boolean asyncSincron;
+	/** Temps mínim entre peticions a un mateix cedent (ms); buit: el valor global. */
+	@Min(0)
+	private Integer asyncInterval;
+	/** Peticions simultànies màximes a un mateix cedent; buit: el valor global. */
+	@Min(1)
+	private Integer asyncConcurrencia;
 	private boolean actiu;
 	private boolean configurat;
 	/** Configurat a l'emissor SCSP (mateixa regla que ServeiDto.configuratScsp). */

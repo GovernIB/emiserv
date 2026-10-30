@@ -7,12 +7,12 @@ import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.intf.base.exception.ActionExecutionException;
 import es.caib.emiserv.logic.intf.base.exception.AnswerRequiredException;
 import es.caib.emiserv.logic.intf.base.exception.ReportGenerationException;
-import es.caib.emiserv.logic.intf.base.exception.ResourceNotCreatedException;
-import es.caib.emiserv.logic.intf.base.exception.ResourceNotUpdatedException;
 import es.caib.emiserv.logic.intf.base.model.DownloadableFile;
 import es.caib.emiserv.logic.intf.base.model.ExportField;
+import es.caib.emiserv.logic.intf.base.model.FieldOption;
 import es.caib.emiserv.logic.intf.base.model.ReportFileType;
 import es.caib.emiserv.logic.intf.dto.ServeiDiagnosticEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.exception.ExportacioMassaGranException;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
@@ -20,6 +20,7 @@ import es.caib.emiserv.logic.intf.exception.OrdenacioNoValidaException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.logic.intf.model.ServeiResource;
+import es.caib.emiserv.logic.intf.service.BackofficeService;
 import es.caib.emiserv.logic.intf.service.ServeiResourceService;
 import es.caib.emiserv.logic.intf.service.ServeiService;
 import es.caib.emiserv.persist.entity.ServeiEntity;
@@ -42,6 +43,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.Predicate;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -109,6 +112,10 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 	@Autowired
 	private ServeiService serveiService;
 	@Autowired
+	private BackofficeService backofficeService;
+	@PersistenceContext
+	private EntityManager entityManager;
+	@Autowired
 	private ServeiResourceRepository serveiResourceRepository;
 	@Autowired
 	private ScspCoreServicioRepository scspCoreServicioRepository;
@@ -125,6 +132,13 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 		register(ServeiResource.ACTION_DESACTIVAR_CODE, new ActiuActionExecutor(false));
 		register(ServeiResource.ACTION_ESBORRAR_CODE, new EsborrarActionExecutor());
 		register(ServeiResource.REPORT_EXPORTAR_CODE, new ExportarReportGenerator());
+		// Opcions dels camps de classe del formulari: les mateixes llistes que la JSP (ServeiController)
+		register(ServeiResource.Fields.backofficeClass, (FieldOptionsProvider)(fieldName, params) ->
+				opcionsClasses(backofficeService.getBackofficeClasses()));
+		register(ServeiResource.Fields.resolverClass, (FieldOptionsProvider)(fieldName, params) ->
+				opcionsClasses(serveiService.resolverClassesFindAll()));
+		register(ServeiResource.Fields.responseResolverClass, (FieldOptionsProvider)(fieldName, params) ->
+				opcionsClasses(serveiService.responseResolverClassesFindAll()));
 	}
 
 	@Override
@@ -209,14 +223,67 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 		serveiService.delete(id);
 	}
 
+	/**
+	 * Alta d'un servei: només EMS_ADMIN, com a la JSP. Delega a ServeiService.create.
+	 */
 	@Override
+	@Transactional
 	public ServeiResource create(ServeiResource resource, Map<String, AnswerRequiredException.AnswerValue> answers) {
-		throw new ResourceNotCreatedException(ServeiResource.class, "Operació no disponible");
+		comprovarAdministrador();
+		if (serveiService.findByCodi(resource.getCodi()) != null) {
+			throw new ValidationException("Ja existeix un servei amb el codi " + resource.getCodi());
+		}
+		ServeiDto creat = serveiService.create(toDto(resource));
+		return getOne(creat.getId(), null);
 	}
 
+	/**
+	 * Modificació d'un servei: EMS_ADMIN i els responsables (EMS_RESP) dels serveis on tenen permís,
+	 * com a la JSP. El codi no es pot canviar. Delega a ServeiService.update.
+	 */
 	@Override
+	@Transactional
 	public ServeiResource update(Long id, ServeiResource resource, Map<String, AnswerRequiredException.AnswerValue> answers) {
-		throw new ResourceNotUpdatedException(ServeiResource.class, String.valueOf(id), "Operació no disponible");
+		// Aplica el filtre de permisos (ResourceNotFoundException si l'usuari no hi té accés)
+		ServeiResource actual = getOne(id, null);
+		ServeiDto dto = toDto(resource);
+		dto.setId(id);
+		dto.setCodi(actual.getCodi());
+		serveiService.update(dto);
+		// ServeiResourceEntity (immutable) és al context de persistència amb els valors anteriors
+		entityManager.flush();
+		entityManager.clear();
+		return getOne(id, null);
+	}
+
+	private static ServeiDto toDto(ServeiResource resource) {
+		ServeiDto dto = new ServeiDto();
+		dto.setCodi(resource.getCodi());
+		dto.setNom(resource.getNom());
+		dto.setTipus(resource.getTipus());
+		dto.setDescripcio(resource.getDescripcio());
+		dto.setBackofficeClass(resource.getBackofficeClass());
+		dto.setBackofficeCaibUrl(resource.getBackofficeCaibUrl());
+		dto.setBackofficeCaibAutenticacio(resource.getBackofficeCaibAutenticacio());
+		dto.setBackofficeCaibAsyncTipus(resource.getBackofficeCaibAsyncTipus());
+		dto.setBackofficeCaibAsyncTer(resource.getBackofficeCaibAsyncTer() != null ? resource.getBackofficeCaibAsyncTer() : 0);
+		dto.setResolverClass(resource.getResolverClass());
+		dto.setUrlPerDefecte(resource.getUrlPerDefecte());
+		dto.setResponseResolverClass(resource.getResponseResolverClass());
+		// Ritme d'enviament als cedents: només té sentit si s'accepten peticions asíncrones com a síncrones
+		dto.setAsyncSincron(resource.isAsyncSincron());
+		dto.setAsyncInterval(resource.isAsyncSincron() ? resource.getAsyncInterval() : null);
+		dto.setAsyncConcurrencia(resource.isAsyncSincron() ? resource.getAsyncConcurrencia() : null);
+		return dto;
+	}
+
+	private static List<FieldOption> opcionsClasses(List<String> classes) {
+		if (classes == null) {
+			return new ArrayList<>();
+		}
+		return classes.stream().
+				map(c -> new FieldOption(c, c)).
+				collect(Collectors.toList());
 	}
 
 	@Override

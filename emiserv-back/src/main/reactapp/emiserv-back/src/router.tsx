@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from './App';
 import ServeisLlistat from './pages/serveis/ServeisLlistat';
-import ServeiFitxa from './pages/serveis/ServeiFitxa';
 import NotFound from './pages/NotFound';
 
 export const router = createBrowserRouter(
@@ -15,13 +14,10 @@ export const router = createBrowserRouter(
                     element: <Navigate to="/serveis" replace />,
                 },
                 {
-                    path: 'serveis',
+                    // Amb un id (o «nou»), el llistat obre la finestra del servei a la pestanya
+                    // ?pestanya=... Una sola ruta perquè el llistat no es torni a muntar en obrir-la.
+                    path: 'serveis/:id?',
                     element: <ServeisLlistat />,
-                },
-                {
-                    // Fitxa provisional de només lectura fins a la fase 2.
-                    path: 'serveis/:id',
-                    element: <ServeiFitxa />,
                 },
                 {
                     path: '*',

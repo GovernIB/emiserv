@@ -11,11 +11,14 @@ import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.intf.base.model.DownloadableFile;
 import es.caib.emiserv.logic.intf.base.model.ReportFileType;
 import es.caib.emiserv.logic.intf.dto.ServeiDiagnosticEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.base.exception.ResourceNotFoundException;
 import es.caib.emiserv.logic.intf.exception.ExportacioMassaGranException;
 import es.caib.emiserv.logic.intf.exception.OrdenacioNoValidaException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.logic.intf.model.ServeiResource;
+import es.caib.emiserv.logic.intf.service.BackofficeService;
 import es.caib.emiserv.logic.intf.service.ServeiService;
 import es.caib.emiserv.persist.base.repository.BaseRepositoryImpl;
 import es.caib.emiserv.persist.entity.ServeiEntity;
@@ -99,6 +102,8 @@ class ServeiResourceServiceTest {
 	private JdbcTemplate jdbcTemplate;
 	@MockBean
 	private ServeiService serveiService;
+	@MockBean
+	private BackofficeService backofficeService;
 	@MockBean
 	private ScspCoreServicioRepository scspCoreServicioRepository;
 	@MockBean
@@ -357,6 +362,68 @@ class ServeiResourceServiceTest {
 	}
 
 	@Test
+	void crearNomesAdmin() {
+		autenticar("EMS_RESP");
+		assertThrows(AccessDeniedException.class, () -> service.create(serveiEnrutador("S9"), null));
+		verify(serveiService, never()).create(any());
+	}
+
+	@Test
+	void crearAmbCodiRepetitEsRebutja() {
+		autenticar("EMS_ADMIN");
+		when(serveiService.findByCodi("S9")).thenReturn(new ServeiDto());
+		assertThrows(ValidationException.class, () -> service.create(serveiEnrutador("S9"), null));
+		verify(serveiService, never()).create(any());
+	}
+
+	@Test
+	void crearDelegaAServeiService() {
+		autenticar("EMS_ADMIN");
+		// ServeiService (simulat) desa el servei: la fila ja existeix quan es torna a llegir
+		when(serveiService.create(any())).thenAnswer(inv -> {
+			inserirServei(9L, "S9", "Nou", 1, true, true);
+			ServeiDto creat = new ServeiDto();
+			creat.setId(9L);
+			return creat;
+		});
+		ServeiResource resource = serveiEnrutador("S9");
+		resource.setAsyncInterval(500);
+		ServeiResource creat = service.create(resource, null);
+		assertEquals(9L, creat.getId());
+		verify(serveiService).create(argThat(dto ->
+				"S9".equals(dto.getCodi()) &&
+				"es.Resolver".equals(dto.getResolverClass()) &&
+				// Sense acceptar peticions asíncrones el ritme d'enviament no es desa
+				!dto.isAsyncSincron() && dto.getAsyncInterval() == null));
+	}
+
+	@Test
+	void modificarMantéElCodiIElServeiHaDeSerPermes() {
+		crearServeisBasics();
+		autenticar("EMS_RESP");
+		permetreNomes(2L);
+		ServeiResource canvis = serveiEnrutador("CANVIAT");
+		canvis.setNom("Nom nou");
+		canvis.setAsyncSincron(true);
+		canvis.setAsyncConcurrencia(3);
+		service.update(2L, canvis, null);
+		verify(serveiService).update(argThat(dto ->
+				dto.getId() == 2L && "S2".equals(dto.getCodi()) && "Nom nou".equals(dto.getNom()) &&
+				dto.isAsyncSincron() && dto.getAsyncConcurrencia() == 3));
+		// Un servei sense permís no es troba
+		assertThrows(ResourceNotFoundException.class, () -> service.update(1L, canvis, null));
+	}
+
+	private static ServeiResource serveiEnrutador(String codi) {
+		ServeiResource resource = new ServeiResource();
+		resource.setCodi(codi);
+		resource.setNom("Servei " + codi);
+		resource.setTipus(ServeiTipusEnumDto.ENRUTADOR);
+		resource.setResolverClass("es.Resolver");
+		return resource;
+	}
+
+	@Test
 	void exportarNomesAdmin() {
 		crearServeisBasics();
 		autenticar("EMS_RESP");
@@ -377,7 +444,7 @@ class ServeiResourceServiceTest {
 
 	private void inserirServei(Long id, String codi, String nom, int tipus, boolean actiu, boolean configurat) {
 		jdbcTemplate.update(
-				"insert into ems_servei (id, codi, nom, tipus, actiu, configurat, xsd_activa) values (?, ?, ?, ?, ?, ?, false)",
+				"insert into ems_servei (id, codi, nom, tipus, actiu, configurat, xsd_activa, async_sincron) values (?, ?, ?, ?, ?, ?, false, false)",
 				id, codi, nom, tipus, actiu, configurat);
 	}
 

@@ -11,8 +11,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 /**
  * API REST del recurs de serveis de la interfície REACT.
  * <p/>
- * La creació, la modificació i l'esborrat genèrics no estan disponibles: l'esborrat es fa amb
- * l'acció ESBORRAR, que delega a ServeiService igual que la JSP.
+ * La creació i la modificació deleguen a ServeiService (vegeu ServeiResourceServiceImpl). L'esborrat
+ * genèric no està disponible: es fa amb l'acció ESBORRAR, que delega a ServeiService igual que la JSP.
  *
  * @author Limit Tecnologies
  */
@@ -28,14 +28,6 @@ public class ServeiApiController extends BaseMutableResourceController<ServeiRes
 		return linkTo(getClass()).withRel(RESOURCE_NAME);
 	}
 
-	@Override
-	public boolean forbiddenCreateLogic() {
-		return true;
-	}
-	@Override
-	public boolean forbiddenUpdateLogic() {
-		return true;
-	}
 	@Override
 	public boolean forbiddenPatchLogic() {
 		return true;
