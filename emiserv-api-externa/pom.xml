@@ -71,7 +71,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>emiserv-client-intf</artifactId>
-            <version>${project.version}</version>
+            <version>${emiserv-client.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

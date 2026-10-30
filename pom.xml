@@ -26,6 +26,9 @@
 		<opencsv.version>4.6</opencsv.version>
 		<springdoc-openapi.version>1.2.25</springdoc-openapi.version>
 		<keycloak.version>17.0.1</keycloak.version>
+		<!-- Versió dels clients REST (emiserv-client-intf, emiserv-client, emiserv-client-legacy), independent
+		     de la de l'aplicació. Ha de coincidir amb la <version> dels seus poms, que no hereten d'aquest. -->
+		<emiserv-client.version>2.0.7</emiserv-client.version>
 		<lombok.version>1.18.28</lombok.version>
 		<scsp.core.version>5.0.12</scsp.core.version>
 		<scsp.beans.version>5.0.12</scsp.beans.version>
@@ -69,9 +72,8 @@
 		<module>emiserv-api-interna-scsp</module>
 		<module>emiserv-api-externa</module>
 		<module>emiserv-client-intf</module>
-		<module>emiserv-client-jersey1</module>
-		<module>emiserv-client-jersey2</module>
-		<module>emiserv-client-jersey3</module>
+		<module>emiserv-client</module>
+		<module>emiserv-client-legacy</module>
 	</modules>
 	<build>
 		<plugins>

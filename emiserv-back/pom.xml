@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>emiserv-client-intf</artifactId>
-			<version>${project.version}</version>
+			<version>${emiserv-client.version}</version>
 		</dependency>
 		<!-- Per a evitar el missatge "warning: unknown enum constant When.MAYBE" al generar javadoc -->
 		<dependency>

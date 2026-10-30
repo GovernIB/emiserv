@@ -7,7 +7,10 @@
 
     <groupId>es.caib.emiserv</groupId>
     <artifactId>emiserv-client-intf</artifactId>
+    <!-- La versió dels clients és independent de la de l'aplicació (propietat emiserv-client.version
+         del pom arrel): només canvia quan canvien aquestes classes o els clients. -->
     <version>2.0.7</version>
+    <name>Classes compartides dels clients REST d'EMISERV</name>
 
     <dependencies>
         <dependency>
@@ -28,8 +31,10 @@
     </dependencies>
 
     <properties>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <!-- emiserv-client-legacy compila aquestes mateixes fonts amb Java 7 (build-helper-maven-plugin):
+             el codi ha de continuar essent compatible amb Java 7. -->
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <lombok.version>1.18.28</lombok.version>
     </properties>
 

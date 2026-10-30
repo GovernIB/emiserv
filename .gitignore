@@ -7,9 +7,8 @@
 *.iml
 /emiserv-api-interna/target/
 /emiserv-client-intf/target/
-/emiserv-client-jersey1/target/
-/emiserv-client-jersey2/target/
-/emiserv-client-jersey3/target/
+/emiserv-client/target/
+/emiserv-client-legacy/target/
 /docker-compose.yml
 /.env
 /application.properties
