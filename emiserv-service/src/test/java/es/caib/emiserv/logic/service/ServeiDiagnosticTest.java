@@ -1,6 +1,8 @@
 package es.caib.emiserv.logic.service;
 
 import es.caib.emiserv.logic.helper.BackofficeDestiHelper;
+import es.caib.emiserv.logic.helper.PermisosHelper;
+import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDiagnosticEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiTipusEnumDto;
@@ -15,10 +17,12 @@ import es.caib.emiserv.persist.repository.scsp.ScspCoreServicioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +30,11 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyIterable;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -44,6 +52,8 @@ class ServeiDiagnosticTest {
 	private ServeiRutaDestiRepository rutaRepository;
 	private ScspCoreServicioRepository coreRepository;
 	private Environment environment;
+	private SecurityHelper securityHelper;
+	private PermisosHelper permisosHelper;
 	private ServeiServiceImpl service;
 	private final List<ServeiEntity> serveis = new ArrayList<>();
 	private final List<ScspCoreServicioEntity> cores = new ArrayList<>();
@@ -65,6 +75,11 @@ class ServeiDiagnosticTest {
 		ReflectionTestUtils.setField(service, "serveiRutaDestiRepository", rutaRepository);
 		ReflectionTestUtils.setField(service, "scspCoreServicioRepository", coreRepository);
 		ReflectionTestUtils.setField(service, "backofficeDestiHelper", helper);
+		securityHelper = mock(SecurityHelper.class);
+		when(securityHelper.hasRole("EMS_ADMIN")).thenReturn(true);
+		permisosHelper = mock(PermisosHelper.class);
+		ReflectionTestUtils.setField(service, "securityHelper", securityHelper);
+		ReflectionTestUtils.setField(service, "permisosHelper", permisosHelper);
 	}
 
 	private ServeiEntity servei(long id, String codi, ServeiTipusEnumDto tipus, boolean configurat) {
@@ -191,4 +206,35 @@ class ServeiDiagnosticTest {
 		verify(rutaRepository, times(1)).findByServeiIdIn(any());
 		verify(coreRepository, never()).findByCodigoCertificado(any());
 	}
+	@Test
+	@SuppressWarnings("unchecked")
+	void responsableNomesRepElDiagnosticDelsServeisPermesos() {
+		servei(1, "BO1", ServeiTipusEnumDto.BACKOFFICE, true);
+		servei(2, "BO2", ServeiTipusEnumDto.BACKOFFICE, true);
+		when(securityHelper.hasRole("EMS_ADMIN")).thenReturn(false);
+		// Mateixa regla que findAllPaginat: permís ADMINISTRATION sobre ServeiEntity
+		doAnswer(inv -> {
+			((Collection<ServeiEntity>)inv.getArgument(0)).removeIf(s -> s.getId() != 1L);
+			return null;
+		}).when(permisosHelper).filterGrantedAll(
+				anyCollection(),
+				any(),
+				eq(ServeiEntity.class),
+				argThat(p -> p.length == 1 && p[0] == BasePermission.ADMINISTRATION),
+				any());
+
+		Map<Long, List<ServeiDiagnosticEnumDto>> resultat = service.diagnosticFindByServeis(Arrays.asList(1L, 2L));
+
+		assertEquals(Collections.singleton(1L), resultat.keySet());
+	}
+
+	@Test
+	void administradorNoFiltraPerPermisos() {
+		servei(1, "BO1", ServeiTipusEnumDto.BACKOFFICE, true);
+		servei(2, "BO2", ServeiTipusEnumDto.BACKOFFICE, true);
+
+		assertEquals(2, service.diagnosticFindByServeis(Arrays.asList(1L, 2L)).size());
+		verifyNoInteractions(permisosHelper);
+	}
+
 }

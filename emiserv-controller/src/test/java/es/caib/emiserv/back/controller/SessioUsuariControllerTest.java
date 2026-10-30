@@ -39,7 +39,7 @@ public class SessioUsuariControllerTest {
 	public void configurar() {
 		aplicacioService = mock(AplicacioService.class);
 		mockMvc = MockMvcBuilders.standaloneSetup(
-				new SessioUsuariController(aplicacioService, " EMS_ADMIN, EMS_RESP ")).build();
+				new SessioUsuariController(aplicacioService, " EMS_ADMIN, EMS_RESP ", " http://localhost:5173/ ")).build();
 		SecurityContextHolder.clearContext();
 	}
 
@@ -96,6 +96,16 @@ public class SessioUsuariControllerTest {
 					andReturn().getResponse().getHeader("Location");
 			assertEquals(permes, location);
 		}
+	}
+
+	@Test
+	public void loginNoRedirigeixAlServidorDeViteSenseLaPropietat() throws Exception {
+		MockMvc senseOrigens = MockMvcBuilders.standaloneSetup(
+				new SessioUsuariController(aplicacioService, "EMS_ADMIN,EMS_RESP", "")).build();
+		String location = senseOrigens.perform(get("/sessioUsuari/login").param("redirect", "http://localhost:5173/reactapp")).
+				andExpect(status().isFound()).
+				andReturn().getResponse().getHeader("Location");
+		assertTrue(location.endsWith("/reactapp") && !location.contains("5173"), location);
 	}
 
 	@Test

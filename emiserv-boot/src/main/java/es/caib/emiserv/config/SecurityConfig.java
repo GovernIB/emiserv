@@ -3,6 +3,7 @@
  */
 package es.caib.emiserv.config;
 
+import es.caib.emiserv.back.base.config.ApiOrigenFilter;
 import es.caib.emiserv.back.base.config.BaseWebSecurityConfig;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
 import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
@@ -29,6 +30,8 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
 	@Value("${es.caib.emiserv.security.mappableRoles:EMS_ADMIN,EMS_RESP}")
 	private String mappableRoles;
+	@Value("${" + ApiOrigenFilter.PROPIETAT_ORIGENS + ":}")
+	private String origensPermesos;
 
 	private static final String ROLE_PREFIX = "";
 
@@ -51,7 +54,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 		permitAll(false);
 		// API REST: requereix algun rol d'Emiserv (403 JSON altrament) i sense autenticar respon
 		// 401 JSON en lloc de redirigir al login de Keycloak.
-		BaseWebSecurityConfig.configureApi(http, authenticationEntryPoint(), mappableRoles);
+		BaseWebSecurityConfig.configureApi(http, authenticationEntryPoint(), mappableRoles, origensPermesos);
 		http.authorizeRequests().
 		//antMatchers("/test").hasRole("tothom").
 		antMatchers(AUTH_WHITELIST).permitAll().

@@ -9,10 +9,12 @@ import es.caib.emiserv.back.base.util.ResourceServiceLocator;
 import es.caib.emiserv.logic.base.helper.AuthenticationHelper;
 import es.caib.emiserv.logic.base.service.PermissionEvaluatorService;
 import es.caib.emiserv.logic.helper.PermissionHelper;
+import es.caib.emiserv.logic.intf.base.exception.ResourceNotFoundException;
 import es.caib.emiserv.logic.intf.base.model.ResourceArtifactType;
 import es.caib.emiserv.logic.intf.base.permission.ResourcePermissions;
 import es.caib.emiserv.logic.intf.base.service.ResourceApiService;
 import es.caib.emiserv.logic.intf.exception.ExportacioMassaGranException;
+import es.caib.emiserv.logic.intf.exception.OrdenacioNoValidaException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.logic.intf.model.ServeiResource;
 import es.caib.emiserv.logic.intf.service.ServeiResourceService;
@@ -35,6 +37,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
 
@@ -78,7 +81,7 @@ class ServeiApiControllerSecurityTest {
 		}
 		@Bean
 		public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
-			BaseWebSecurityConfig.configureApi(http, new LoginUrlAuthenticationEntryPoint("/login"), "EMS_ADMIN,EMS_RESP");
+			BaseWebSecurityConfig.configureApi(http, new LoginUrlAuthenticationEntryPoint("/login"), "EMS_ADMIN,EMS_RESP", null);
 			http.authorizeRequests().anyRequest().authenticated();
 			return http.build();
 		}
@@ -184,6 +187,60 @@ class ServeiApiControllerSecurityTest {
 						contentType(MediaType.APPLICATION_JSON).content("{}")).
 				andExpect(status().isUnprocessableEntity()).
 				andExpect(jsonPath("$.message").value("L'exportació té 12.345 files i supera el màxim permès (10.000)"));
+	}
+
+
+	@Test
+	@WithMockUser(username = "resp", authorities = "EMS_RESP")
+	void respServeiAlieEs404() throws Exception {
+		// El servei del recurs filtra per ACL (ADMINISTRATION) i no troba els serveis aliens
+		when(serveiResourceService.getOne(eq(2L), any())).
+				thenThrow(new ResourceNotFoundException(ServeiResource.class, "2"));
+		mockMvc.perform(get("/api/servei/2").accept(MediaTypes.HAL_FORMS_JSON)).
+				andExpect(status().isNotFound());
+	}
+
+	@Test
+	@WithMockUser(username = "admin", authorities = "EMS_ADMIN")
+	void ordenacioNoValidaEs400() throws Exception {
+		when(serveiResourceService.artifactReportGenerateData(any(), eq(ServeiResource.REPORT_EXPORTAR_CODE), any())).
+				thenThrow(new OrdenacioNoValidaException("diagnostic", Arrays.asList("codi", "nom")));
+		mockMvc.perform(post("/api/servei/artifacts/report/" + ServeiResource.REPORT_EXPORTAR_CODE).
+						param("fileType", "CSV").
+						with(csrf()).
+						contentType(MediaType.APPLICATION_JSON).content("{\"sort\":[\"diagnostic\"]}")).
+				andExpect(status().isBadRequest()).
+				andExpect(jsonPath("$.message").value("No es pot ordenar pel camp 'diagnostic' (camps permesos: codi, nom)"));
+	}
+
+	@Test
+	@WithMockUser(username = "admin", authorities = "EMS_ADMIN")
+	void errorNoPrevistNoMostraElDetall() throws Exception {
+		when(serveiResourceService.artifactActionExec(eq(3L), eq(ServeiResource.ACTION_ACTIVAR_CODE), any())).
+				thenThrow(new IllegalStateException("ORA-00942: table or view does not exist"));
+		mockMvc.perform(post("/api/servei/3/artifacts/action/" + ServeiResource.ACTION_ACTIVAR_CODE).
+						param("trace", "true").
+						with(csrf()).
+						contentType(MediaType.APPLICATION_JSON).content("{}")).
+				andExpect(status().isInternalServerError()).
+				andExpect(jsonPath("$.message").value("Internal Server Error")).
+				andExpect(jsonPath("$.stackTrace").doesNotExist());
+	}
+
+	@Test
+	@WithMockUser(username = "admin", authorities = "EMS_ADMIN")
+	void accioDUnAltreLlocEs403() throws Exception {
+		mockMvc.perform(post("/api/servei/1/artifacts/action/" + ServeiResource.ACTION_ACTIVAR_CODE).
+						header("Origin", "https://evil.example").
+						with(csrf()).
+						contentType(MediaType.APPLICATION_JSON).content("{}")).
+				andExpect(status().isForbidden());
+		verify(serveiResourceService, never()).artifactActionExec(any(), any(), any());
+		mockMvc.perform(post("/api/servei/1/artifacts/action/" + ServeiResource.ACTION_ACTIVAR_CODE).
+						header("Origin", "http://localhost").
+						with(csrf()).
+						contentType(MediaType.APPLICATION_JSON).content("{}")).
+				andExpect(status().is2xxSuccessful());
 	}
 
 }

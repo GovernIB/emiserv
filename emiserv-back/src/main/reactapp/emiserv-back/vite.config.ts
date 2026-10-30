@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -88,7 +89,7 @@ export default defineConfig(({ command, mode }) => {
     // Amb `npm run dev` la pàgina és a :5173 i el login (`sessioUsuari/login`) no passa pel proxy:
     // EmiservAuthProvider l'ha d'obrir directament al backend. Només en dev: al build el SPA el
     // serveix el mateix backend i el login és al mateix origen.
-    if (command === 'serve') {
+    if (command === 'serve' && mode !== 'test') {
         process.env.VITE_DEV_BACKEND_URL = backendUrl;
     }
 
@@ -114,5 +115,15 @@ export default defineConfig(({ command, mode }) => {
             },
         },
         plugins: [react(), tsconfigPaths(), fixBackendEndpointsBase(), devManifest()],
+        // `npm test`: la mateixa configuració que base-react (jsdom + jest-dom).
+        test: {
+            environment: 'jsdom',
+            setupFiles: ['./vitest.setup.ts'],
+            globals: true,
+            exclude: ['lib/**', 'node_modules/**', 'dist/**'],
+            // tsconfig.app.json exclou els tests, i vite-tsconfig-paths no els hi aplica `paths`.
+            alias: { reactlib: resolve(process.cwd(), 'lib/main.ts') },
+            server: { deps: { inline: [/@mui\/x-/] } },
+        },
     };
 });

@@ -5,6 +5,7 @@ import es.caib.emiserv.back.base.controller.RestApiController;
 import es.caib.emiserv.logic.intf.base.config.BaseBootConfig;
 import es.caib.emiserv.logic.intf.base.exception.*;
 import es.caib.emiserv.logic.intf.exception.ExportacioMassaGranException;
+import es.caib.emiserv.logic.intf.exception.OrdenacioNoValidaException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +51,15 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 	@Autowired
 	private MessageSource messageSource;
 
-	@Value("${reflectoring.trace:true}")
+	/**
+	 * Adaptació d'EMISERV: les traces d'error (?trace=true) no es tornen si no s'activa
+	 * expressament, perquè revelen detalls interns de l'aplicació.
+	 */
+	@Value("${reflectoring.trace:false}")
 	private boolean printStackTrace;
+
+	/** Missatge per als errors no previstos: el detall només es registra al log del servidor. */
+	static final String MISSATGE_ERROR_INTERN = HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase();
 
 	@ExceptionHandler(NotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
@@ -131,7 +139,8 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 							request.getLocale());
 				}
 			} else {
-				errorMessage = ex.getMessage();
+				log.error("Data integrity violation", ex);
+				errorMessage = MISSATGE_ERROR_INTERN;
 			}
 			return buildConstraintValidationErrorResponse(
 					ex,
@@ -140,9 +149,10 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 					request,
 					constraintName);
 		} else {
+			log.error("Data integrity violation", ex);
 			return buildErrorResponse(
 					ex,
-					ex.getMessage(),
+					MISSATGE_ERROR_INTERN,
 					HttpStatus.INTERNAL_SERVER_ERROR,
 					request);
 		}
@@ -246,6 +256,20 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 				request);
 	}
 
+	/** Adaptació d'EMISERV: ordenació per un camp que no es pot ordenar. */
+	@ExceptionHandler(OrdenacioNoValidaException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ResponseEntity<Object> handleOrdenacioNoValidaException(
+			OrdenacioNoValidaException ex,
+			WebRequest request) {
+		log.warn(ex.getMessage());
+		return buildErrorResponse(
+				ex,
+				ex.getMessage(),
+				HttpStatus.BAD_REQUEST,
+				request);
+	}
+
 	/**
 	 * Adaptació d'EMISERV: errors de validació de negoci dels serveis existents (per exemple, un
 	 * servei amb peticions que no es pot esborrar). Es torna 409 amb el missatge del servei.
@@ -319,6 +343,8 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 			return handleActionExecutionException((ActionExecutionException)causedBy, request);
 		} else if (causedBy instanceof ExportacioMassaGranException) {
 			return handleExportacioMassaGranException((ExportacioMassaGranException)causedBy, request);
+		} else if (causedBy instanceof OrdenacioNoValidaException) {
+			return handleOrdenacioNoValidaException((OrdenacioNoValidaException)causedBy, request);
 		} else if (causedBy instanceof ValidationException) {
 			return handleValidationException((ValidationException)causedBy, request);
 		} else if (causedBy instanceof PermissionDeniedException) {
@@ -336,9 +362,10 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 			Exception ex,
 			WebRequest request) {
 		log.error("Uncaught exception", ex);
+		// Adaptació d'EMISERV: el missatge pot contenir detalls interns (p. ex. SQL).
 		return buildErrorResponse(
 				ex,
-				ex.getLocalizedMessage() != null ? ex.getLocalizedMessage() : "Unknown error",
+				MISSATGE_ERROR_INTERN,
 				HttpStatus.INTERNAL_SERVER_ERROR,
 				request);
 	}
@@ -385,6 +412,9 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 			HttpStatus status,
 			WebRequest request) {
 		log.error("Internal exception", ex);
+		if (status.is5xxServerError()) {
+			return buildErrorResponse(ex, MISSATGE_ERROR_INTERN, status, request);
+		}
 		return buildErrorResponse(ex, status, request);
 	}
 

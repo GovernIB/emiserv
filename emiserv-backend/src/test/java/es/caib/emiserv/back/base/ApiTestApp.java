@@ -30,10 +30,11 @@ public class ApiTestApp {
 
 	public static final String LOGIN_URL = "/login";
 	public static final String MAPPABLE_ROLES = "EMS_ADMIN,EMS_RESP";
+	public static final String DEV_ORIGIN = "http://localhost:5173";
 
 	@Bean
 	public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
-		BaseWebSecurityConfig.configureApi(http, new LoginUrlAuthenticationEntryPoint(LOGIN_URL), MAPPABLE_ROLES);
+		BaseWebSecurityConfig.configureApi(http, new LoginUrlAuthenticationEntryPoint(LOGIN_URL), MAPPABLE_ROLES, DEV_ORIGIN);
 		http.authorizeRequests().anyRequest().authenticated();
 		return http.build();
 	}

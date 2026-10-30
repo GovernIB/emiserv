@@ -11,7 +11,9 @@ import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.intf.base.model.DownloadableFile;
 import es.caib.emiserv.logic.intf.base.model.ReportFileType;
 import es.caib.emiserv.logic.intf.dto.ServeiDiagnosticEnumDto;
+import es.caib.emiserv.logic.intf.base.exception.ResourceNotFoundException;
 import es.caib.emiserv.logic.intf.exception.ExportacioMassaGranException;
+import es.caib.emiserv.logic.intf.exception.OrdenacioNoValidaException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.logic.intf.model.ServeiResource;
 import es.caib.emiserv.logic.intf.service.ServeiService;
@@ -35,6 +37,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.AccessDeniedException;
@@ -321,6 +324,36 @@ class ServeiResourceServiceTest {
 		assertThrows(
 				ExportacioMassaGranException.class,
 				() -> service.export(null, null, null, null, PageRequest.of(0, 10), null, ReportFileType.CSV, null));
+	}
+
+	@Test
+	void respNoPotObtenirUnServeiAlie() {
+		crearServeisBasics();
+		autenticar("EMS_RESP");
+		permetreNomes(1L);
+		assertEquals("S1", service.getOne(1L, null).getCodi());
+		assertThrows(ResourceNotFoundException.class, () -> service.getOne(2L, null));
+	}
+
+	@Test
+	void exportarOrdenantPerUnCampNoOrdenableEsRebutja() {
+		crearServeisBasics();
+		autenticar("EMS_ADMIN");
+		for (String sort: new String[] {"diagnostic", "configuratScsp,desc", "inexistent", ",desc"}) {
+			ServeiResource.ExportacioForm form = new ServeiResource.ExportacioForm();
+			form.setSort(new String[] {sort});
+			assertThrows(
+					OrdenacioNoValidaException.class,
+					() -> service.artifactReportGenerateData(null, ServeiResource.REPORT_EXPORTAR_CODE, form),
+					sort);
+		}
+		assertThrows(
+				OrdenacioNoValidaException.class,
+				() -> service.export(null, null, null, null, PageRequest.of(0, 10, Sort.by("diagnostic")), null, ReportFileType.CSV, null));
+		// Els camps persistits, inclosos els comptadors, sí que es poden ordenar
+		ServeiResource.ExportacioForm form = new ServeiResource.ExportacioForm();
+		form.setSort(new String[] {"rutesCount,desc", "nom"});
+		assertEquals(3, service.artifactReportGenerateData(null, ServeiResource.REPORT_EXPORTAR_CODE, form).size());
 	}
 
 	@Test

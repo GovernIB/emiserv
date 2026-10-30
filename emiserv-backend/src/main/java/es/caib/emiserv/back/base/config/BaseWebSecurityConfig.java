@@ -10,6 +10,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -27,7 +28,7 @@ import java.util.LinkedHashMap;
  * {@code SecurityFilterChain}) i l'API REST empra la mateixa sessió que la interfície JSP.
  * Per això aquí només hi ha les peces que aquestes configuracions han d'aplicar a les
  * peticions de l'API: el punt d'entrada que respon 401 amb un JSON en lloc de redirigir
- * al login.
+ * al login i la protecció CSRF de les accions ({@link ApiOrigenFilter}).
  *
  * @author Limit Tecnologies
  */
@@ -65,7 +66,9 @@ public final class BaseWebSecurityConfig {
 	/**
 	 * Aplica a una configuració de seguretat les regles de l'API REST: les peticions
 	 * a {@code /api/**} requereixen algun dels rols indicats (403 amb un JSON si l'usuari
-	 * està autenticat però no en té cap) i sense autenticar responen 401 amb un JSON.
+	 * està autenticat però no en té cap) i sense autenticar responen 401 amb un JSON. Les
+	 * accions (mètodes que no són GET/HEAD/OPTIONS) que vénen d'un altre lloc responen 403
+	 * ({@link ApiOrigenFilter}).
 	 * Cal cridar-la abans de definir les altres regles d'autorització perquè aquesta
 	 * tingui preferència, i després d'haver configurat el punt d'entrada per defecte.
 	 * Les autoritats no porten prefix, per això es fa servir {@code hasAnyAuthority}.
@@ -77,18 +80,24 @@ public final class BaseWebSecurityConfig {
 	 * @param mappableRoles
 	 *            els rols que donen accés a l'API, separats per comes
 	 *            (propietat {@code es.caib.emiserv.security.mappableRoles}).
+	 * @param origensPermesos
+	 *            els orígens, a més del propi, des d'on es permeten accions a l'API, separats
+	 *            per comes (propietat {@link ApiOrigenFilter#PROPIETAT_ORIGENS}; pot ser null).
 	 * @throws Exception
 	 *             si es produeix algun error en la configuració.
 	 */
 	public static void configureApi(
 			HttpSecurity http,
 			AuthenticationEntryPoint defaultEntryPoint,
-			String mappableRoles) throws Exception {
+			String mappableRoles,
+			String origensPermesos) throws Exception {
 		String[] roles = Arrays.stream(mappableRoles.split(",")).
 				map(String::trim).
 				filter(r -> !r.isEmpty()).
 				toArray(String[]::new);
 		http.authorizeRequests().antMatchers(API_PATTERN).hasAnyAuthority(roles);
+		// El CSRF de Spring Security està desactivat a les aplicacions: el filtre ocupa el seu lloc.
+		http.addFilterBefore(new ApiOrigenFilter(apiRequestMatcher(), origensPermesos), CsrfFilter.class);
 		http.exceptionHandling().
 				authenticationEntryPoint(apiAuthenticationEntryPoint(defaultEntryPoint)).
 				accessDeniedHandler(apiAccessDeniedHandler());

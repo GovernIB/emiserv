@@ -5,6 +5,7 @@ package es.caib.emiserv.back.controller;
 
 import es.caib.emiserv.back.helper.AjaxHelper;
 import es.caib.emiserv.back.helper.ModalHelper;
+import es.caib.emiserv.back.helper.ReactAppHelper;
 import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +28,14 @@ public class IndexController {
 
 	@Autowired
 	private AplicacioService aplicacioService;
+	@Autowired
+	private ReactAppHelper reactAppHelper;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String root(HttpServletRequest request) {
-		if (aplicacioService.getInterficieEfectiva() == InterficieUsuariEnumDto.REACT) {
-			return "redirect:/reactapp";
+		// Si l'aplicació s'ha construït sense la interfície REACT, tothom va a la JSP
+		if (aplicacioService.getInterficieEfectiva() == InterficieUsuariEnumDto.REACT && reactAppHelper.isDisponible()) {
+			return "redirect:" + ReactAppHelper.REACT_APP_PATH;
 		}
 		return "redirect:/servei";
 	}

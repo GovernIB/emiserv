@@ -1,5 +1,6 @@
 package es.caib.emiserv.back.controller;
 
+import es.caib.emiserv.back.base.config.ApiOrigenFilter;
 import es.caib.emiserv.logic.intf.base.config.BaseBootConfig;
 import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
 import es.caib.emiserv.logic.intf.keycloak.KeycloakHelper;
@@ -40,18 +41,19 @@ import java.util.stream.Collectors;
 @RestController
 public class SessioUsuariController {
 
-	/** Origens, a mes del propi, a on es permet tornar despres del login (servidor de Vite). */
-	static final String[] ORIGENS_PERMESOS = new String[] { "http://localhost:5173" };
-
 	private final AplicacioService aplicacioService;
 	private final List<String> rolsInterficie;
+	/** Origens, a mes del propi, a on es permet tornar despres del login (p. ex. el servidor de Vite). */
+	private final List<String> origensPermesos;
 
 	@Autowired
 	public SessioUsuariController(
 			AplicacioService aplicacioService,
-			@org.springframework.beans.factory.annotation.Value("${es.caib.emiserv.security.mappableRoles:EMS_ADMIN,EMS_RESP}") String mappableRoles) {
+			@org.springframework.beans.factory.annotation.Value("${es.caib.emiserv.security.mappableRoles:EMS_ADMIN,EMS_RESP}") String mappableRoles,
+			@org.springframework.beans.factory.annotation.Value("${" + ApiOrigenFilter.PROPIETAT_ORIGENS + ":}") String origensPermesos) {
 		this.aplicacioService = aplicacioService;
 		this.rolsInterficie = parseRols(mappableRoles);
+		this.origensPermesos = ApiOrigenFilter.parseOrigens(origensPermesos);
 	}
 
 	/**
@@ -109,7 +111,7 @@ public class SessioUsuariController {
 	 * redireccio al login.
 	 * <p>
 	 * Nomes es torna a camins relatius al mateix servidor, a URLs del mateix origen o a
-	 * {@link #ORIGENS_PERMESOS}. Qualsevol altra (o cap) porta a {@code /reactapp}: aixi
+	 * als origens de la propietat {@code es.caib.emiserv.front.dev.origins}. Qualsevol altra (o cap) porta a {@code /reactapp}: aixi
 	 * l'endpoint no es pot fer servir per a redirigir a un lloc extern.
 	 */
 	@GetMapping("/sessioUsuari/login")
@@ -139,7 +141,7 @@ public class SessioUsuariController {
 			int port = request.getServerPort();
 			boolean portPerDefecte = ("http".equals(request.getScheme()) && port == 80) || ("https".equals(request.getScheme()) && port == 443);
 			String origenPropi = request.getScheme() + "://" + request.getServerName() + (portPerDefecte ? "" : ":" + port);
-			return origen.equalsIgnoreCase(origenPropi) || Arrays.asList(ORIGENS_PERMESOS).contains(origen);
+			return origen.equalsIgnoreCase(origenPropi) || ApiOrigenFilter.isOrigenPermes(origen, origensPermesos);
 		} catch (URISyntaxException ex) {
 			return false;
 		}

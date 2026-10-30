@@ -16,6 +16,7 @@ import es.caib.emiserv.logic.intf.dto.ServeiDiagnosticEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.exception.ExportacioMassaGranException;
 import es.caib.emiserv.logic.intf.exception.NotFoundException;
+import es.caib.emiserv.logic.intf.exception.OrdenacioNoValidaException;
 import es.caib.emiserv.logic.intf.exception.PermissionDeniedException;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.logic.intf.model.ServeiResource;
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -75,6 +77,18 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 	private static final String ROL_ADMIN = ServeiResource.ROL_ADMIN;
 
 	/** Columnes de l'exportació per defecte (en aquest ordre). */
+	/** Camps del recurs pels quals es pot ordenar (persistits a l'entitat). */
+	static final Set<String> CAMPS_ORDENABLES = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(
+			ServeiResource.Fields.codi,
+			ServeiResource.Fields.nom,
+			ServeiResource.Fields.tipus,
+			ServeiResource.Fields.actiu,
+			ServeiResource.Fields.configurat,
+			ServeiResource.Fields.xsdGestioActiva,
+			ServeiResource.Fields.permisosCount,
+			ServeiResource.Fields.rutesCount,
+			"id")));
+
 	public static final List<String> COLUMNES_EXPORTACIO = Collections.unmodifiableList(Arrays.asList(
 			ServeiResource.Fields.codi,
 			ServeiResource.Fields.nom,
@@ -264,6 +278,7 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 	 * després consulta amb el mateix filtre (inclosos els permisos) i ordre que la graella.
 	 */
 	private List<ServeiResource> consultarPerExportar(String quickFilter, String filter, Sort sort) {
+		comprovarOrdenacio(sort);
 		Specification<ServeiResourceEntity> specification = toFindProcessedSpecification(
 				quickFilter,
 				filter,
@@ -338,7 +353,8 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 				ex instanceof PermissionDeniedException ||
 				ex instanceof NotFoundException ||
 				ex instanceof AccessDeniedException ||
-				ex instanceof ExportacioMassaGranException;
+				ex instanceof ExportacioMassaGranException ||
+				ex instanceof OrdenacioNoValidaException;
 	}
 
 	/**
@@ -389,7 +405,7 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 						params != null ? params.getQuickFilter() : null,
 						params != null ? params.getFilter() : null,
 						params != null ? toSort(params.getSort()) : Sort.unsorted());
-			} catch (ExportacioMassaGranException ex) {
+			} catch (ExportacioMassaGranException | OrdenacioNoValidaException ex) {
 				// Embolcallada perquè la classe base no la registri com a error (es desembolica a artifactReportGenerateData)
 				throw new ReportGenerationException(ServeiResource.class, null, code, ex.getMessage(), ex);
 			}
@@ -400,6 +416,22 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 		}
 		@Override
 		public void onChange(Serializable id, ServeiResource.ExportacioForm previous, String fieldName, Object fieldValue, Map<String, AnswerRequiredException.AnswerValue> answers, String[] previousFieldNames, ServeiResource.ExportacioForm target) {
+		}
+	}
+
+	/**
+	 * Comprova que l'ordenació només fa servir camps persistits del recurs. Els camps calculats
+	 * (diagnòstic, configuració SCSP) o desconeguts es rebutgen amb un error 400 en lloc d'ignorar-se
+	 * o de fallar en la consulta.
+	 */
+	static void comprovarOrdenacio(Sort sort) {
+		if (sort == null) {
+			return;
+		}
+		for (Sort.Order order: sort) {
+			if (!CAMPS_ORDENABLES.contains(order.getProperty())) {
+				throw new OrdenacioNoValidaException(order.getProperty(), CAMPS_ORDENABLES);
+			}
 		}
 	}
 
@@ -415,6 +447,9 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 			}
 			String[] parts = s.split(",");
 			String camp = parts[0].trim();
+			if (camp.isEmpty()) {
+				throw new OrdenacioNoValidaException(s, CAMPS_ORDENABLES);
+			}
 			boolean desc = parts.length > 1 && "desc".equalsIgnoreCase(parts[1].trim());
 			orders.add(desc ? Sort.Order.desc(camp) : Sort.Order.asc(camp));
 		}

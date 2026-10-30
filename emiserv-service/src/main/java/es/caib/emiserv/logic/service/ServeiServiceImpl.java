@@ -268,20 +268,7 @@ public class ServeiServiceImpl implements ServeiService {
 		log.debug("Consulta de tots els serveis paginats (" +
 				"paginacioParams=" + paginacioParams + ")");
 		List<ServeiEntity> serveisPermesos = serveiRepository.findAll();
-		if (!securityHelper.hasRole("EMS_ADMIN")) {
-			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			permisosHelper.filterGrantedAll(
-					serveisPermesos,
-					new ObjectIdentifierExtractor<ServeiEntity>() {
-						@Override
-						public Serializable getObjectIdentifier(ServeiEntity servei) {
-							return servei.getId();
-						}
-					},
-					ServeiEntity.class,
-					new Permission[] {BasePermission.ADMINISTRATION},
-					auth);
-		}
+		filtrarPermesos(serveisPermesos);
 		if (!serveisPermesos.isEmpty()) {
 			PaginaDto<ServeiDto> resposta;
 			if (paginacioHelper.esPaginacioActivada(paginacioParams)) {
@@ -344,15 +331,19 @@ public class ServeiServiceImpl implements ServeiService {
 			return resultat;
 		}
 		List<ServeiEntity> serveis = new ArrayList<>();
-		List<Long> enrutadorIds = new ArrayList<>();
-		List<String> codis = new ArrayList<>();
 		for (List<Long> trosso: trossejar(new ArrayList<>(new java.util.LinkedHashSet<>(serveiIds)))) {
 			for (ServeiEntity servei: serveiRepository.findAllById(trosso)) {
 				serveis.add(servei);
-				codis.add(servei.getCodi());
-				if (servei.isEnrutador()) {
-					enrutadorIds.add(servei.getId());
-				}
+			}
+		}
+		// Els serveis sense permís no s'inclouen al resultat (mateixa regla que findAllPaginat)
+		filtrarPermesos(serveis);
+		List<Long> enrutadorIds = new ArrayList<>();
+		List<String> codis = new ArrayList<>();
+		for (ServeiEntity servei: serveis) {
+			codis.add(servei.getCodi());
+			if (servei.isEnrutador()) {
+				enrutadorIds.add(servei.getId());
 			}
 		}
 		Map<String, ScspCoreServicioEntity> coreServicios = new HashMap<>();
@@ -750,20 +741,7 @@ public class ServeiServiceImpl implements ServeiService {
 	public List<ProcedimentDto> procedimentFindAll() {
 		log.debug("Consulta la llista de tots els procediments disponibles");
 		List<ServeiEntity> serveisPermesos = serveiRepository.findAll();
-		if (!securityHelper.hasRole("EMS_ADMIN")) {
-			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			permisosHelper.filterGrantedAll(
-					serveisPermesos,
-					new ObjectIdentifierExtractor<ServeiEntity>() {
-						@Override
-						public Serializable getObjectIdentifier(ServeiEntity servei) {
-							return servei.getId();
-						}
-					},
-					ServeiEntity.class,
-					new Permission[] {BasePermission.ADMINISTRATION},
-					auth);
-		}
+		filtrarPermesos(serveisPermesos);
 		List<String> codisServeisPermesos = new ArrayList<String>();
 		for (ServeiEntity serveiPermes: serveisPermesos) {
 			codisServeisPermesos.add(serveiPermes.getCodi());
@@ -994,6 +972,27 @@ public class ServeiServiceImpl implements ServeiService {
 					ScspCoreServicioEntity.class);
 		}
 		return Long.valueOf(scspCoreServicio.getId());
+	}
+
+	/**
+	 * Treu de la llista els serveis sobre els quals l'usuari actual no té permís
+	 * d'administració. Els administradors (EMS_ADMIN) els veuen tots.
+	 */
+	private void filtrarPermesos(List<ServeiEntity> serveis) {
+		if (!securityHelper.hasRole("EMS_ADMIN")) {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			permisosHelper.filterGrantedAll(
+					serveis,
+					new ObjectIdentifierExtractor<ServeiEntity>() {
+						@Override
+						public Serializable getObjectIdentifier(ServeiEntity servei) {
+							return servei.getId();
+						}
+					},
+					ServeiEntity.class,
+					new Permission[] {BasePermission.ADMINISTRATION},
+					auth);
+		}
 	}
 
 }

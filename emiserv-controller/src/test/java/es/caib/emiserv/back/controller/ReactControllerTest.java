@@ -1,5 +1,6 @@
 package es.caib.emiserv.back.controller;
 
+import es.caib.emiserv.back.helper.ReactAppHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.InputStreamResource;
@@ -26,9 +27,16 @@ public class ReactControllerTest {
 
 	@BeforeEach
 	public void configurar() {
-		controller = new ReactController();
+		controller = controlador("META-INF/resources");
+	}
+
+	private static ReactController controlador(String classpathPrefix) {
+		ReactController controller = new ReactController();
 		// Aplicacio web sense cap fitxer: tot s'ha de trobar al classpath
-		ReflectionTestUtils.setField(controller, "servletContext", new MockServletContext("file:/no-existeix"));
+		MockServletContext servletContext = new MockServletContext("file:/no-existeix");
+		ReflectionTestUtils.setField(controller, "servletContext", servletContext);
+		ReflectionTestUtils.setField(controller, "reactAppHelper", new ReactAppHelper(servletContext, classpathPrefix));
+		return controller;
 	}
 
 	@Test
@@ -57,6 +65,17 @@ public class ReactControllerTest {
 		assertEquals(200, resposta.getStatusCodeValue());
 		assertEquals(MediaType.TEXT_HTML, resposta.getHeaders().getContentType());
 		assertTrue(cos(resposta).contains("<div id=\"root\">"));
+	}
+
+	@Test
+	public void senseSpaLesRutesRedirigeixenALaJsp() {
+		ReactController senseSpa = controlador("no-hi-ha-spa");
+		ResponseEntity<?> resposta = senseSpa.serveReact(peticio("/reactapp/serveis/123"));
+		assertEquals(302, resposta.getStatusCodeValue());
+		assertEquals("/emiservback/servei", resposta.getHeaders().getLocation().toString());
+		assertEquals(302, senseSpa.serveReact(peticio("/reactapp")).getStatusCodeValue());
+		// Els estatics inexistents continuen donant 404
+		assertEquals(404, senseSpa.serveReact(peticio("/reactapp/assets/test.js")).getStatusCodeValue());
 	}
 
 	private static MockHttpServletRequest peticio(String path) {

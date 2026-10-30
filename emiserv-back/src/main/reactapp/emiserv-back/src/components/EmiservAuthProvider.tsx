@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { AuthContext } from 'reactlib';
+import { instalarInterceptorSessio } from '../util/interceptorSessio';
 
 /**
  * Autenticació de la interfície REACT amb la sessió de servidor (adaptat de
@@ -20,7 +21,8 @@ import { AuthContext } from 'reactlib';
  * l'activitat de l'usuari (com a molt un cop per minut).
  *
  * Si no hi ha sessió (401) es va a `sessioUsuari/login?redirect=<URL actual>`: el servidor passa
- * pel login i torna a la mateixa URL. Si l'usuari està autenticat però no té cap rol d'EMISERV
+ * pel login i torna a la mateixa URL. El mateix passa si qualsevol crida a l'API respon 401, encara
+ * que no s'hagi comprovat la sessió fa poc (`interceptorSessio`). Si l'usuari està autenticat però no té cap rol d'EMISERV
  * (403), es mostra un missatge de "sense permisos" en lloc de tornar al login (que no hi canviaria
  * res i faria un bucle).
  */
@@ -207,8 +209,10 @@ export const EmiservAuthProvider: React.FC<EmiservAuthProviderProps> = ({ apiUrl
     const usuariRef = React.useRef<SessioUsuari>(undefined);
     const comprovantRef = React.useRef(false);
     const darreraComprovacioRef = React.useRef(0);
+    const iniciantSessioRef = React.useRef(false);
 
     const iniciarSessio = React.useCallback(() => {
+        iniciantSessioRef.current = true;
         escriureMarcaIniciSessio(Date.now());
         window.location.href = getLoginUrl(backendBaseUrl);
     }, [backendBaseUrl]);
@@ -220,6 +224,10 @@ export const EmiservAuthProvider: React.FC<EmiservAuthProviderProps> = ({ apiUrl
     }, [backendBaseUrl]);
 
     const gestionarSenseSessio = React.useCallback(() => {
+        if (iniciantSessioRef.current) {
+            // Ja s'està anant al login (p. ex. diverses crides a l'API han rebut el 401 alhora).
+            return;
+        }
         const intentRecent = Date.now() - llegirMarcaIniciSessio() < INICI_SESSIO_MARGE_MS;
         if (intentRecent) {
             setEstat('caducada');
@@ -314,6 +322,11 @@ export const EmiservAuthProvider: React.FC<EmiservAuthProviderProps> = ({ apiUrl
     React.useEffect(() => {
         comprovar(0);
     }, [comprovar]);
+
+    React.useEffect(
+        () => instalarInterceptorSessio(window, backendBaseUrl + '/api', gestionarSenseSessio),
+        [backendBaseUrl, gestionarSenseSessio]
+    );
 
     React.useEffect(() => {
         if (estat !== 'autenticat') {
