@@ -9,8 +9,8 @@ import java.util.Map;
 
 /**
  * Aplicació Spring Boot de EMISERV per a executar-la des de l'IDE (perfil Maven "boot"): els
- * serveis s'executen dins la mateixa aplicació en lloc d'accedir-hi per EJB, i l'autenticació la
- * fa l'adaptador Keycloak de Spring Security en lloc del de JBoss.
+ * serveis s'executen dins la mateixa aplicació en lloc d'accedir-hi per EJB, i l'usuari s'autentica
+ * amb OAuth2/OpenID Connect contra Keycloak (Spring Security) en lloc de l'adaptador Keycloak de JBoss.
  * <p>
  * Les classes d'aquest paquet no s'inclouen al WAR (veure el maven-war-plugin d'emiserv-back).
  * A JBoss s'executa {@link es.caib.emiserv.EmiservEjbApp}.
@@ -42,6 +42,11 @@ public class EmiservBackBootApp {
 		propietats.put("server.servlet.session.cookie.same-site", "lax");
 		// Origen del servidor de desenvolupament de Vite (npm run dev), permès a l'API i al retorn del login
 		propietats.put("es.caib.emiserv.front.dev.origins", "http://localhost:5173");
+		// Client OAuth2 de Keycloak (config.SecurityConfig). La URL del realm (issuer-uri), el client i el
+		// secret van a la configuració local: veure el CLAUDE.md
+		propietats.put("spring.security.oauth2.client.registration.keycloak.authorization-grant-type", "authorization_code");
+		propietats.put("spring.security.oauth2.client.registration.keycloak.scope", "openid,profile,email");
+		propietats.put("spring.security.oauth2.client.provider.keycloak.user-name-attribute", "preferred_username");
 		return propietats;
 	}
 

@@ -199,9 +199,8 @@
 		<!-- Només per a compilar les classes del paquet es.caib.emiserv.boot (execució des de l'IDE),
 		     que no s'inclouen al WAR -->
 		<dependency>
-			<groupId>org.keycloak</groupId>
-			<artifactId>keycloak-spring-boot-starter</artifactId>
-			<version>${keycloak.version}</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -263,7 +262,8 @@
 	<profiles>
 		<!--
 			Execució des de l'IDE amb Spring Boot (classe es.caib.emiserv.boot.EmiservBackBootApp),
-			amb els serveis dins la mateixa aplicació en lloc d'accedir-hi per EJB. També:
+			amb els serveis dins la mateixa aplicació en lloc d'accedir-hi per EJB i autenticació OAuth2
+			(Spring Security OAuth2 Client contra Keycloak). També:
 			mvn spring-boot:run -pl emiserv-back -P boot
 		-->
 		<profile>
@@ -283,9 +283,8 @@
 					<artifactId>keycloak-core</artifactId>
 				</dependency>
 				<dependency>
-					<groupId>org.keycloak</groupId>
-					<artifactId>keycloak-spring-boot-starter</artifactId>
-					<version>${keycloak.version}</version>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-oauth2-client</artifactId>
 				</dependency>
 				<dependency>
 					<groupId>org.springframework.boot</groupId>

@@ -29,9 +29,9 @@ public class KeycloakHelper {
 		if (keycloakPrincipal != null) {
 			AccessToken accessToken = keycloakPrincipal.getKeycloakSecurityContext().getToken();
 			return accessToken.getName();
-		} else {
-			return null;
 		}
+		KeycloakUserDetails userDetails = getKeycloakUserDetails();
+		return userDetails != null ? userDetails.getFullName() : null;
 	}
 
 	public static String getCurrentUserEmail() {
@@ -39,9 +39,21 @@ public class KeycloakHelper {
 		if (keycloakPrincipal != null) {
 			AccessToken accessToken = keycloakPrincipal.getKeycloakSecurityContext().getToken();
 			return accessToken.getEmail();
-		} else {
-			return null;
 		}
+		KeycloakUserDetails userDetails = getKeycloakUserDetails();
+		return userDetails != null ? userDetails.getEmail() : null;
+	}
+
+	/**
+	 * Usuari sense adaptador Keycloak (p. ex. autenticat amb OAuth2 en executar emiserv-back des de
+	 * l'IDE): el nom i el correu surten directament de l'usuari.
+	 */
+	private static KeycloakUserDetails getKeycloakUserDetails() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth != null && auth.getPrincipal() instanceof KeycloakUserDetails) {
+			return (KeycloakUserDetails)auth.getPrincipal();
+		}
+		return null;
 	}
 
 	public static KeycloakPrincipal<?> getKeycloakPrincipal() {
