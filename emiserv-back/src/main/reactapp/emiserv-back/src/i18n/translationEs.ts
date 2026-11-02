@@ -21,7 +21,7 @@ const translationEs: typeof translationCa = {
         },
     },
     perfil: {
-        menu: 'Perfil',
+        menu: 'Mi perfil',
         titol: 'Perfil del usuario',
         codi: 'Código',
         nom: 'Nombre',
