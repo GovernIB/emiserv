@@ -54,7 +54,7 @@ const translationCa = {
         },
     },
     perfil: {
-        menu: 'Perfil',
+        menu: 'El meu perfil',
         titol: "Perfil de l'usuari",
         codi: 'Codi',
         nom: 'Nom',
