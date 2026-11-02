@@ -1,6 +1,7 @@
 package es.caib.emiserv.persist.entity;
 
 import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
+import es.caib.emiserv.logic.intf.dto.TemaAplicacioEnumDto;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -31,11 +32,19 @@ public class UsuariEntity implements Serializable {
 	@Enumerated(EnumType.STRING)
 	@Column(name="interficie", length = 5)
 	private InterficieUsuariEnumDto interficie;
+	/** Tema de la interfície REACT (null: el del sistema). */
+	@Enumerated(EnumType.STRING)
+	@Column(name="tema", length = 10)
+	private TemaAplicacioEnumDto tema;
 	@Version
 	private long version = 0;
 
 	public void update(String idioma) {
 		this.idioma = idioma;
+	}
+
+	public void updateTema(TemaAplicacioEnumDto tema) {
+		this.tema = tema;
 	}
 
 	public void updateInterficie(InterficieUsuariEnumDto interficie) {
@@ -58,6 +67,10 @@ public class UsuariEntity implements Serializable {
 		}
 		public Builder interficie(InterficieUsuariEnumDto interficie) {
 			built.interficie = interficie;
+			return this;
+		}
+		public Builder tema(TemaAplicacioEnumDto tema) {
+			built.tema = tema;
 			return this;
 		}
 		public UsuariEntity build() {

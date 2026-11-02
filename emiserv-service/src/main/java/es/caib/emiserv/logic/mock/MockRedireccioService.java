@@ -14,6 +14,12 @@ import java.util.Map;
 @Service
 public class MockRedireccioService implements RedireccioService {
 
+    /** Servei real (aquest és @Primary): per a les consultes de l'auditoria. */
+    @org.springframework.beans.factory.annotation.Autowired
+    @org.springframework.beans.factory.annotation.Qualifier("redireccioServiceImpl")
+    @org.springframework.context.annotation.Lazy
+    private RedireccioService redireccioService;
+
     @Override
     public RedireccioProcessarResultatDto processarPeticio(byte[] xml, boolean asincrona) {
         return processarPeticio(xml);
@@ -108,12 +114,14 @@ public class MockRedireccioService implements RedireccioService {
     }
 
     // Altres mètodes de la interfície no utilitzats per aquests tests poden quedar sense implementar amb UnsupportedOperation
-    @Override public java.util.List<es.caib.emiserv.logic.intf.dto.ProcedimentDto> procedimentFindAll() { return java.util.List.of(); }
-    @Override public java.util.List<es.caib.emiserv.logic.intf.dto.ServeiDto> serveiFindAll() { return java.util.List.of(); }
-    @Override public es.caib.emiserv.logic.intf.dto.PaginaDto<es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto> peticioFindByFiltrePaginat(es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto filtre, es.caib.emiserv.logic.intf.dto.PaginacioParamsDto paginacioParams) { return null; }
-    @Override public es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto peticioFindById(Long idPeticio) { return null; }
-    @Override public java.util.List<es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto> solicitudFindByPeticioId(Long peticioId) { return java.util.List.of(); }
-    @Override public String peticioXmlPeticio(Long peticioId) { return null; }
-    @Override public String peticioXmlResposta(Long peticioId) { return null; }
-    @Override public java.util.List<es.caib.emiserv.logic.intf.dto.RedireccioRespostaDto> peticioXmlRespostes(Long peticioId) { return java.util.List.of(); }
+    // Les consultes de l'auditoria (JSP i REACT) no se simulen: es deleguen al servei real, perquè amb
+    // aquest perfil es vegin les peticions que s'han processat amb el mock.
+    @Override public java.util.List<es.caib.emiserv.logic.intf.dto.ProcedimentDto> procedimentFindAll() { return redireccioService.procedimentFindAll(); }
+    @Override public java.util.List<es.caib.emiserv.logic.intf.dto.ServeiDto> serveiFindAll() { return redireccioService.serveiFindAll(); }
+    @Override public es.caib.emiserv.logic.intf.dto.PaginaDto<es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto> peticioFindByFiltrePaginat(es.caib.emiserv.logic.intf.dto.AuditoriaFiltreDto filtre, es.caib.emiserv.logic.intf.dto.PaginacioParamsDto paginacioParams) { return redireccioService.peticioFindByFiltrePaginat(filtre, paginacioParams); }
+    @Override public es.caib.emiserv.logic.intf.dto.AuditoriaPeticioDto peticioFindById(Long idPeticio) { return redireccioService.peticioFindById(idPeticio); }
+    @Override public java.util.List<es.caib.emiserv.logic.intf.dto.AuditoriaSolicitudDto> solicitudFindByPeticioId(Long peticioId) { return redireccioService.solicitudFindByPeticioId(peticioId); }
+    @Override public String peticioXmlPeticio(Long peticioId) { return redireccioService.peticioXmlPeticio(peticioId); }
+    @Override public String peticioXmlResposta(Long peticioId) { return redireccioService.peticioXmlResposta(peticioId); }
+    @Override public java.util.List<es.caib.emiserv.logic.intf.dto.RedireccioRespostaDto> peticioXmlRespostes(Long peticioId) { return redireccioService.peticioXmlRespostes(peticioId); }
 }

@@ -13,6 +13,7 @@ import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
 import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
 import es.caib.comanda.ms.log.helper.LogFileStream;
 import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
+import es.caib.emiserv.logic.intf.dto.TemaAplicacioEnumDto;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 
 import javax.annotation.security.PermitAll;
@@ -58,6 +59,18 @@ public class AplicacioService extends AbstractService<es.caib.emiserv.logic.intf
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public void updateInterficie(InterficieUsuariEnumDto interficie) {
 		getDelegateService().updateInterficie(interficie);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public TemaAplicacioEnumDto getTemaUsuariActual() {
+		return getDelegateService().getTemaUsuariActual();
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public void updateTemaUsuariActual(TemaAplicacioEnumDto tema) {
+		getDelegateService().updateTemaUsuariActual(tema);
 	}
 
 	@Override

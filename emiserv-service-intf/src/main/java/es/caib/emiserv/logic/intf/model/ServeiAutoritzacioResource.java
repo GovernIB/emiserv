@@ -42,15 +42,15 @@ public class ServeiAutoritzacioResource extends BaseResource<Long> {
 
 	@NotNull
 	private Long serveiId;
-	/** Aplicació (certificat) autoritzada (opcions: ScspService.aplicacioFindAll). */
+	/** Aplicació (certificat) autoritzada (opcions: ScspService.aplicacioFindAll). Text: les opcions dels desplegables de base-react es comparen amb === amb el valor ("1" ≠ 1). */
 	@NotNull
 	@ResourceField(enumType = true)
-	private Long aplicacioId;
+	private String aplicacioId;
 	private String aplicacioNom;
 	/** Organisme autoritzat (opcions: ScspService.organismeFindAll). */
 	@NotNull
 	@ResourceField(enumType = true)
-	private Long organismeId;
+	private String organismeId;
 	private String organismeNom;
 	private Date dataAlta;
 	private Date dataBaixa;

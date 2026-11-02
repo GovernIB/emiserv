@@ -16,16 +16,13 @@ export type MotiuDiagnostic =
     'FALTA_CONFIG_SCSP' | 'FALTA_EMISOR' | 'ENRUTADOR_SENSE_RUTES' | 'RUTA_BACKOFFICE_SENSE_CREDENCIALS';
 
 /** Pestanyes de la finestra d'un servei. */
-export const PESTANYES_SERVEI = ['dades', 'rutes', 'permisos', 'autoritzacions'] as const;
+export const PESTANYES_SERVEI = ['dades', 'scsp', 'rutes', 'permisos', 'autoritzacions'] as const;
 export type PestanyaServei = (typeof PESTANYES_SERVEI)[number];
 
-/**
- * Pestanya on es corregeix cada motiu del diagnòstic. La configuració SCSP encara es fa a la
- * interfície clàssica: la pestanya de dades ho indica.
- */
+/** Pestanya on es corregeix cada motiu del diagnòstic. */
 export const PESTANYA_PER_MOTIU: Record<MotiuDiagnostic, PestanyaServei> = {
-    FALTA_CONFIG_SCSP: 'dades',
-    FALTA_EMISOR: 'dades',
+    FALTA_CONFIG_SCSP: 'scsp',
+    FALTA_EMISOR: 'scsp',
     ENRUTADOR_SENSE_RUTES: 'rutes',
     RUTA_BACKOFFICE_SENSE_CREDENCIALS: 'rutes',
 };

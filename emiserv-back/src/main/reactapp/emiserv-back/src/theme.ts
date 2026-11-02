@@ -20,3 +20,4 @@ const emiservThemes = createLot2Themes(EMISERV_COLORS);
 
 export const lightTheme = emiservThemes.light;
 export const darkTheme = emiservThemes.dark;
+export const draculaTheme = emiservThemes.dracula;

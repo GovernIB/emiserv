@@ -10,6 +10,7 @@ import es.caib.comanda.ms.salut.helper.EstatHelper;
 import es.caib.emiserv.logic.helper.PropertiesHelper;
 import es.caib.emiserv.logic.helper.SalutHelper;
 import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
+import es.caib.emiserv.logic.intf.dto.TemaAplicacioEnumDto;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import es.caib.emiserv.persist.entity.ServeiEntity;
@@ -144,6 +145,35 @@ public class AplicacioServiceImpl implements AplicacioService {
 			usuariRepository.save(
 					UsuariEntity.getBuilder(auth.getName()).
 					interficie(interficie).
+					build());
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public TemaAplicacioEnumDto getTemaUsuariActual() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String userName = auth != null ? auth.getName() : null;
+		if (userName == null) {
+			return null;
+		}
+		return usuariRepository.findById(userName).map(UsuariEntity::getTema).orElse(null);
+	}
+
+	@Override
+	@Transactional
+	public void updateTemaUsuariActual(TemaAplicacioEnumDto tema) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		log.debug("Actualitzant tema de l'usuari actual (" +
+				"usuari=" + auth.getName() + "," +
+				"tema=" + tema + ")");
+		Optional<UsuariEntity> usuari = usuariRepository.findById(auth.getName());
+		if (usuari.isPresent()) {
+			usuari.get().updateTema(tema);
+		} else {
+			usuariRepository.save(
+					UsuariEntity.getBuilder(auth.getName()).
+					tema(tema).
 					build());
 		}
 	}

@@ -2,7 +2,11 @@ package es.caib.emiserv.back.controller;
 
 import es.caib.emiserv.back.base.config.ApiOrigenFilter;
 import es.caib.emiserv.logic.intf.base.config.BaseBootConfig;
+import es.caib.emiserv.back.helper.LocaleHelper;
+import es.caib.emiserv.back.helper.RolHelper;
+import es.caib.emiserv.logic.intf.dto.IdiomaEnumDto;
 import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
+import es.caib.emiserv.logic.intf.dto.TemaAplicacioEnumDto;
 import es.caib.emiserv.logic.intf.keycloak.KeycloakHelper;
 import es.caib.emiserv.logic.intf.service.AplicacioService;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -21,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -71,7 +76,7 @@ public class SessioUsuariController {
 	}
 
 	@GetMapping(BaseBootConfig.API_PATH + "/sessioUsuari")
-	public ResponseEntity<SessioUsuari> sessioUsuari() {
+	public ResponseEntity<SessioUsuari> sessioUsuari(HttpServletRequest request) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -90,7 +95,50 @@ public class SessioUsuariController {
 				KeycloakHelper.getCurrentUserEmail(),
 				rols,
 				efectiva != null ? efectiva.name() : null,
-				preferida != null ? preferida.name() : null));
+				preferida != null ? preferida.name() : null,
+				idiomaUsuari(),
+				temaUsuari(),
+				RolHelper.getRolActual(request, RolHelper.getRolsAutoritats())));
+	}
+
+	/**
+	 * Canvia el rol actual (administrador o responsable), com el selector de rol de la JSP i
+	 * compartit amb ella. Com a la JSP, el rol actual decideix què mostra la interfície; els permisos
+	 * del servidor són els dels rols de l'usuari.
+	 */
+	@PutMapping(BaseBootConfig.API_PATH + "/sessioUsuari/rol")
+	public ResponseEntity<Void> updateRol(@RequestBody RolRequest rol, HttpServletRequest request) {
+		if (!RolHelper.setRolActual(request, RolHelper.getRolsAutoritats(), rol.getRol())) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+		}
+		return ResponseEntity.noContent().build();
+	}
+
+	/**
+	 * Desa les preferències del perfil de la interfície REACT: idioma (el mateix que el perfil de la
+	 * JSP, CA o ES) i tema. Un valor null esborra la preferència. L'idioma s'aplica també a la sessió
+	 * (com en desar el perfil de la JSP), perquè la JSP i els missatges de l'API el facin servir.
+	 */
+	@PutMapping(BaseBootConfig.API_PATH + "/sessioUsuari/preferencies")
+	public ResponseEntity<Void> updatePreferencies(
+			@RequestBody PreferenciesRequest preferencies,
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		aplicacioService.updateIdiomaUsuariActual(preferencies.getIdioma() != null ? preferencies.getIdioma().name() : null);
+		aplicacioService.updateTemaUsuariActual(preferencies.getTema());
+		LocaleHelper.processarLocale(request, response, aplicacioService, true);
+		return ResponseEntity.noContent().build();
+	}
+
+	/** Idioma del perfil (ca o es), o null si l'usuari no n'ha triat cap. */
+	private String idiomaUsuari() {
+		String idioma = aplicacioService.getIdiomaUsuariActual();
+		return idioma != null && !idioma.trim().isEmpty() ? idioma.trim().toLowerCase() : null;
+	}
+
+	private String temaUsuari() {
+		TemaAplicacioEnumDto tema = aplicacioService.getTemaUsuariActual();
+		return tema != null ? tema.name() : null;
 	}
 
 	/**
@@ -155,6 +203,23 @@ public class SessioUsuariController {
 		List<String> rols;
 		String interficie;
 		String interficiePreferida;
+		/** Idioma del perfil (ca o es); null: el del navegador. */
+		String idioma;
+		/** Tema de la interfície REACT (CLAR, OBSCUR, DRACULA o SISTEMA); null: el del sistema. */
+		String tema;
+		/** Rol actual (EMS_ADMIN o EMS_RESP), el mateix que el selector de rol de la JSP. */
+		String rolActual;
+	}
+
+	@Data
+	public static class RolRequest {
+		private String rol;
+	}
+
+	@Data
+	public static class PreferenciesRequest {
+		private IdiomaEnumDto idioma;
+		private TemaAplicacioEnumDto tema;
 	}
 
 	@Data

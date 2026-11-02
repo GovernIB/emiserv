@@ -268,6 +268,12 @@ public class BackofficeServiceImpl implements BackofficeService {
 					solicitud.getSolicitudId());
 			if (backofficeSolicitud != null) {
 				solicitud.setBackofficeEstat(backofficeSolicitud.getEstat());
+				// Com a solicitudFindById: la interfície REACT mostra els missatges del backoffice de cada sol·licitud
+				if (backofficeSolicitud.getComunicacioDarrera() != null) {
+					solicitud.setComunicacioBackofficeDisponible(true);
+					solicitud.setComunicacioBackofficeError(
+							backofficeSolicitud.getComunicacioDarrera().getError() != null);
+				}
 			}
 		}
 		return solicituds;

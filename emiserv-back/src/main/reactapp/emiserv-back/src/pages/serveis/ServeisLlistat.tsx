@@ -6,10 +6,6 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Icon from '@mui/material/Icon';
 import IconButton from '@mui/material/IconButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
 import type { GridRenderCellParams } from '@mui/x-data-grid-pro';
@@ -20,25 +16,17 @@ import {
     useBaseAppContext,
     useConfirmDialogButtons,
     useMuiDataGridApiRef,
-    useMuiDataGridContext,
     useResourceApiService,
 } from 'reactlib';
 import { icons, lot2ScreenGridProps, ScreenFrame, ScreenTitle } from '../../lot2';
 import { emiservIcons } from '../../components/EmiservBaseApp';
 import { useEsAdmin } from '../../components/EmiservAuthProvider';
-import { descarregarFitxer } from '../../util/descarregarFitxer';
+import ExportarBoto from '../../components/ExportarBoto';
 import DiagnosticAvis from './DiagnosticAvis';
 import ServeiDialog from './ServeiDialog';
 import ServeisFiltre from './ServeisFiltre';
-import { missatgeError } from './serveiErrors';
-import {
-    esEnrutador,
-    ID_NOU,
-    PESTANYES_SERVEI,
-    type PestanyaServei,
-    rutaServei,
-    type Servei,
-} from './serveiModel';
+import { missatgeError } from '../../util/missatgeError';
+import { esEnrutador, ID_NOU, PESTANYES_SERVEI, type PestanyaServei, rutaServei, type Servei } from './serveiModel';
 
 /** Nom del recurs de l'API (rel de l'índex, veure ServeiApiController). */
 const RECURS = 'servei';
@@ -47,73 +35,6 @@ const RECURS = 'servei';
 const ACCIO_ACTIVAR = 'ACTIVAR';
 const ACCIO_DESACTIVAR = 'DESACTIVAR';
 const ACCIO_ESBORRAR = 'ESBORRAR';
-const INFORME_EXPORTAR = 'EXPORTAR';
-
-type FormatExportacio = 'CSV' | 'XLSX';
-
-/**
- * Botó d'exportar de la barra de títol: CSV o Excel amb el filtre ràpid, el filtre plegable i
- * l'ordenació actuals de la graella (els `findArgs` del context de la graella). Fa servir l'informe
- * `EXPORTAR` del recurs amb el paràmetre `fileType`; si se supera el màxim de files, el servidor torna
- * un 422 amb el missatge traduït, que es mostra tal qual.
- */
-const ServeisExportar: React.FC = () => {
-    const { t } = useTranslation();
-    const { temporalMessageShow } = useBaseAppContext();
-    const { findArgs } = useMuiDataGridContext();
-    const { isReady, artifactReport } = useResourceApiService(RECURS);
-    const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
-    const [exportant, setExportant] = React.useState(false);
-    const exportar = (fileType: FormatExportacio) => {
-        setAnchor(null);
-        setExportant(true);
-        artifactReport(null, {
-            code: INFORME_EXPORTAR,
-            fileType,
-            data: {
-                quickFilter: findArgs?.quickFilter,
-                filter: findArgs?.filter,
-                sort: findArgs?.sorts,
-            },
-        })
-            .then((resposta) => {
-                const { blob, fileName } = resposta as { blob: Blob; fileName?: string };
-                descarregarFitxer(blob, fileName);
-            })
-            .catch((error: unknown) => temporalMessageShow(t('serveis.exportar.error'), missatgeError(error), 'error'))
-            .finally(() => setExportant(false));
-    };
-    return (
-        <>
-            <Tooltip title={t('serveis.exportar.boto')}>
-                <span>
-                    <IconButton
-                        aria-label={t('serveis.exportar.boto')}
-                        aria-haspopup="menu"
-                        disabled={!isReady || exportant}
-                        onClick={(event) => setAnchor(event.currentTarget)}
-                    >
-                        <Icon>{icons.descarrega}</Icon>
-                    </IconButton>
-                </span>
-            </Tooltip>
-            <Menu anchorEl={anchor} open={anchor != null} onClose={() => setAnchor(null)}>
-                <MenuItem onClick={() => exportar('CSV')}>
-                    <ListItemIcon>
-                        <Icon fontSize="small">description</Icon>
-                    </ListItemIcon>
-                    <ListItemText>{t('serveis.exportar.csv')}</ListItemText>
-                </MenuItem>
-                <MenuItem onClick={() => exportar('XLSX')}>
-                    <ListItemIcon>
-                        <Icon fontSize="small">table_chart</Icon>
-                    </ListItemIcon>
-                    <ListItemText>{t('serveis.exportar.xlsx')}</ListItemText>
-                </MenuItem>
-            </Menu>
-        </>
-    );
-};
 
 /** Botó de la barra de títol que obre i tanca el filtre plegable. */
 const FiltreBoto: React.FC<{ obert: boolean; onClick: () => void }> = ({ obert, onClick }) => {
@@ -380,7 +301,13 @@ export const ServeisLlistat: React.FC = () => {
                 sortable: false,
                 // Com el botó de la JSP: només per als serveis configurats a l'emissor SCSP
                 renderCell: (params: GridRenderCellParams<Servei>) => (
-                    <Tooltip title={t(params.row.configuratScsp ? 'serveis.accio.autoritzacions' : 'serveis.autoritzacions.noConfigurat')}>
+                    <Tooltip
+                        title={t(
+                            params.row.configuratScsp
+                                ? 'serveis.accio.autoritzacions'
+                                : 'serveis.autoritzacions.noConfigurat'
+                        )}
+                    >
                         <span>
                             <IconButton
                                 size="small"
@@ -405,7 +332,7 @@ export const ServeisLlistat: React.FC = () => {
             position: 2,
             element: <FiltreBoto obert={filtreObert} onClick={() => setFiltreObert((obert) => !obert)} />,
         },
-        ...(esAdmin ? [{ position: 2, element: <ServeisExportar /> }] : []),
+        ...(esAdmin ? [{ position: 2, element: <ExportarBoto resourceName={RECURS} /> }] : []),
         ...(esAdmin
             ? [
                   {

@@ -100,6 +100,71 @@ public class EjbClientConfig {
 		return getLocalEjbFactoyBean(ServeiAutoritzacioResourceService.class);
 	}
 
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean serveiConfigScspResourceService() {
+		return getLocalEjbFactoyBean(ServeiConfigScspResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean auditoriaBackofficeResourceService() {
+		return getLocalEjbFactoyBean(AuditoriaBackofficeResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean auditoriaEnrutadorResourceService() {
+		return getLocalEjbFactoyBean(AuditoriaEnrutadorResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean aplicacioResourceService() {
+		return getLocalEjbFactoyBean(AplicacioResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean emisorResourceService() {
+		return getLocalEjbFactoyBean(EmisorResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean organismeResourceService() {
+		return getLocalEjbFactoyBean(OrganismeResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean organismeCessionariResourceService() {
+		return getLocalEjbFactoyBean(OrganismeCessionariResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean clauPublicaResourceService() {
+		return getLocalEjbFactoyBean(ClauPublicaResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean clauPrivadaResourceService() {
+		return getLocalEjbFactoyBean(ClauPrivadaResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean autoritatCertificacioResourceService() {
+		return getLocalEjbFactoyBean(AutoritatCertificacioResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean scspModulResourceService() {
+		return getLocalEjbFactoyBean(ScspModulResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean scspParametreResourceService() {
+		return getLocalEjbFactoyBean(ScspParametreResourceService.class);
+	}
+
+	@Bean
+	public LocalStatelessSessionProxyFactoryBean entitatResourceService() {
+		return getLocalEjbFactoyBean(EntitatResourceService.class);
+	}
+
 	private LocalStatelessSessionProxyFactoryBean getLocalEjbFactoyBean(Class<?> serviceClass) {
 		String jndiName = EJB_JNDI_PREFIX + serviceClass.getSimpleName() + EJB_JNDI_SUFFIX;
 		log.info("Creating EJB proxy for serviceClass with JNDI name " + jndiName);

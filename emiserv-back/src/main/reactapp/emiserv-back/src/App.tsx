@@ -1,11 +1,8 @@
 import { Outlet } from 'react-router-dom';
-import CssBaseline from '@mui/material/CssBaseline';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { ThemeProvider } from '@mui/material/styles';
 import { envVar, ResourceApiProvider } from 'reactlib';
 import { EmiservAuthProvider } from './components/EmiservAuthProvider';
 import { EmiservBaseApp } from './components/EmiservBaseApp';
-import { darkTheme, lightTheme } from './theme';
+import { TemaProvider } from './components/TemaProvider';
 
 const envVars = {
     VITE_API_URL: import.meta.env.VITE_API_URL,
@@ -32,11 +29,9 @@ const getEnvApiUrl = (): string => {
 };
 
 export const App = () => {
-    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
     const apiUrl = getEnvApiUrl();
     return (
-        <ThemeProvider theme={prefersDarkMode ? darkTheme : lightTheme}>
-            <CssBaseline enableColorScheme />
+        <TemaProvider>
             {/* Autenticació amb la sessió de servidor, sense token al navegador. */}
             <EmiservAuthProvider apiUrl={apiUrl}>
                 <ResourceApiProvider apiUrl={apiUrl}>
@@ -45,7 +40,7 @@ export const App = () => {
                     </EmiservBaseApp>
                 </ResourceApiProvider>
             </EmiservAuthProvider>
-        </ThemeProvider>
+        </TemaProvider>
     );
 };
 

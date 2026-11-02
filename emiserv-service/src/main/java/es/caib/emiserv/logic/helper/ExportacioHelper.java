@@ -66,6 +66,11 @@ public class ExportacioHelper {
 		return EXPORTACIO_MAX_PER_DEFECTE;
 	}
 
+	/** Màxim de files exportables com a mida de pàgina (limitat a Integer.MAX_VALUE). */
+	public int getMaximInt() {
+		return (int)Math.min(getMaxim(), Integer.MAX_VALUE);
+	}
+
 	/**
 	 * Comprova que el nombre de files a exportar no superi el màxim configurat.
 	 *
@@ -228,6 +233,8 @@ public class ExportacioHelper {
 			return "";
 		} else if (valor instanceof Enum) {
 			return ((Enum<?>)valor).name();
+		} else if (valor instanceof java.util.Date) {
+			return new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format((java.util.Date)valor);
 		} else if (valor instanceof Collection) {
 			return ((Collection<?>)valor).stream().
 					map(this::valorText).

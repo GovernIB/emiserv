@@ -10,9 +10,11 @@ import {
     useBaseAppContext,
     useConfirmDialogButtons,
     useFormApiRef,
+    useResourceApiService,
 } from 'reactlib';
 import { useEsAdmin } from '../../components/EmiservAuthProvider';
 import ServeiAutoritzacions from './ServeiAutoritzacions';
+import ServeiConfigScsp from './ServeiConfigScsp';
 import ServeiDadesForm from './ServeiDadesForm';
 import ServeiPermisos from './ServeiPermisos';
 import ServeiRutes from './ServeiRutes';
@@ -93,6 +95,7 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
     const { t } = useTranslation();
     const esAdmin = useEsAdmin();
     const formApiRef = useFormApiRef();
+    const { getOne } = useResourceApiService('servei');
     const [servei, setServei] = React.useState<ServeiCarregat>();
     const [desant, setDesant] = React.useState(false);
     // Valors del formulari de dades tal com s'han carregat o desat. En tancar es comparen amb els
@@ -111,6 +114,9 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
 
     const disponibles: PestanyaServei[] = ['dades'];
     if (existent && servei != null) {
+        // Configuració SCSP: tots els tipus (els enrutadors la necessiten per a les rutes de backoffice) i
+        // els dos rols, com l'acció «Configuració SCSP» de la JSP
+        disponibles.push('scsp');
         if (esEnrutador(servei.tipus)) {
             disponibles.push('rutes');
         }
@@ -231,11 +237,27 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
                         formBlockerDisabled
                         hiddenToolbar
                     >
-                        <ServeiDadesForm existent={existent} motius={servei?.diagnostic} />
+                        <ServeiDadesForm
+                            existent={existent}
+                            motius={servei?.diagnostic}
+                            onAnarScsp={() => onPestanyaChange('scsp')}
+                        />
                     </MuiForm>
                 </Box>
                 {servei != null && activa !== 'dades' && (
                     <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                        {activa === 'scsp' && (
+                            <ServeiConfigScsp
+                                serveiId={servei.id}
+                                onDesat={() => {
+                                    onCanvi();
+                                    // Canvien el diagnòstic i si el servei està configurat (autoritzacions)
+                                    getOne(servei.id)
+                                        .then((dades: ServeiCarregat) => actualitzarServei(dades))
+                                        .catch(() => undefined);
+                                }}
+                            />
+                        )}
                         {activa === 'rutes' && <ServeiRutes serveiId={servei.id} />}
                         {activa === 'permisos' && <ServeiPermisos serveiId={servei.id} />}
                         {activa === 'autoritzacions' && <ServeiAutoritzacions serveiId={servei.id} />}
