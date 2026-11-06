@@ -333,7 +333,7 @@
 							data: '<null>',
 							orderable: false,
 							visible: true});
-					} if ((!plugin.settings.selectionEnabled && plugin.settings.dragEnabled && index == 0) || (plugin.settings.selectionEnabled && plugin.settings.dragEnabled && index == 1)) {
+					} else if ((!plugin.settings.selectionEnabled && plugin.settings.dragEnabled && index == 0) || (plugin.settings.selectionEnabled && plugin.settings.dragEnabled && index == 1)) {
 						columns.push({
 							data: '<null>',
 							orderable: false,

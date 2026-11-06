@@ -79,6 +79,10 @@ public class DatatablesHelper {
 		for (int i = 0; i < params.getOrderColumn().size(); i++) {
 			int columnIndex = params.getOrderColumn().get(i);
 			String columna = params.getColumnsData().get(columnIndex);
+			if (columna == null || columna.isEmpty() || "<null>".equals(columna)) {
+				// Columnes sense camp (selecció, accions...): no es poden ordenar
+				continue;
+			}
 			OrdreDireccioDto direccio;
 			if ("asc".equals(params.getOrderDir().get(i)))
 				direccio = OrdreDireccioDto.ASCENDENT;
