@@ -38,6 +38,8 @@ export type Manteniment = {
     filtreRapid?: boolean;
     /** Sense alta (només modificació). */
     senseAlta?: boolean;
+    /** Selecció de files amb caselles i esborrat dels seleccionats (endpoint `bulk` del recurs). */
+    esborratMultiple?: boolean;
     /** Botons addicionals de la barra de títol. */
     accionsBarra?: (refrescar: () => void) => React.ReactNode;
     columnes: (t: TFunction) => MuiDataGridColDef[];
@@ -131,6 +133,7 @@ export const MANTENIMENTS: Manteniment[] = [
         columnesDef: [{ field: 'cif' }, { field: 'nom', flex: 3 }, ...DATES],
         camps: [{ name: 'cif', required: true }, { name: 'nom', required: true }, ...CAMPS_DATES],
         filtre: ['cif', 'nom'],
+        esborratMultiple: true,
     }),
     manteniment({
         clau: 'organismeCessionari',
@@ -151,6 +154,7 @@ export const MANTENIMENTS: Manteniment[] = [
             { name: 'bloquejat' },
         ],
         filtre: ['cif', 'nom'],
+        esborratMultiple: true,
     }),
     manteniment({
         clau: 'clauPublica',

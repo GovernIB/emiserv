@@ -26,4 +26,11 @@ describe('configuracio', () => {
         expect(mantenimentPerClau('entitat')?.recurs).toBe('entitat');
         expect(mantenimentPerClau('propietats')).toBeUndefined();
     });
+
+    it('només els organismes (SCSP i cessionaris) tenen esborrat múltiple', () => {
+        expect(MANTENIMENTS.filter((m) => m.esborratMultiple).map((m) => m.clau)).toEqual([
+            'organisme',
+            'organismeCessionari',
+        ]);
+    });
 });

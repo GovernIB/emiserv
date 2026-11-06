@@ -128,6 +128,7 @@ export const ConfiguracioLlistat: React.FC<{ manteniment: Manteniment }> = ({ ma
                 persistentStateKey={manteniment.recurs}
                 {...(manteniment.filtreRapid ? {} : { toolbarHideQuickFilter: true as const })}
                 {...(manteniment.senseAlta ? { toolbarHideCreate: true as const } : {})}
+                {...(manteniment.esborratMultiple ? { toolbarBulkDelete: true as const } : {})}
                 toolbarCreateLabel={t('configuracio.nou')}
                 toolbarElementsWithPositions={toolbarElements}
                 toolbarAdditionalRow={
