@@ -1,0 +1,30 @@
+# La propietat es.caib.emiserv.log.dir no ha de ser editable
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: hsqldb
+  - changeSet:
+      id: 2.0.7_001
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+          expectedResult: 1
+          sql: SELECT COUNT(*) FROM ems_config WHERE key = 'es.caib.emiserv.log.dir'
+      changes:
+        - update:
+            tableName: ems_config
+            columns:
+              - column:
+                  name: source_property
+                  value: FILE
+            where: key = 'es.caib.emiserv.log.dir'
