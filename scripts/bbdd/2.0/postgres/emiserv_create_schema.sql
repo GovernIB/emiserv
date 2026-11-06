@@ -222,7 +222,7 @@ CREATE TABLE core_clave_privada
 COMMENT ON TABLE core_clave_privada IS 'Esta tabla almacenará los datos de configuración necesarios para acceder a las claves privadas disponibles en el almacén de certificados configurado. Las claves privadas aquí configuradas serán utilizadas para la firma de los mensajes emitidos';
 COMMENT ON COLUMN core_clave_privada.alias IS 'Alias que identifica de manera unívoca a la clave privada dentro del almacén de certificados que haya sido configurado en la tabla core_parametro_configuracion bajo el nombre keystoreFile';
 COMMENT ON COLUMN core_clave_privada.nombre IS 'Nombre descriptivo de la clave privada';
-COMMENT ON COLUMN core_clave_privada.passwd IS 'Password de la clave privada necesaria para hacer uso de la misma';
+COMMENT ON COLUMN core_clave_privada.password IS 'Password de la clave privada necesaria para hacer uso de la misma';
 COMMENT ON COLUMN core_clave_privada.numeroserie IS 'Numero de serie de la clave privada';
 
 CREATE TABLE core_clave_publica
