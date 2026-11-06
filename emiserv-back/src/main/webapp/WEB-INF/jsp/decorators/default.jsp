@@ -184,9 +184,10 @@ body {
 					</ul>
 					<div class="clearfix"></div>
 					<div class="btn-group navbar-btn navbar-right">
-						<%-- Enllaç cap a la interfície REACT a la capçalera, com a Notib, Ripea i Distribució: un
-						     "btn btn-default" amb la icona de la carpeta que encapçala el grup de botons del menú --%>
+						<%-- Enllaç cap a la interfície REACT --%>
+						<%--
 						<a href="<c:url value="/reactapp/"/>" class="btn btn-default"><span class="fa fa-folder" style="color: #ff9523;"></span> <spring:message code="decorator.menu.interficie.moderna"/></a>
+						--%>
 						<a href="<c:url value="/servei"/>" class="btn btn-primary"><spring:message code="decorator.menu.serveis"/></a>
 						<c:if test="${isRolActualAdministrador}">
 							<a href="<c:url value="/informe"/>" class="btn btn-primary"><spring:message code="decorator.menu.informes"/></a>
