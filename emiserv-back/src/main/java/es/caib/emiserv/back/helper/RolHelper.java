@@ -77,6 +77,50 @@ public class RolHelper {
 		request.getSession().removeAttribute(SESSION_ATTRIBUTE_ROL_ACTUAL);
 	}
 
+	/**
+	 * Rol actual per a la interfície REACT, a partir dels rols de l'usuari a l'API (les autoritats de
+	 * Spring Security, que també funcionen en arrencar des de l'IDE). Fa servir el mateix atribut de
+	 * sessió que la JSP: canviar el rol en una interfície el canvia a l'altra. Sense rol a la sessió (o
+	 * si ja no el té), l'administrador i, si no, el responsable.
+	 */
+	public static String getRolActual(HttpServletRequest request, List<String> rolsDisponibles) {
+		String rolActual = (String)request.getSession().getAttribute(SESSION_ATTRIBUTE_ROL_ACTUAL);
+		if (rolActual == null || !rolsDisponibles.contains(rolActual)) {
+			rolActual = rolsDisponibles.contains(ROLE_ADMIN) ? ROLE_ADMIN : rolsDisponibles.contains(ROLE_RESP) ? ROLE_RESP : null;
+			if (rolActual != null) {
+				request.getSession().setAttribute(SESSION_ATTRIBUTE_ROL_ACTUAL, rolActual);
+			}
+		}
+		return rolActual;
+	}
+
+	/** Rols d'EMISERV (administrador i responsable) de l'usuari autenticat, segons les seves autoritats. */
+	public static List<String> getRolsAutoritats() {
+		List<String> rols = new ArrayList<String>();
+		org.springframework.security.core.Authentication auth =
+				org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+		if (auth != null) {
+			java.util.Set<String> autoritats = new java.util.HashSet<String>();
+			for (org.springframework.security.core.GrantedAuthority autoritat: auth.getAuthorities()) {
+				autoritats.add(autoritat.getAuthority());
+			}
+			if (autoritats.contains(ROLE_ADMIN))
+				rols.add(ROLE_ADMIN);
+			if (autoritats.contains(ROLE_RESP))
+				rols.add(ROLE_RESP);
+		}
+		return rols;
+	}
+
+	/** Canvia el rol actual (interfície REACT); només si l'usuari el té. */
+	public static boolean setRolActual(HttpServletRequest request, List<String> rolsDisponibles, String rol) {
+		if (rol == null || !rolsDisponibles.contains(rol)) {
+			return false;
+		}
+		request.getSession().setAttribute(SESSION_ATTRIBUTE_ROL_ACTUAL, rol);
+		return true;
+	}
+
 	public static String getRequestParameterCanviRol() {
 		return REQUEST_PARAMETER_CANVI_ROL;
 	}

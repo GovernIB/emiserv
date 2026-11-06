@@ -5,7 +5,6 @@ import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import { FormField, useFormContext } from 'reactlib';
-import { useSessioUsuari } from '../../components/EmiservAuthProvider';
 import {
     BACKOFFICE_ASYNC_TIPUS,
     BACKOFFICE_AUTENTICACIO,
@@ -30,16 +29,17 @@ type ServeiDadesFormProps = {
     existent: boolean;
     /** Motius del diagnòstic del servei (per avisar de la configuració SCSP pendent). */
     motius?: MotiuDiagnostic[];
+    /** Obre la pestanya de configuració SCSP (enllaç de l'avís de configuració pendent). */
+    onAnarScsp?: () => void;
 };
 
 /**
  * Camps del formulari d'un servei (`serveiForm.jsp`). Només es mostren els camps del tipus triat, com
  * a la JSP; el servidor comprova els obligatoris de cada tipus.
  */
-export const ServeiDadesForm: React.FC<ServeiDadesFormProps> = ({ existent, motius }) => {
+export const ServeiDadesForm: React.FC<ServeiDadesFormProps> = ({ existent, motius, onAnarScsp }) => {
     const { t } = useTranslation();
     const { data } = useFormContext();
-    const { backendBaseUrl } = useSessioUsuari();
     const tipus = data?.tipus as ServeiTipus | undefined;
     const opcionsTipus = useOpcionsEnum(SERVEI_TIPUS, 'serveis.tipus');
     const opcionsAutenticacio = useOpcionsEnum(BACKOFFICE_AUTENTICACIO, 'serveis.enum.autenticacio');
@@ -51,7 +51,9 @@ export const ServeiDadesForm: React.FC<ServeiDadesFormProps> = ({ existent, moti
                 <Grid size={12}>
                     <Alert severity="warning">
                         {t('serveis.form.avisConfigScsp')}{' '}
-                        <Link href={backendBaseUrl + '/servei'}>{t('serveis.form.interficieClassica')}</Link>
+                        <Link component="button" type="button" onClick={onAnarScsp} sx={{ verticalAlign: 'baseline' }}>
+                            {t('serveis.form.anarScsp')}
+                        </Link>
                     </Alert>
                 </Grid>
             )}

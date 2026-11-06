@@ -9,6 +9,7 @@ import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
 import es.caib.emiserv.back.helper.RequestSessionHelper;
 import es.caib.emiserv.logic.intf.dto.OrganismeDto;
 import es.caib.emiserv.logic.intf.dto.OrganismeFiltreDto;
+import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.service.ScspService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
@@ -26,7 +27,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Controlador per a la gestió dels organismes SCSP.
@@ -35,9 +39,10 @@ import java.util.Date;
  */
 @Controller
 @RequestMapping("/organisme")
-public class OrganismeController extends BaseController {
+public class OrganismeController extends BaseAccionsMassivesController {
 
 	private static final String SESSION_ATTRIBUTE_FILTRE = "OrganismeController.session.filtre";
+	private static final String SESSION_ATTRIBUTE_SELECCIO = "OrganismeController.session.seleccio";
 
 	@Autowired
 	private ScspService scspService;
@@ -47,6 +52,7 @@ public class OrganismeController extends BaseController {
 			HttpServletRequest request,
 			Model model) {
 		model.addAttribute(getFiltreCommand(request));
+		model.addAttribute("seleccio", getIdsSeleccionats(request));
 		return "organismeList";
 	}
 
@@ -62,6 +68,8 @@ public class OrganismeController extends BaseController {
 		} else if (!bindingResult.hasErrors()) {
 			RequestSessionHelper.actualitzarObjecteSessio(request, SESSION_ATTRIBUTE_FILTRE, filtre);
 		}
+		// Canviar el filtre buida la selecció (com a Notib)
+		netejarSeleccio(request);
 		return "redirect:organisme";
 	}
 
@@ -76,7 +84,9 @@ public class OrganismeController extends BaseController {
 				request,
 				scspService.organismeFindByFiltrePaginat(
 						filtre,
-						DatatablesHelper.getPaginacioDtoFromRequest(request)));
+						DatatablesHelper.getPaginacioDtoFromRequest(request)),
+				"id",
+				SESSION_ATTRIBUTE_SELECCIO);
 		return dtr;
 	}
 
@@ -130,10 +140,41 @@ public class OrganismeController extends BaseController {
 			HttpServletRequest request,
 			@PathVariable Long id) {
 		scspService.organismeDelete(id);
+		treureDeSeleccio(request, Collections.singleton(id));
 		return getAjaxControllerReturnValueSuccess(
 				request,
 				"redirect:../../organisme",
 				"organisme.controller.esborrat.ok");
+	}
+
+	@RequestMapping(value = "/esborrar", method = RequestMethod.GET)
+	public String esborrarSeleccionats(HttpServletRequest request) {
+		return executarAccioMassiva(
+				request,
+				id -> scspService.organismeDelete(id),
+				"redirect:/organisme",
+				"organisme.controller.esborrat.massiu.ok",
+				"organisme.controller.esborrat.massiu.error");
+	}
+
+	@Override
+	protected String getSessionAttributeSeleccio() {
+		return SESSION_ATTRIBUTE_SELECCIO;
+	}
+
+	@Override
+	protected List<Long> getIdsElementsFiltrats(HttpServletRequest request) {
+		OrganismeFiltreDto filtre = (OrganismeFiltreDto)RequestSessionHelper.obtenirObjecteSessio(
+				request,
+				SESSION_ATTRIBUTE_FILTRE);
+		PaginacioParamsDto paginacio = new PaginacioParamsDto();
+		paginacio.setPaginaNum(0);
+		paginacio.setPaginaTamany(Integer.MAX_VALUE);
+		return scspService.organismeFindByFiltrePaginat(
+				filtre != null ? filtre : new OrganismeFiltreDto(),
+				paginacio).getContingut().stream().
+				map(OrganismeDto::getId).
+				collect(Collectors.toList());
 	}
 
 	@InitBinder

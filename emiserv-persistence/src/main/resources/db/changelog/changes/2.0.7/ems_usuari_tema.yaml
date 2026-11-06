@@ -1,0 +1,30 @@
+# Tema de la interfície REACT per usuari (clar, obscur, Dracula o el del sistema)
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: hsqldb
+  - changeSet:
+      id: 1761868800000-1
+      author: limit
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ems_usuari
+                columnName: tema
+      changes:
+        - addColumn:
+            tableName: ems_usuari
+            columns:
+              - column:
+                  name: tema
+                  type: varchar(10 ${varcharUnit})

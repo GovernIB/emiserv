@@ -10,10 +10,24 @@
 	<script src="<c:url value="/webjars/datatables.net/1.10.19/js/jquery.dataTables.min.js"/>"></script>
 	<script src="<c:url value="/webjars/datatables.net-bs/1.10.19/js/dataTables.bootstrap.min.js"/>"></script>
 	<link href="<c:url value="/webjars/datatables.net-bs/1.10.19/css/dataTables.bootstrap.min.css"/>" rel="stylesheet"></link>
+	<script src="<c:url value="/webjars/datatables.net-select/1.1.0/js/dataTables.select.min.js"/>"></script>
+	<link href="<c:url value="/webjars/datatables.net-select-bs/1.1.0/css/select.bootstrap.min.css"/>" rel="stylesheet"></link>
 	<script src="<c:url value="/webjars/jsrender/1.0.0-rc.70/jsrender.min.js"/>"></script>
 	<script src="<c:url value="/js/webutil.common.js"/>"></script>
 	<script src="<c:url value="/js/webutil.datatable.js"/>"></script>
 	<script src="<c:url value="/js/webutil.modal.js"/>"></script>
+	<script src="<c:url value="/js/datatable.accions-massives.js"/>"></script>
+	<script>
+		$(document).ready(function() {
+			webutilAccionsMassives(
+					$('#organismes'),
+					'<c:url value="/organismeCessionari"/>',
+					{seleccioBuida: '<spring:message code="comu.accio.massiva.seleccio.buida" javaScriptEscape="true"/>'});
+		});
+	</script>
+	<style>
+		table.dataTable thead > tr.selectable > :first-child, table.dataTable tbody > tr.selectable > :first-child {cursor: pointer;}
+	</style>
 </head>
 <body>
 	<form:form action="" method="post" cssClass="well" modelAttribute="organismeFiltreDto">
@@ -32,7 +46,7 @@
 			</div>
 		</div>
 	</form:form>
-	<table id="organismes" data-toggle="datatable" data-url="organismeCessionari/datatable" data-search-enabled="false" data-botons-template="#botonsTemplate" class="table table-striped table-bordered" style="width:100%">
+	<table id="organismes" data-toggle="datatable" data-url="organismeCessionari/datatable" data-search-enabled="false" data-selection-enabled="true" data-botons-template="#botonsTemplate" class="table table-striped table-bordered" style="width:100%">
 		<thead>
 			<tr>
 				<th data-col-name="cif" width="10%"><spring:message code="organisme.list.columna.cif"/></th>
@@ -61,6 +75,18 @@
 		</thead>
 	</table>
 	<script id="botonsTemplate" type="text/x-jsrender">
+		<div class="btn-group pull-right" style="margin-left: 4px;">
+			<button data-seleccio="tots" title="<spring:message code="comu.seleccio.tots"/>" class="btn btn-default"><span class="fa fa-check-square-o"></span></button>
+			<button data-seleccio="cap" title="<spring:message code="comu.seleccio.cap"/>" class="btn btn-default"><span class="fa fa-square-o"></span></button>
+			<div class="btn-group">
+				<button class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<span class="badge seleccioCount">${fn:length(seleccio)}</span> <spring:message code="comu.accions.massives"/> <span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-right">
+					<li><a href="<c:url value="/organismeCessionari/esborrar"/>" data-accio-massiva="esborrar" data-confirmacio="<spring:message code="organisme.list.confirmacio.esborrar.massiu"/>"><span class="fa fa-trash-o"></span>&nbsp;&nbsp;<spring:message code="comu.boto.esborrar"/></a></li>
+				</ul>
+			</div>
+		</div>
 		<a id="accio-new" class="btn btn-default pull-right" href="organismeCessionari/new" data-toggle="modal" data-reload-on-close="false" data-datatable-id="organismes"><span class="fa fa-plus"></span>&nbsp;<spring:message code="organisme.list.boto.nou.organisme"/></a>
 	</script>
 </body>

@@ -162,9 +162,9 @@ public class ServeiAutoritzacioResourceServiceImpl extends BaseNoDatabaseMutable
 		ServeiAutoritzacioResource resource = new ServeiAutoritzacioResource();
 		resource.setId(dto.getId());
 		resource.setServeiId(dto.getServeiId());
-		resource.setAplicacioId(dto.getAplicacioId() != null ? dto.getAplicacioId().longValue() : null);
+		resource.setAplicacioId(dto.getAplicacioId() != null ? String.valueOf(dto.getAplicacioId()) : null);
 		resource.setAplicacioNom(dto.getAplicacioNom());
-		resource.setOrganismeId(dto.getOrganismeId());
+		resource.setOrganismeId(dto.getOrganismeId() != null ? String.valueOf(dto.getOrganismeId()) : null);
 		resource.setOrganismeNom(dto.getOrganismeNom());
 		resource.setDataAlta(dto.getDataAlta());
 		resource.setDataBaixa(dto.getDataBaixa());
@@ -174,8 +174,8 @@ public class ServeiAutoritzacioResourceServiceImpl extends BaseNoDatabaseMutable
 	private static AutoritzacioDto toDto(ServeiAutoritzacioResource resource) {
 		AutoritzacioDto dto = new AutoritzacioDto();
 		dto.setServeiId(resource.getServeiId());
-		dto.setAplicacioId(resource.getAplicacioId() != null ? resource.getAplicacioId().intValue() : null);
-		dto.setOrganismeId(resource.getOrganismeId());
+		dto.setAplicacioId(resource.getAplicacioId() != null ? Integer.valueOf(resource.getAplicacioId()) : null);
+		dto.setOrganismeId(resource.getOrganismeId() != null ? Long.valueOf(resource.getOrganismeId()) : null);
 		dto.setDataAlta(resource.getDataAlta());
 		dto.setDataBaixa(resource.getDataBaixa());
 		return dto;

@@ -17,7 +17,7 @@ import {
 } from 'reactlib';
 import { BACKOFFICE_AUTENTICACIO, RUTA_DESTI_TIPUS } from './serveiModel';
 import { useOpcionsEnum } from './ServeiDadesForm';
-import { missatgeError } from './serveiErrors';
+import { missatgeError } from '../../util/missatgeError';
 
 /** Nom del recurs de l'API (ServeiRutaApiController). */
 export const RECURS_RUTA = 'serveiRuta';

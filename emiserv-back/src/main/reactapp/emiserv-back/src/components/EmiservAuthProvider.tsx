@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { desarTemaCache, type Tema, useSetTema } from './TemaProvider';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -39,7 +40,20 @@ export type SessioUsuari = {
     interficie: Interficie;
     /** Interfície preferida de l'usuari (null: la per defecte de l'aplicació). */
     interficiePreferida: Interficie | null;
+    /** Idioma del perfil (el mateix que el de la JSP); null: el del navegador. */
+    idioma?: Idioma | null;
+    /** Tema de la interfície; null: el del sistema. */
+    tema?: Tema | null;
+    /** Rol actual (el del selector de rol, compartit amb la JSP). */
+    rolActual?: Rol | null;
 };
+
+export type Rol = 'EMS_ADMIN' | 'EMS_RESP';
+
+export type Idioma = 'ca' | 'es';
+
+/** Preferències del perfil que es desen juntes (`PUT api/sessioUsuari/preferencies`). */
+export type Preferencies = { idioma: Idioma | null; tema: Tema | null };
 
 type EstatSessio = 'carregant' | 'autenticat' | 'caducada' | 'sensePermisos' | 'error';
 
@@ -51,6 +65,10 @@ type SessioUsuariContextType = {
     comprovarSessio: () => void;
     /** Desa la interfície preferida de l'usuari (`PUT api/sessioUsuari/interficie`). */
     desarInterficiePreferida: (interficie: Interficie | null) => Promise<void>;
+    /** Desa l'idioma i el tema del perfil i els aplica. */
+    desarPreferencies: (preferencies: Preferencies) => Promise<void>;
+    /** Canvia el rol actual (`PUT api/sessioUsuari/rol`). */
+    canviarRol: (rol: Rol) => Promise<void>;
 };
 
 const SessioUsuariContext = React.createContext<SessioUsuariContextType | undefined>(undefined);
@@ -66,15 +84,21 @@ export const useSessioUsuari = (): SessioUsuariContextType => {
 
 /** Rol d'administrador d'EMISERV. */
 export const ROL_ADMIN = 'EMS_ADMIN';
+/** Rol de responsable d'EMISERV. */
+export const ROL_RESP = 'EMS_RESP';
 
 /**
- * Indica si l'usuari de la sessió és administrador (`EMS_ADMIN`). Només serveix per a decidir què es
+ * Indica si el rol actual de l'usuari és el d'administrador (`EMS_ADMIN`). Com a la JSP, un usuari
+ * amb els dos rols tria quin fa servir amb el selector de rol. Només serveix per a decidir què es
  * mostra: els permisos els comprova sempre el servidor.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export const useEsAdmin = (): boolean => {
     const { usuari } = useSessioUsuari();
-    return usuari?.rols.includes(ROL_ADMIN) ?? false;
+    if (usuari == null) {
+        return false;
+    }
+    return usuari.rolActual != null ? usuari.rolActual === ROL_ADMIN : usuari.rols.includes(ROL_ADMIN);
 };
 
 /** Temps mínim entre dues comprovacions provocades per l'activitat de l'usuari. */
@@ -291,25 +315,26 @@ export const EmiservAuthProvider: React.FC<EmiservAuthProviderProps> = ({ apiUrl
         comprovar(0);
     }, [comprovar]);
 
-    const desarInterficiePreferida = React.useCallback(
-        async (interficie: Interficie | null) => {
-            const response = await fetch(backendBaseUrl + '/api/sessioUsuari/interficie', {
+    /** Desa una preferència de l'usuari i torna a llegir la sessió (valors efectius del servidor). */
+    const desarPreferenciaSessio = React.useCallback(
+        async (cami: string, cos: unknown) => {
+            const response = await fetch(backendBaseUrl + '/api/sessioUsuari/' + cami, {
                 method: 'PUT',
                 credentials: 'include',
                 redirect: 'manual',
                 cache: 'no-store',
                 headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-                body: JSON.stringify({ interficie }),
+                body: JSON.stringify(cos),
             });
             if (response.type === 'opaqueredirect' || response.status === 401) {
                 gestionarSenseSessio();
                 throw new Error('Sessió caducada');
             }
             if (!response.ok) {
-                throw new Error('Error desant la interfície preferida (HTTP ' + response.status + ')');
+                throw new Error('Error desant les preferències (HTTP ' + response.status + ')');
             }
-            // La interfície efectiva depèn de la configuració de l'aplicació quan la preferida és
-            // nul·la: es torna a llegir del servidor.
+            // Els valors efectius (p. ex. la interfície quan la preferida és nul·la) depenen del
+            // servidor: es torna a llegir la sessió.
             const resultat = await consultarSessio(backendBaseUrl);
             if (resultat.estat === 'autenticat') {
                 usuariRef.current = resultat.usuari;
@@ -318,6 +343,34 @@ export const EmiservAuthProvider: React.FC<EmiservAuthProviderProps> = ({ apiUrl
         },
         [backendBaseUrl, gestionarSenseSessio]
     );
+
+    const desarInterficiePreferida = React.useCallback(
+        (interficie: Interficie | null) => desarPreferenciaSessio('interficie', { interficie }),
+        [desarPreferenciaSessio]
+    );
+
+    const canviarRol = React.useCallback(
+        (rol: Rol) => desarPreferenciaSessio('rol', { rol }),
+        [desarPreferenciaSessio]
+    );
+
+    const desarPreferencies = React.useCallback(
+        ({ idioma, tema }: Preferencies) =>
+            desarPreferenciaSessio('preferencies', { idioma: idioma?.toUpperCase() ?? null, tema }),
+        [desarPreferenciaSessio]
+    );
+
+    // Tema del perfil: s'aplica en carregar l'usuari i en desar-lo
+    const setTema = useSetTema();
+    React.useEffect(() => {
+        if (usuari == null) {
+            return;
+        }
+        // L'idioma l'aplica EmiservBaseApp (useIdiomaPerfil): ha de passar pel currentLanguage de
+        // base-react, que el sincronitza amb i18n en els dos sentits
+        setTema(usuari.tema ?? null);
+        desarTemaCache(usuari.tema ?? null);
+    }, [usuari, setTema]);
 
     React.useEffect(() => {
         comprovar(0);
@@ -369,8 +422,8 @@ export const EmiservAuthProvider: React.FC<EmiservAuthProviderProps> = ({ apiUrl
     }, [estat, usuari, sortir]);
 
     const sessioContext = React.useMemo(
-        () => ({ usuari, backendBaseUrl, comprovarSessio, desarInterficiePreferida }),
-        [usuari, backendBaseUrl, comprovarSessio, desarInterficiePreferida]
+        () => ({ usuari, backendBaseUrl, comprovarSessio, desarInterficiePreferida, desarPreferencies, canviarRol }),
+        [usuari, backendBaseUrl, comprovarSessio, desarInterficiePreferida, desarPreferencies, canviarRol]
     );
 
     let contingut: React.ReactNode;
@@ -378,7 +431,11 @@ export const EmiservAuthProvider: React.FC<EmiservAuthProviderProps> = ({ apiUrl
         contingut = children;
     } else if (estat === 'caducada') {
         contingut = (
-            <PantallaSessio missatge={t('app.sessio.caducada')} accio={t('app.sessio.iniciar')} onAccio={iniciarSessio} />
+            <PantallaSessio
+                missatge={t('app.sessio.caducada')}
+                accio={t('app.sessio.iniciar')}
+                onAccio={iniciarSessio}
+            />
         );
     } else if (estat === 'sensePermisos') {
         contingut = (

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { EmiservAuthProvider } from './EmiservAuthProvider';
+import { TemaProvider } from './TemaProvider';
 
 const BACKEND = 'http://localhost/emiservback';
 
@@ -55,9 +56,11 @@ describe('EmiservAuthProvider', () => {
             return url.endsWith('/api/sessioUsuari') ? json(200, USUARI) : respostaApi;
         }) as typeof fetch;
         render(
-            <EmiservAuthProvider apiUrl={BACKEND + '/api'}>
-                <span>contingut</span>
-            </EmiservAuthProvider>
+            <TemaProvider>
+                <EmiservAuthProvider apiUrl={BACKEND + '/api'}>
+                    <span>contingut</span>
+                </EmiservAuthProvider>
+            </TemaProvider>
         );
         return screen.findByText('contingut');
     };
@@ -85,13 +88,15 @@ describe('EmiservAuthProvider', () => {
         expect(screen.getByText('contingut')).toBeInTheDocument();
     });
 
-    it("en desmuntar-se es restaura el fetch", async () => {
+    it('en desmuntar-se es restaura el fetch', async () => {
         const fetchMock = vi.fn(async () => json(200, USUARI)) as unknown as typeof fetch;
         window.fetch = fetchMock;
         const { unmount } = render(
-            <EmiservAuthProvider apiUrl={BACKEND + '/api'}>
-                <span>contingut</span>
-            </EmiservAuthProvider>
+            <TemaProvider>
+                <EmiservAuthProvider apiUrl={BACKEND + '/api'}>
+                    <span>contingut</span>
+                </EmiservAuthProvider>
+            </TemaProvider>
         );
         await screen.findByText('contingut');
         expect(window.fetch).not.toBe(fetchMock);

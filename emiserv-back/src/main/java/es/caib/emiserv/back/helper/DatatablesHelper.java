@@ -7,6 +7,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +35,7 @@ public class DatatablesHelper {
 	private static final String ATRIBUT_ROW_ID = "DT_RowId";
 	//private static final String ATRIBUT_ROW_DATA = "DT_RowData";
 	private static final String ATRIBUT_ID = "DT_Id";
+	private static final String ATRIBUT_ROW_SELECTED = "DT_RowSelected";
 
 	public static PaginacioParamsDto getPaginacioDtoFromRequest(
 			HttpServletRequest request) {
@@ -77,6 +79,10 @@ public class DatatablesHelper {
 		for (int i = 0; i < params.getOrderColumn().size(); i++) {
 			int columnIndex = params.getOrderColumn().get(i);
 			String columna = params.getColumnsData().get(columnIndex);
+			if (columna == null || columna.isEmpty() || "<null>".equals(columna)) {
+				// Columnes sense camp (selecció, accions...): no es poden ordenar
+				continue;
+			}
 			OrdreDireccioDto direccio;
 			if ("asc".equals(params.getOrderDir().get(i)))
 				direccio = OrdreDireccioDto.ASCENDENT;
@@ -106,6 +112,18 @@ public class DatatablesHelper {
 			String atributId) {
 		return getDatatableResponse(request, null, pagina, atributId);
 	}
+	/**
+	 * Resposta per a una datatable amb selecció de files (data-selection-enabled): les files
+	 * amb l'identificador dins la col·lecció desada a la sessió amb el nom atributSeleccio
+	 * es marquen com a seleccionades (DT_RowSelected).
+	 */
+	public static <T> DatatablesResponse getDatatableResponse(
+			HttpServletRequest request,
+			PaginaDto<T> pagina,
+			String atributId,
+			String atributSeleccio) {
+		return getDatatableResponse(request, null, pagina, atributId, atributSeleccio);
+	}
 	public static <T> DatatablesResponse getDatatableResponse(
 			HttpServletRequest request,
 			BindingResult bindingResult,
@@ -117,6 +135,14 @@ public class DatatablesHelper {
 			BindingResult bindingResult,
 			PaginaDto<T> pagina,
 			String atributId) {
+		return getDatatableResponse(request, bindingResult, pagina, atributId, null);
+	}
+	public static <T> DatatablesResponse getDatatableResponse(
+			HttpServletRequest request,
+			BindingResult bindingResult,
+			PaginaDto<T> pagina,
+			String atributId,
+			String atributSeleccio) {
 		LOGGER.debug("Generant informació de resposta per datatable (" +
 				"numero=" + pagina.getNumero() + ", " +
 				"tamany=" + pagina.getTamany() + ", " +
@@ -127,6 +153,10 @@ public class DatatablesHelper {
 			emptyResponse.setFiltreFormResponse(
 					AjaxHelper.generarAjaxFormErrors(null, bindingResult));
 			return emptyResponse;
+		}
+		Collection<?> seleccio = null;
+		if (atributSeleccio != null) {
+			seleccio = (Collection<?>)request.getSession().getAttribute(atributSeleccio);
 		}
 		DatatablesParams params = new DatatablesParams(request);
 		DatatablesResponse response = new DatatablesResponse();
@@ -175,6 +205,9 @@ public class DatatablesHelper {
 						mapRegistre.put(
 								ATRIBUT_ID,
 								valor);
+						mapRegistre.put(
+								ATRIBUT_ROW_SELECTED,
+								seleccio != null && seleccio.contains(valor));
 					} catch (Exception ex) {
 						LOGGER.error(
 								"No s'ha pogut llegir la propietat de l'objecte (" +

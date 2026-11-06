@@ -7,18 +7,22 @@ import {
     useNavigate,
 } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import Box from '@mui/material/Box';
+import { useTheme } from '@mui/material/styles';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import 'dayjs/locale/ca';
 import 'dayjs/locale/es';
-import { type MenuEntry, useBaseAppContext } from 'reactlib';
+import { type MenuEntry, useBaseAppContext, useResourceApiContext } from 'reactlib';
 import { DrassanaFooter, icons, Lot2BaseApp } from '../lot2';
-import i18n from '../i18n';
+import i18n, { idiomaNavegador } from '../i18n';
 import goibLogoLight from '../assets/goib_logo_light.svg';
 import goibLogoDark from '../assets/goib_logo_dark.svg';
-import { useInterficieClassica } from './InterficieClassica';
+import { InterficieClassicaButton } from './InterficieClassica';
 import { UserProfileDialog, UserProfileMenuItem } from './UserProfile';
-import { useSessioUsuari } from './EmiservAuthProvider';
+import { ICONES_ROL, SelectorRol } from './SelectorRol';
+import { useEsAdmin, useSessioUsuari } from './EmiservAuthProvider';
+import { MANTENIMENTS } from '../pages/configuracio/manteniments';
 
 /** Icones de les pantalles d'EMISERV (les comunes surten del catàleg `icons` de `lot2`). */
 // eslint-disable-next-line react-refresh/only-export-components
@@ -27,6 +31,7 @@ export const emiservIcons = {
     auditoria: 'policy',
     auditoriaBackoffice: 'dns',
     auditoriaEnrutador: 'alt_route',
+    configuracio: 'settings',
     interficieClassica: icons.interficieClassica,
 };
 
@@ -49,19 +54,39 @@ const CustomLocalizationProvider: React.FC<React.PropsWithChildren> = ({ childre
 const version = import.meta.env.VITE_APP_VERSION ?? '0.0.0';
 
 /**
+ * Aplica l'idioma del perfil (o, si no en té, el del navegador) en carregar l'usuari i en desar el
+ * perfil. Es canvia el `currentLanguage` de base-react, que el propaga a i18n: canviar i18n
+ * directament mentre arrenca fa que les dues fonts es corregeixin l'una a l'altra sense fi.
+ */
+const useIdiomaPerfil = () => {
+    const { usuari } = useSessioUsuari();
+    const { setCurrentLanguage } = useResourceApiContext();
+    const idioma = usuari != null ? (usuari.idioma ?? idiomaNavegador()) : undefined;
+    React.useEffect(() => {
+        if (idioma != null) {
+            setCurrentLanguage(idioma);
+        }
+    }, [idioma, setCurrentLanguage]);
+};
+
+/**
  * Marc de l'aplicació: `Lot2BaseApp` amb els logos, el peu de Drassana i el menú d'EMISERV.
  *
- * El menú només enllaça pantalles de la interfície REACT. Les pantalles d'auditoria es migren a la
- * fase 3: fins llavors les seves entrades hi són, però no fan res.
+ * El menú només enllaça pantalles de la interfície REACT: serveis, les dues auditories i, per als
+ * administradors, la configuració.
  */
 export const EmiservBaseApp: React.FC<React.PropsWithChildren> = ({ children }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const { usuari } = useSessioUsuari();
-    const { anarAInterficieClassica } = useInterficieClassica();
     const [perfilObert, setPerfilObert] = React.useState(false);
 
+    const esAdmin = useEsAdmin();
+    const theme = useTheme();
+    const fonsCapcalera = theme.palette.mode === 'light' ? theme.palette.background.paper : undefined;
+    const textCapcalera = fonsCapcalera ? theme.palette.getContrastText(fonsCapcalera) : undefined;
+    useIdiomaPerfil();
     const menuEntries: MenuEntry[] = [
         {
             id: 'serveis',
@@ -69,6 +94,8 @@ export const EmiservBaseApp: React.FC<React.PropsWithChildren> = ({ children }) 
             to: '/serveis',
             icon: emiservIcons.servei,
         },
+        // Informes: només amb el rol actual d'administrador, com el menú de la JSP
+        ...(esAdmin ? [{ id: 'informes', title: t('app.menu.informes'), icon: 'summarize', to: '/informes' }] : []),
         {
             id: 'auditoria',
             title: t('app.menu.auditoria'),
@@ -76,24 +103,42 @@ export const EmiservBaseApp: React.FC<React.PropsWithChildren> = ({ children }) 
             children: [
                 {
                     id: 'auditoriaBackoffice',
-                    title: t('app.menu.properament', { titol: t('app.menu.backoffice') }),
+                    title: t('app.menu.backoffice'),
                     icon: emiservIcons.auditoriaBackoffice,
-                    onClick: () => {},
+                    to: '/auditoria/backoffice',
                 },
                 {
                     id: 'auditoriaEnrutador',
-                    title: t('app.menu.properament', { titol: t('app.menu.enrutador') }),
+                    title: t('app.menu.enrutador'),
                     icon: emiservIcons.auditoriaEnrutador,
-                    onClick: () => {},
+                    to: '/auditoria/enrutador',
                 },
             ],
         },
-        {
-            id: 'interficieClassica',
-            title: t('app.menu.interficieClassica'),
-            icon: emiservIcons.interficieClassica,
-            onClick: anarAInterficieClassica,
-        },
+        // Configuració: només per als administradors, com el menú de la JSP
+        ...(esAdmin
+            ? [
+                  {
+                      id: 'configuracio',
+                      title: t('app.menu.configuracio'),
+                      icon: emiservIcons.configuracio,
+                      children: [
+                          ...MANTENIMENTS.map((m) => ({
+                              id: `configuracio_${m.clau}`,
+                              title: t(`configuracio.${m.clau}.menu`),
+                              icon: m.icona,
+                              to: `/configuracio/${m.clau}`,
+                          })),
+                          {
+                              id: 'configuracio_propietats',
+                              title: t('configuracio.propietats.menu'),
+                              icon: 'settings_applications',
+                              to: '/configuracio/propietats',
+                          },
+                      ],
+                  },
+              ]
+            : []),
     ];
 
     const anyHistoryEntryExist = () => location.key !== 'default';
@@ -112,8 +157,18 @@ export const EmiservBaseApp: React.FC<React.PropsWithChildren> = ({ children }) 
             logoDark={goibLogoDark}
             headerTitle={t('app.titol')}
             headerVersion={version}
-            headerAuthBadgeIcon={usuari?.rols.includes('EMS_ADMIN') ? 'settings' : undefined}
+            headerAuthBadgeIcon={usuari?.rolActual ? ICONES_ROL[usuari.rolActual] : undefined}
+            // Capçalera segons el tema, com a Distribució i Notib: al tema clar, el fons del paper (no el
+            // color de l'aplicació); als foscos, la barra del tema
+            headerAppbarBackgroundColor={fonsCapcalera}
+            headerAppbarStyle={{ color: textCapcalera }}
+            headerAdditionalComponents={[
+                <Box key="interficieClassica" sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                    <InterficieClassicaButton />
+                </Box>,
+            ]}
             headerAdditionalAuthComponents={[
+                <SelectorRol key="rol" />,
                 <UserProfileMenuItem key="perfil" onClick={() => setPerfilObert(true)} />,
             ]}
             menuEntries={menuEntries}

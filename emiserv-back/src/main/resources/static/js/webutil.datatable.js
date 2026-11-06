@@ -28,6 +28,7 @@
 		var plugin = this;
 		plugin.settings = {}
 		plugin.serverParams = [];
+		var restaurantSeleccio = false;
 		plugin.init = function() {
 			plugin.settings = $.extend(defaults, $element.data(), options);
 			// Inicialització de les options per a crear la datatable
@@ -113,6 +114,15 @@
 						$('span', $cell).click(function() {
 							$(this).parent().trigger('click');
 						});
+						// Selecció desada al servidor (DatatablesHelper, atribut DT_RowSelected)
+						if (data['DT_RowSelected']) {
+							restaurantSeleccio = true;
+							try {
+								$taula.dataTable().api().row(row).select();
+							} finally {
+								restaurantSeleccio = false;
+							}
+						}
 					}
 					if (plugin.settings.dragEnabled) {
 						var $cell;
@@ -323,7 +333,7 @@
 							data: '<null>',
 							orderable: false,
 							visible: true});
-					} if ((!plugin.settings.selectionEnabled && plugin.settings.dragEnabled && index == 0) || (plugin.settings.selectionEnabled && plugin.settings.dragEnabled && index == 1)) {
+					} else if ((!plugin.settings.selectionEnabled && plugin.settings.dragEnabled && index == 0) || (plugin.settings.selectionEnabled && plugin.settings.dragEnabled && index == 1)) {
 						columns.push({
 							data: '<null>',
 							orderable: false,
@@ -461,7 +471,9 @@
 						info: false
 					}
 				}, dataTableOptions);
-				var triggerSelectionChangeFunction = function () {
+				// L'esdeveniment selectionchange.dataTable rep [accio, idsAfectats, idsSeleccionats]:
+				// accio és 'select', 'deselect' o 'restore' (selecció restaurada del servidor).
+				var triggerSelectionChangeFunction = function (accio, indexosAfectats) {
 					var api = $taula.dataTable().api();
 					var numRows = api.data().length;
 					var selectedRowsData = api.rows({
@@ -477,13 +489,17 @@
 					} else {
 						$cell.empty().append('<span class="fa fa-check-square-o"></span>');
 					}
+					var afectatIds = [];
+					for (var d = 0; d < indexosAfectats.length; d++) {
+						afectatIds.push(api.row(indexosAfectats[d]).data()['DT_Id']);
+					}
 					var ids = [];
 					for (var d = 0; d < selectedRowsData.length; d++) {
 						ids.push(selectedRowsData[d]['DT_Id']);
 					}
 					$taula.trigger(
 							'selectionchange.dataTable',
-							[ids]);
+							[accio, afectatIds, ids]);
 				};
 				$taula.on('select.dt', function (e, dt, type, indexes) {
 					if (indexes) {
@@ -495,7 +511,7 @@
 								$(this).parent().trigger('click');
 							});
 						}
-						triggerSelectionChangeFunction();
+						triggerSelectionChangeFunction(restaurantSeleccio ? 'restore' : 'select', indexes);
 					}
 				});
 				$taula.on('deselect.dt', function (e, dt, type, indexes) {
@@ -508,7 +524,7 @@
 								$(this).parent().trigger('click');
 							});
 						}
-						triggerSelectionChangeFunction();
+						triggerSelectionChangeFunction('deselect', indexes);
 					}
 				});
 			}

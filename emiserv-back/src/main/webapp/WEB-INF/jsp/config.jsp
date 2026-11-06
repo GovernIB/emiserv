@@ -16,6 +16,9 @@
     <link href="<c:url value="/webjars/select2-bootstrap-theme/0.1.0-beta.4/dist/select2-bootstrap.min.css"/>" rel="stylesheet"/>
     <script src="<c:url value="/webjars/select2/4.0.1/dist/js/select2.min.js"/>"></script>
     <script src="<c:url value="/webjars/select2/4.0.1/dist/js/i18n/${idioma}.js"/>"></script>
+    <%-- Necessaris perquè l'enllaç «El meu perfil» del menú s'obri com a modal --%>
+    <script src="<c:url value="/js/webutil.common.js"/>"></script>
+    <script src="<c:url value="/js/webutil.modal.js"/>"></script>
 </head>
 <body>
 <script>
@@ -80,7 +83,7 @@
 <div class="row">
     <div class="col-md-3"></div>
 <%--    <div class="col-md-9"></div>--%>
-    <div class="col-md-9" data-toggle="botons-titol" style="display:flex; margin-bottom: -10px;">
+    <div class="col-md-9" style="display:flex; margin-bottom: -10px;">
         <div class="alert alert-warning" style="flex: fit-content; margin-right: 10px;">
             <span class="fa fa-sync-alt fa-border" style="margin-right: 10px; background-color: #449d44; border-color: #398439; color: white;"></span>
             <spring:message code="config.alerta.requereix.reinici"/>

@@ -13,6 +13,7 @@ import es.caib.comanda.model.server.monitoring.SubsistemaInfo;
 import es.caib.comanda.model.server.monitoring.SubsistemaSalut;
 import es.caib.comanda.ms.log.helper.LogFileStream;
 import es.caib.emiserv.logic.intf.dto.InterficieUsuariEnumDto;
+import es.caib.emiserv.logic.intf.dto.TemaAplicacioEnumDto;
 import es.caib.emiserv.logic.intf.dto.SubsistemesEnum;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -68,6 +69,23 @@ public interface AplicacioService {
 	 */
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public void updateInterficie(InterficieUsuariEnumDto interficie);
+
+	/**
+	 * Retorna el tema de la interfície REACT de l'usuari actual.
+	 *
+	 * @return el tema, o null si l'usuari no n'ha triat cap.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public TemaAplicacioEnumDto getTemaUsuariActual();
+
+	/**
+	 * Configura el tema de la interfície REACT de l'usuari actual (crea l'usuari si no existeix).
+	 *
+	 * @param tema
+	 *            el tema, o null per esborrar la preferència.
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public void updateTemaUsuariActual(TemaAplicacioEnumDto tema);
 
 	/**
 	 * Carrega les propietats de la base de dades a l'environment
