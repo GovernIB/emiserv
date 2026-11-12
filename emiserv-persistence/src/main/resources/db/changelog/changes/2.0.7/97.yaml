@@ -18,8 +18,8 @@ databaseChangeLog:
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
-          expectedResult: 1
-          sql: SELECT COUNT(*) FROM ems_config WHERE key = 'es.caib.emiserv.log.dir'
+            expectedResult: 1
+            sql: SELECT COUNT(*) FROM ems_config WHERE key = 'es.caib.emiserv.log.dir'
       changes:
         - update:
             tableName: ems_config
