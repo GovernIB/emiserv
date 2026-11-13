@@ -112,7 +112,7 @@
 				<configuration>
 					<verbose>true</verbose>
 					<!-- Si utilitzes Podman enlloc de docker has de descomentar la següent línia-->
-					<dockerHost>unix:///run/user/1000/podman/podman.sock</dockerHost>
+					<!-- dockerHost>unix:///run/user/1000/podman/podman.sock</dockerHost -->
 					<images>
 						<image>
 							<name>280421/%g</name>
@@ -178,6 +178,7 @@
 									<tag>latest</tag>
 									<tag>${project.version}</tag>
 								</tags>
+								<cleanup>none</cleanup>
 							</build>
 						</image>
 					</images>
