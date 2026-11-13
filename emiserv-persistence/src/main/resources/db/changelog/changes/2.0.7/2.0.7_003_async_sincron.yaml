@@ -16,6 +16,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761580800000-1
       author: limit
+      comment: '#86 Columnes de les consultes asíncrones processades com a síncrones'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -86,6 +87,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761580800000-2
       author: limit
+      comment: '#86 Seqüència dels IdPeticion enviats als cedents'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -102,6 +104,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761580800000-3
       author: limit
+      comment: '#86 Grup ASINCRON de propietats'
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:

@@ -16,6 +16,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761566400000-1
       author: limit
+      comment: '#98 Rutes dels enrutadors amb consulta directa al backoffice del cedent'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -39,6 +40,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761566400000-2
       author: limit
+      comment: '#98 Codi d''entitat de les peticions al backoffice'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -55,6 +57,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761566400000-3
       author: limit
+      comment: '#98 Propietat es.caib.emiserv.enrutador.emisor.url'
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:

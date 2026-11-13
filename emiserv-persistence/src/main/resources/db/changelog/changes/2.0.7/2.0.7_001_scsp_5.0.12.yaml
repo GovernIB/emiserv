@@ -16,6 +16,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761134400000-1
       author: limit
+      comment: 'Llibreries SCSP 5.0.12: columna core_clave_privada.bloqueado'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -35,6 +36,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761134400000-2
       author: limit
+      comment: 'Llibreries SCSP 5.0.12: columna core_servicio.signer'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -51,6 +53,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761134400000-3
       author: limit
+      comment: 'Llibreries SCSP 5.0.12: columnes core_transmision.automatizado i clasetramite'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -70,6 +73,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761134400000-4
       author: limit
+      comment: 'Llibreries SCSP 5.0.12: taula core_clave_privada_externa'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -101,6 +105,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761134400000-5
       author: limit
+      comment: 'Llibreries SCSP 5.0.12: permisos de core_clave_privada_externa'
       context: caib
       changes:
         - sql:

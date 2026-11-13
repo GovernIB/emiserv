@@ -15,6 +15,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761652800000-1
       author: limit
+      comment: 'Preferència d''interfície (JSP o REACT) per usuari'
       preConditions:
         - onFail: MARK_RAN
         - not:
@@ -31,6 +32,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761652800000-2
       author: limit
+      comment: 'Propietat es.caib.emiserv.interface.defecte'
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:

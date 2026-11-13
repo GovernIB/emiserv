@@ -15,6 +15,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761868800000-1
       author: limit
+      comment: 'Tema de la interfície REACT per usuari'
       preConditions:
         - onFail: MARK_RAN
         - not:

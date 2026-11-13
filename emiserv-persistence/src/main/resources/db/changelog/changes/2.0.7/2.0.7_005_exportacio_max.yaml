@@ -3,6 +3,7 @@ databaseChangeLog:
   - changeSet:
       id: 1761667200000-1
       author: limit
+      comment: 'Propietat es.caib.emiserv.exportacio.max'
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
