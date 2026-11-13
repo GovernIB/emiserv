@@ -260,6 +260,10 @@ public final class FakeEmiservServer {
 		private final String nomCompletFuncionari;
 		private final String nifFuncionari;
 		private final List<String> idSolicitudes;
+		// Sol·licitud del padró (SCDCPAJU, SCDHPAJU): DatosEspecificos/Solicitud
+		private final String provinciaSolicitud;
+		private final String municipioSolicitud;
+		private final String documentSolicitud;
 
 		private RequestInfo(
 			String bodyRoot,
@@ -289,7 +293,10 @@ public final class FakeEmiservServer {
 			String consentiment,
 			String nomCompletFuncionari,
 			String nifFuncionari,
-			List<String> idSolicitudes) {
+			List<String> idSolicitudes,
+			String provinciaSolicitud,
+			String municipioSolicitud,
+			String documentSolicitud) {
 			this.bodyRoot = bodyRoot;
 			this.bodyNamespace = bodyNamespace;
 			this.serviceCode = serviceCode;
@@ -318,6 +325,9 @@ public final class FakeEmiservServer {
 			this.nomCompletFuncionari = nomCompletFuncionari;
 			this.nifFuncionari = nifFuncionari;
 			this.idSolicitudes = idSolicitudes;
+			this.provinciaSolicitud = provinciaSolicitud;
+			this.municipioSolicitud = municipioSolicitud;
+			this.documentSolicitud = documentSolicitud;
 		}
 
 		static RequestInfo fromXml(String xml) throws IOException {
@@ -412,6 +422,7 @@ public final class FakeEmiservServer {
 					firstValue(bodyRoot, "NifFuncionario"),
 					firstValue(bodyRoot, "nifFuncionario"),
 					"12345678Z");
+				Element solicitudPadro = firstElement(bodyRoot, "Solicitud");
 				SignatureStyle signatureStyle = detectSignatureStyle(document);
 				return new RequestInfo(
 					bodyRoot.getLocalName(),
@@ -441,7 +452,10 @@ public final class FakeEmiservServer {
 					consentiment,
 					nomCompletFuncionari,
 					nifFuncionari,
-					idSolicitudes);
+					idSolicitudes,
+					solicitudPadro != null ? firstValue(solicitudPadro, "ProvinciaSolicitud") : null,
+					solicitudPadro != null ? firstValue(solicitudPadro, "MunicipioSolicitud") : null,
+					solicitudPadro != null ? firstValue(solicitudPadro, "Valor") : null);
 			} catch (Exception e) {
 				throw new IOException("No s'ha pogut interpretar l'XML d'entrada", e);
 			}
@@ -480,7 +494,10 @@ public final class FakeEmiservServer {
 				consentiment,
 				nomCompletFuncionari,
 				nifFuncionari,
-				idSolicitudes);
+				idSolicitudes,
+				provinciaSolicitud,
+				municipioSolicitud,
+				documentSolicitud);
 		}
 
 		String scspNamespace() {
@@ -529,6 +546,11 @@ public final class FakeEmiservServer {
 				return SignatureStyle.XML_SIGNATURE;
 			}
 			return SignatureStyle.XML_SIGNATURE;
+		}
+
+		private static Element firstElement(Element root, String localName) {
+			NodeList nodes = root.getElementsByTagNameNS("*", localName);
+			return nodes.getLength() > 0 ? (Element)nodes.item(0) : null;
 		}
 
 		private static String firstValue(Element root, String localName) {
@@ -725,6 +747,12 @@ public final class FakeEmiservServer {
 			if ("SVDSCTFNWS01".equalsIgnoreCase(requestInfo.serviceCode)) {
 				return familiaNombrosaDatosEspecificos(requestInfo);
 			}
+			if ("SCDCPAJU".equalsIgnoreCase(requestInfo.serviceCode)) {
+				return padroDatosEspecificos(requestInfo);
+			}
+			if ("SCDHPAJU".equalsIgnoreCase(requestInfo.serviceCode)) {
+				return padroHistoricDatosEspecificos(requestInfo);
+			}
 			return "<DatosEspecificos xmlns=\"" + DATOS_ESPECIFICOS_NS + "\">"
 				+ "<Retorno>"
 				+ "<Estado>"
@@ -741,6 +769,92 @@ public final class FakeEmiservServer {
 				+ "</TituloFamiliaNumerosaRetorno>"
 				+ "</Retorno>"
 				+ "</DatosEspecificos>";
+		}
+
+		/**
+		 * Volant de padró (SCDCPAJU) amb dades inventades, vàlid segons l'XSD del servei: la persona
+		 * empadronada és el titular consultat, al municipi de la sol·licitud.
+		 */
+		private static String padroDatosEspecificos(RequestInfo requestInfo) {
+			String provincia = defaultIfBlank(requestInfo.provinciaSolicitud, "07");
+			String municipi = defaultIfBlank(requestInfo.municipioSolicitud, "040");
+			String document = padroDocument(requestInfo);
+			return "<DatosEspecificos xmlns=\"" + DATOS_ESPECIFICOS_NS + "\">"
+				+ padroEstatISolicitud(requestInfo, provincia, municipi, document)
+				+ "<Resultado>"
+				+ "<ClaveHojaPadronal><Distrito>01</Distrito><Seccion>001</Seccion><Hoja>0000001</Hoja></ClaveHojaPadronal>"
+				+ "<Domicilio>"
+				+ "<Via><Codigo>00001</Codigo><Tipo>CL</Tipo><Nombre>CARRER DE PROVES</Nombre></Via>"
+				+ "<Numero><Valor>0001</Valor></Numero>"
+				+ "<CodPostal>07" + esc(sanitizeDigits(municipi, "000")) + "</CodPostal>"
+				+ "</Domicilio>"
+				+ "<Personas><Persona>"
+				+ "<Nombre>" + esc(defaultIfBlank(requestInfo.titularNom, "PERSONA")) + "</Nombre>"
+				+ "<Apellido1>" + esc(defaultIfBlank(requestInfo.titularLlinatge1, "DE PROVES")) + "</Apellido1>"
+				+ "<FechaNacimiento>1980-01-01</FechaNacimiento>"
+				+ "<Documentacion><Tipo>NIF</Tipo><Valor>" + esc(document) + "</Valor></Documentacion>"
+				+ "<NIA>" + esc(provincia + municipi) + "0000000001</NIA>"
+				+ "<PeriodoInscripcion><Desde>2020-01-01</Desde>"
+				+ "<MotivoInscripcion><CodigoVariacion>A</CodigoVariacion><CausaVariacion>CR</CausaVariacion>"
+				+ "<Descripcion>Alta por cambio de residencia</Descripcion></MotivoInscripcion>"
+				+ "</PeriodoInscripcion>"
+				+ "</Persona></Personas>"
+				+ "<FechaExpedicion>2026-01-01</FechaExpedicion>"
+				+ "</Resultado>"
+				+ "</DatosEspecificos>";
+		}
+
+		/**
+		 * Padró històric (SCDHPAJU) amb dades inventades, vàlid segons l'XSD del servei: el titular
+		 * consultat amb un sol domicili, al municipi de la sol·licitud.
+		 */
+		private static String padroHistoricDatosEspecificos(RequestInfo requestInfo) {
+			String provincia = defaultIfBlank(requestInfo.provinciaSolicitud, "07");
+			String municipi = defaultIfBlank(requestInfo.municipioSolicitud, "040");
+			String document = padroDocument(requestInfo);
+			return "<DatosEspecificos xmlns=\"" + DATOS_ESPECIFICOS_NS + "\">"
+				+ padroEstatISolicitud(requestInfo, provincia, municipi, document)
+				+ "<Resultado>"
+				+ "<Nombre>" + esc(defaultIfBlank(requestInfo.titularNom, "PERSONA")) + "</Nombre>"
+				+ "<Apellido1>" + esc(defaultIfBlank(requestInfo.titularLlinatge1, "DE PROVES")) + "</Apellido1>"
+				+ "<FechaNacimiento>1980-01-01</FechaNacimiento>"
+				+ "<Documentacion><Tipo>NIF</Tipo><Valor>" + esc(document) + "</Valor></Documentacion>"
+				+ "<HistoricoDomicilios><Domicilio>"
+				+ "<ClaveHojaPadronal><Distrito>01</Distrito><Seccion>001</Seccion><Hoja>0000001</Hoja></ClaveHojaPadronal>"
+				+ "<ProvinciaRespuesta><Codigo>" + esc(provincia) + "</Codigo><Nombre>ILLES BALEARS</Nombre></ProvinciaRespuesta>"
+				+ "<MunicipioRespuesta><Codigo>" + esc(municipi) + "</Codigo><Nombre>MUNICIPI DE PROVES</Nombre></MunicipioRespuesta>"
+				+ "<Direccion>"
+				+ "<Via><Codigo>00001</Codigo><Tipo>CL</Tipo><Nombre>CARRER DE PROVES</Nombre></Via>"
+				+ "<Numero><Valor>0001</Valor></Numero>"
+				+ "<CodPostal>07" + esc(sanitizeDigits(municipi, "000")) + "</CodPostal>"
+				+ "</Direccion>"
+				+ "<Desde>2020-01-01</Desde>"
+				+ "<MotivoInscripcion><CodigoVariacion>A</CodigoVariacion><CausaVariacion>CR</CausaVariacion>"
+				+ "<Descripcion>Alta por cambio de residencia</Descripcion></MotivoInscripcion>"
+				+ "</Domicilio></HistoricoDomicilios>"
+				+ "<FechaExpedicion>2026-01-01</FechaExpedicion>"
+				+ "</Resultado>"
+				+ "</DatosEspecificos>";
+		}
+
+		private static String padroDocument(RequestInfo requestInfo) {
+			return defaultIfBlank(requestInfo.documentSolicitud, defaultIfBlank(requestInfo.titularDocumentacio, "12345678Z"));
+		}
+
+		/** Estat i sol·licitud (eco de la petició) comuns als dos serveis de padró. */
+		private static String padroEstatISolicitud(RequestInfo requestInfo, String provincia, String municipi, String document) {
+			return "<Estado>"
+				+ "<CodigoEstado>0003</CodigoEstado>"
+				+ "<LiteralError>TRAMITADA</LiteralError>"
+				+ "</Estado>"
+				+ "<Solicitud>"
+				+ "<ProvinciaSolicitud>" + esc(provincia) + "</ProvinciaSolicitud>"
+				+ "<MunicipioSolicitud>" + esc(municipi) + "</MunicipioSolicitud>"
+				+ "<Titular><Documentacion>"
+				+ "<Tipo>" + esc(defaultIfBlank(requestInfo.tipusDocumentacio, "NIF")) + "</Tipo>"
+				+ "<Valor>" + esc(document) + "</Valor>"
+				+ "</Documentacion></Titular>"
+				+ "</Solicitud>";
 		}
 
 		private static String familiaNombrosaDatosEspecificos(RequestInfo requestInfo) {
@@ -863,7 +977,7 @@ public final class FakeEmiservServer {
 					.append("</solicitante>")
 					.append("<titular>")
 					.append("<tipoDocumentacion>").append(esc(backofficeTipoDocumentacion(requestInfo))).append("</tipoDocumentacion>")
-					.append("<documentacion>").append(esc(shortDefault(requestInfo.titularDocumentacio, "12345678Z", 14))).append("</documentacion>")
+					.append("<documentacion>").append(esc(shortDefault(RequestInfo.firstNonBlank(requestInfo.documentSolicitud, requestInfo.titularDocumentacio), "12345678Z", 14))).append("</documentacion>")
 					.append(optionalLowerTag("nombre", shortDefault(requestInfo.titularNom, "Sion", 40)))
 					.append(optionalLowerTag("apellido1", shortDefault(requestInfo.titularLlinatge1, "Andreu", 40)))
 					.append(optionalLowerTag("apellido2", shortDefault(requestInfo.titularLlinatge2, "Test", 40)))
@@ -901,9 +1015,11 @@ public final class FakeEmiservServer {
 		}
 
 		private static String backofficeDatosEspecificos(RequestInfo requestInfo) {
-			if ("SVDSCTFNWS01".equalsIgnoreCase(requestInfo.serviceCode)) {
+			if ("SVDSCTFNWS01".equalsIgnoreCase(requestInfo.serviceCode)
+					|| "SCDCPAJU".equalsIgnoreCase(requestInfo.serviceCode)
+					|| "SCDHPAJU".equalsIgnoreCase(requestInfo.serviceCode)) {
 				// Mateixes dades que el servei SCSP, dins l'element datosEspecificos del backoffice (sense namespace)
-				String datosEspecificos = familiaNombrosaDatosEspecificos(requestInfo);
+				String datosEspecificos = scspDatosEspecificos(requestInfo);
 				return "<datosEspecificos>"
 					+ datosEspecificos.substring(datosEspecificos.indexOf('>') + 1, datosEspecificos.lastIndexOf("</DatosEspecificos>"))
 					+ "</datosEspecificos>";

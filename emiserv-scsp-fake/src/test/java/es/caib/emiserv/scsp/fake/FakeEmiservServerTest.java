@@ -197,6 +197,62 @@ class FakeEmiservServerTest {
 	}
 
 	@Test
+	void scdcpajuReturnsPadroDeLaSolicitud() throws Exception {
+		server = FakeEmiservServer.createServer("127.0.0.1", 0);
+		server.start();
+
+		String requestXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+			+ "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:scsp=\"http://intermediacion.redsara.es/scsp/esquemas/V3/peticion\" xmlns:de=\"http://intermediacion.redsara.es/scsp/esquemas/datosespecificos\">"
+			+ "<soapenv:Body>"
+			+ "<scsp:Peticion>"
+			+ "<scsp:Atributos><scsp:CodigoCertificado>SCDCPAJU</scsp:CodigoCertificado><scsp:IdPeticion>PET-PADRO-1</scsp:IdPeticion></scsp:Atributos>"
+			+ "<scsp:Solicitudes><scsp:SolicitudTransmision><scsp:DatosGenericos><scsp:Titular/></scsp:DatosGenericos>"
+			+ "<de:DatosEspecificos><de:Solicitud><de:ProvinciaSolicitud>07</de:ProvinciaSolicitud><de:MunicipioSolicitud>026</de:MunicipioSolicitud>"
+			+ "<de:Titular><de:Documentacion><de:Tipo>DNI</de:Tipo><de:Valor>12345678Z</de:Valor></de:Documentacion></de:Titular></de:Solicitud></de:DatosEspecificos>"
+			+ "</scsp:SolicitudTransmision></scsp:Solicitudes>"
+			+ "</scsp:Peticion>"
+			+ "</soapenv:Body></soapenv:Envelope>";
+
+		HttpResponse<String> response = post("/scsp/SCDCPAJU/07026", requestXml);
+
+		assertEquals(200, response.statusCode());
+		assertTrue(response.body().contains("<MunicipioSolicitud>026</MunicipioSolicitud>"));
+		assertTrue(response.body().contains("<Valor>12345678Z</Valor>"));
+		assertTrue(response.body().contains("<ClaveHojaPadronal>"));
+		assertTrue(response.body().contains("<NIA>070260000000001</NIA>"));
+		assertTrue(response.body().contains("<FechaExpedicion>2026-01-01</FechaExpedicion>"));
+		assertFalse(response.body().contains("<Retorno>"));
+	}
+
+	@Test
+	void scdhpajuReturnsHistoricDeLaSolicitud() throws Exception {
+		server = FakeEmiservServer.createServer("127.0.0.1", 0);
+		server.start();
+
+		String requestXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+			+ "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:scsp=\"http://intermediacion.redsara.es/scsp/esquemas/V3/peticion\" xmlns:de=\"http://intermediacion.redsara.es/scsp/esquemas/datosespecificos\">"
+			+ "<soapenv:Body>"
+			+ "<scsp:Peticion>"
+			+ "<scsp:Atributos><scsp:CodigoCertificado>SCDHPAJU</scsp:CodigoCertificado><scsp:IdPeticion>PET-PADRO-H-1</scsp:IdPeticion></scsp:Atributos>"
+			+ "<scsp:Solicitudes><scsp:SolicitudTransmision><scsp:DatosGenericos><scsp:Titular/></scsp:DatosGenericos>"
+			+ "<de:DatosEspecificos><de:Solicitud><de:ProvinciaSolicitud>07</de:ProvinciaSolicitud><de:MunicipioSolicitud>026</de:MunicipioSolicitud>"
+			+ "<de:Titular><de:Documentacion><de:Tipo>DNI</de:Tipo><de:Valor>12345678Z</de:Valor></de:Documentacion></de:Titular></de:Solicitud></de:DatosEspecificos>"
+			+ "</scsp:SolicitudTransmision></scsp:Solicitudes>"
+			+ "</scsp:Peticion>"
+			+ "</soapenv:Body></soapenv:Envelope>";
+
+		HttpResponse<String> response = post("/scsp/SCDHPAJU/07026", requestXml);
+
+		assertEquals(200, response.statusCode());
+		assertTrue(response.body().contains("<MunicipioSolicitud>026</MunicipioSolicitud>"));
+		assertTrue(response.body().contains("<HistoricoDomicilios><Domicilio>"));
+		assertTrue(response.body().contains("<MunicipioRespuesta><Codigo>026</Codigo>"));
+		assertTrue(response.body().contains("<Valor>12345678Z</Valor>"));
+		assertFalse(response.body().contains("<Personas>"));
+		assertFalse(response.body().contains("<Retorno>"));
+	}
+
+	@Test
 	void svdsctfnws01NoPathReturnsValidNoDataResponse() throws Exception {
 		server = FakeEmiservServer.createServer("127.0.0.1", 0);
 		server.start();
