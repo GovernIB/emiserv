@@ -1,6 +1,9 @@
 package es.caib.emiserv.api.interna.scsp.pinbal;
 
+import es.scsp.common.signature.XMLDSigManager;
 import org.apache.wss4j.common.crypto.Merlin;
+import org.springframework.ws.client.support.interceptor.ClientInterceptorAdapter;
+import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.FaultAwareWebServiceMessage;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
@@ -12,6 +15,7 @@ import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.client.core.SoapActionCallback;
 import org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor;
+import org.springframework.ws.soap.security.wss4j2.callback.KeyStoreCallbackHandler;
 import org.springframework.ws.transport.http.HttpComponentsMessageSender;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -29,6 +33,8 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
 /**
  * Client SCSP que envia les peticions a l'emisor igual que ho fa PINBAL amb el ClienteUnico
@@ -63,14 +69,81 @@ public class ClientScspPinbal {
 	}
 
 	public RespostaScsp enviar(String url, String accio, Element payload, boolean signar) throws Exception {
+		return enviar(url, accio, payload, signar ? crearInterceptorSignatura() : null);
+	}
+
+	/**
+	 * Envia el missatge amb les dades específiques xifrades, igual que PINBAL als serveis amb
+	 * xifratge (es.scsp.common.signature.ScspWssInterceptor com a requeridor): primer es xifren les
+	 * parts indicades amb el certificat de l'emisor (BinarySecurityToken, DirectReference) i
+	 * després se signa el missatge. La resposta es desxifra amb la clau privada del requeridor i se'n
+	 * valida la signatura amb WSS4J (el document de la resposta queda desxifrat).
+	 *
+	 * @param aliasEmisor alias del certificat de l'emisor al keystore de les proves.
+	 * @param parts parts a xifrar en el format de WSS4J ({Content}{namespace}DatosEspecificos).
+	 */
+	public RespostaScsp enviarXifrat(String url, String accio, Element payload, String aliasEmisor, String parts) throws Exception {
+		Merlin crypto = crearCrypto();
+		Wss4jSecurityInterceptor interceptor = new Wss4jSecurityInterceptor();
+		interceptor.setSecurementActions("Encrypt Signature");
+		interceptor.setSecurementEncryptionUser(aliasEmisor);
+		interceptor.setSecurementEncryptionCrypto(crypto);
+		interceptor.setSecurementEncryptionParts(parts);
+		interceptor.setSecurementEncryptionKeyIdentifier("DirectReference");
+		interceptor.setSecurementSignatureKeyIdentifier("DirectReference");
+		interceptor.setSecurementMustUnderstand(false);
+		interceptor.setSecurementUsername(configuracio.getKeystoreAlias());
+		interceptor.setSecurementPassword(configuracio.getKeystoreAliasPassword());
+		interceptor.setSecurementSignatureCrypto(crypto);
+		interceptor.setValidateResponse(true);
+		interceptor.setValidationActions("Signature Encrypt");
+		interceptor.setValidationSignatureCrypto(crypto);
+		interceptor.setValidationDecryptionCrypto(crypto);
+		KeyStoreCallbackHandler callbackHandler = new KeyStoreCallbackHandler();
+		callbackHandler.setPrivateKeyPassword(configuracio.getKeystoreAliasPassword());
+		interceptor.setValidationCallbackHandler(callbackHandler);
+		interceptor.afterPropertiesSet();
+		return enviar(url, accio, payload, interceptor);
+	}
+
+	/**
+	 * Envia el missatge amb signatura XMLSignature (serveis amb tipus de seguretat XMLSignature),
+	 * signat amb la mateixa classe que fan servir les llibreries SCSP 5 com a requeridor
+	 * (es.scsp.common.signature.XMLDSigManager, cridada per ScspXmlSignature).
+	 */
+	public RespostaScsp enviarXmlSignature(String url, String accio, Element payload) throws Exception {
+		org.apache.xml.security.Init.init();
+		Merlin crypto = crearCrypto();
+		KeyStore keyStore = crypto.getKeyStore();
+		X509Certificate certificat = (X509Certificate)keyStore.getCertificate(configuracio.getKeystoreAlias());
+		PrivateKey clau = (PrivateKey)keyStore.getKey(
+				configuracio.getKeystoreAlias(),
+				configuracio.getKeystoreAliasPassword().toCharArray());
+		ClientInterceptor interceptor = new ClientInterceptorAdapter() {
+			@Override
+			public boolean handleRequest(MessageContext messageContext) {
+				SoapMessage soapMessage = (SoapMessage)messageContext.getRequest();
+				try {
+					Document document = soapMessage.getDocument();
+					soapMessage.setDocument(new XMLDSigManager().generateSignature(document, certificat, clau));
+				} catch (Exception ex) {
+					throw new IllegalStateException("No s'ha pogut signar la petició (XMLSignature)", ex);
+				}
+				return true;
+			}
+		};
+		return enviar(url, accio, payload, interceptor);
+	}
+
+	private RespostaScsp enviar(String url, String accio, Element payload, ClientInterceptor interceptor) throws Exception {
 		WebServiceTemplate template = new WebServiceTemplate(messageFactory);
 		HttpComponentsMessageSender messageSender = new HttpComponentsMessageSender();
 		messageSender.setConnectionTimeout(configuracio.getTimeoutSegons() * 1000);
 		messageSender.setReadTimeout(configuracio.getTimeoutSegons() * 1000);
 		messageSender.afterPropertiesSet();
 		template.setMessageSender(messageSender);
-		if (signar) {
-			template.setInterceptors(new ClientInterceptor[] {crearInterceptorSignatura()});
+		if (interceptor != null) {
+			template.setInterceptors(new ClientInterceptor[] {interceptor});
 		}
 		// Spring-WS només crida el FaultMessageResolver si la resposta és un SOAP Fault amb HTTP 500.
 		// Igual que ScspSoapFaultMessageResolver, el Fault es llegeix abans de tancar la connexió.
@@ -96,13 +169,18 @@ public class ClientScspPinbal {
 		}
 	}
 
-	private Wss4jSecurityInterceptor crearInterceptorSignatura() throws Exception {
+	private Merlin crearCrypto() throws Exception {
 		KeyStore keyStore = KeyStore.getInstance(configuracio.getKeystoreType());
 		try (InputStream is = Files.newInputStream(configuracio.getKeystorePath())) {
 			keyStore.load(is, configuracio.getKeystorePassword().toCharArray());
 		}
 		Merlin crypto = new Merlin();
 		crypto.setKeyStore(keyStore);
+		return crypto;
+	}
+
+	private Wss4jSecurityInterceptor crearInterceptorSignatura() throws Exception {
+		Merlin crypto = crearCrypto();
 		Wss4jSecurityInterceptor interceptor = new Wss4jSecurityInterceptor();
 		interceptor.setSecurementActions("Signature");
 		interceptor.setSecurementSignatureKeyIdentifier("DirectReference");

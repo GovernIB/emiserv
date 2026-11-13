@@ -21,6 +21,14 @@ emiserv.scsp.prova.keystore.alias=
 emiserv.scsp.prova.servei=SCDCPAJUv3
 # Servei asíncron (opcional, sense aquest valor no s'executen les proves asíncrones)
 #emiserv.scsp.prova.servei.asincron=
+# Servei amb tipus de seguretat XMLSignature (opcional, EmisorScspXmlSignatureTest)
+#emiserv.scsp.prova.servei.xmlsignature=
+# Servei WS-Security amb xifratge de les dades específiques (opcional, EmisorScspXifratTest).
+# Necessita dades.especifiques i l'alias del certificat de l'emisor al keystore de les proves.
+# Les parts a xifrar del servei (core_servicio.xpathcifradosincrono) han de tenir el format de WSS4J:
+# {Content}{http://intermediacion.redsara.es/scsp/esquemas/datosespecificos}DatosEspecificos
+#emiserv.scsp.prova.servei.xifrat=
+#emiserv.scsp.prova.xifrat.alias.emisor=
 
 # Emisor i organisme sol·licitant (ha d'estar autoritzat al servei)
 emiserv.scsp.prova.emisor.nif=S0711001H

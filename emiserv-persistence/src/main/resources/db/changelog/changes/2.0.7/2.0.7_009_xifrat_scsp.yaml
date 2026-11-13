@@ -1,0 +1,35 @@
+# Les llibreries SCSP 5 (WSS4J 2.4) interpreten core_servicio.xpathcifradosincrono/asincrono com
+# la definició de parts a xifrar de WSS4J ({Content}{namespace}DatosEspecificos), no com un XPath.
+# Amb l'XPath de les llibreries SCSP 4 l'emisor no pot xifrar la resposta (noEncElement) i el
+# requeridor rep un SOAP Fault "Firma no válida". Es converteixen els serveis V3 amb l'XPath de
+# DatosEspecificos (sense tenir en compte espais ni el tipus de cometes); la resta s'ha de revisar a
+# mà (vegeu versions/2.0.7/*/..._xifrat_scsp.dml.sql).
+databaseChangeLog:
+  - changeSet:
+      id: 1762905600000-1
+      author: limit
+      comment: 'Parts a xifrar de WSS4J dels serveis V3 (llibreries SCSP 5)'
+      changes:
+        - sql:
+            sql: >-
+              UPDATE core_servicio
+                 SET xpathcifradosincrono = '{Content}{http://intermediacion.redsara.es/scsp/esquemas/datosespecificos}DatosEspecificos'
+               WHERE REPLACE(REPLACE(xpathcifradosincrono, ' ', ''), '"', '''') = '//*[local-name()=''DatosEspecificos'']'
+                 AND versionesquema = 'V3'
+        - sql:
+            sql: >-
+              UPDATE core_servicio
+                 SET xpathcifradoasincrono = '{Content}{http://intermediacion.redsara.es/scsp/esquemas/datosespecificos}DatosEspecificos'
+               WHERE REPLACE(REPLACE(xpathcifradoasincrono, ' ', ''), '"', '''') = '//*[local-name()=''DatosEspecificos'']'
+                 AND versionesquema = 'V3'
+      rollback:
+        - sql:
+            sql: >-
+              UPDATE core_servicio
+                 SET xpathcifradosincrono = '//*[local-name()=''DatosEspecificos'']'
+               WHERE xpathcifradosincrono = '{Content}{http://intermediacion.redsara.es/scsp/esquemas/datosespecificos}DatosEspecificos'
+        - sql:
+            sql: >-
+              UPDATE core_servicio
+                 SET xpathcifradoasincrono = '//*[local-name()=''DatosEspecificos'']'
+               WHERE xpathcifradoasincrono = '{Content}{http://intermediacion.redsara.es/scsp/esquemas/datosespecificos}DatosEspecificos'
