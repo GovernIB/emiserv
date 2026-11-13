@@ -1,0 +1,18 @@
+# Esquema de l'EMISERV cedent (changelog del projecte, muntat a /emiserv) i dades de l'entorn.
+databaseChangeLog:
+- include:
+    file: db/changelog/db.changelog-master.yaml
+- changeSet:
+    id: integracio-emiserv-cedent
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/emiserv-cedent.sql
+        encoding: UTF-8
+- changeSet:
+    id: integracio-emiserv-cedent-serveis
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/emiserv-cedent-serveis.sql
+        encoding: UTF-8

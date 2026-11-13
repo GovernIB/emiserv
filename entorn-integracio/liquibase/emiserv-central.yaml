@@ -1,0 +1,25 @@
+# Esquema de l'EMISERV central (changelog del projecte, muntat a /emiserv) i dades de l'entorn.
+databaseChangeLog:
+- include:
+    file: db/changelog/db.changelog-master.yaml
+- changeSet:
+    id: integracio-emiserv-central
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/emiserv-central.sql
+        encoding: UTF-8
+- changeSet:
+    id: integracio-emiserv-central-serveis
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/emiserv-central-serveis.sql
+        encoding: UTF-8
+- changeSet:
+    id: integracio-emiserv-central-xifrat
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/emiserv-central-xifrat.sql
+        encoding: UTF-8

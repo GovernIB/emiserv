@@ -1,0 +1,41 @@
+# Dades de l'entorn a PINBAL, quan el Liquibase de PINBAL (context e2e) ja ha creat l'esquema.
+databaseChangeLog:
+- changeSet:
+    id: integracio-pinbal
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/pinbal.sql
+        encoding: UTF-8
+        # Bloc PL/SQL acabat amb una línia «/»
+        endDelimiter: \n/\s*\n|\n/\s*$
+- changeSet:
+    id: integracio-pinbal-camps-padro
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/pinbal-camps-padro.sql
+        encoding: UTF-8
+    # Columna posterior a l'script de producció; els camps creats des de la interfície hi tenen 0
+    - sql:
+        sql: UPDATE pbl_servei_camp SET mida = 0 WHERE servei_id = 'SCDCPAJU' AND mida IS NULL
+- changeSet:
+    id: integracio-pinbal-serveis
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/pinbal-serveis.sql
+        encoding: UTF-8
+        endDelimiter: \n/\s*\n|\n/\s*$
+    - sqlFile:
+        path: sql/pinbal-camps-serveis.sql
+        encoding: UTF-8
+    - sql:
+        sql: UPDATE pbl_servei_camp SET mida = 0 WHERE servei_id IN ('SCDHPAJU', 'SVDSCTFNWS01') AND mida IS NULL
+- changeSet:
+    id: integracio-pinbal-xifrat
+    author: integracio
+    changes:
+    - sqlFile:
+        path: sql/pinbal-xifrat.sql
+        encoding: UTF-8

@@ -1,0 +1,331 @@
+{
+  "realm": "GOIB",
+  "enabled": true,
+  "sslRequired": "none",
+  "displayName": "GOIB (entorn d'integració)",
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "ca",
+    "es"
+  ],
+  "defaultLocale": "ca",
+  "accessTokenLifespan": 1800,
+  "ssoSessionIdleTimeout": 7200,
+  "roles": {
+    "realm": [
+      {
+        "name": "EMS_ADMIN",
+        "description": "EMISERV: administrador"
+      },
+      {
+        "name": "EMS_RESP",
+        "description": "EMISERV: responsable de serveis"
+      },
+      {
+        "name": "EMS_COM",
+        "description": "EMISERV: API de comunicació (salut, logs, estadístiques)"
+      },
+      {
+        "name": "EMS_REPORT",
+        "description": "EMISERV: API d'informes"
+      },
+      {
+        "name": "PBL_ADMIN",
+        "description": "PINBAL: administrador"
+      },
+      {
+        "name": "PBL_SUPERAUD",
+        "description": "PINBAL: superauditor"
+      },
+      {
+        "name": "PBL_AUDIT",
+        "description": "PINBAL: auditor"
+      },
+      {
+        "name": "PBL_REPRES",
+        "description": "PINBAL: representant"
+      },
+      {
+        "name": "PBL_WS",
+        "description": "PINBAL: aplicació client (recobriment)"
+      },
+      {
+        "name": "PBL_COM",
+        "description": "PINBAL: API de comunicació"
+      },
+      {
+        "name": "PBL_REPORT",
+        "description": "PINBAL: API d'informes"
+      },
+      {
+        "name": "tothom",
+        "description": "Usuari autenticat"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "goib-default",
+      "name": "Aplicacions web (login d'usuaris)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:*",
+        "http://127.0.0.1:*"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+",
+        "pkce.code.challenge.method": ""
+      },
+      "protocolMappers": [
+        {
+          "name": "audience goib-default",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "goib-default",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "goib-ws",
+      "name": "APIs REST (basic auth i compte de servei)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "integracio-goib-ws",
+      "clientAuthenticatorType": "client-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "audience goib-ws",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "goib-ws",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Integració",
+      "email": "admin@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "EMS_ADMIN",
+        "EMS_RESP",
+        "EMS_COM",
+        "EMS_REPORT",
+        "PBL_ADMIN",
+        "PBL_SUPERAUD",
+        "tothom"
+      ]
+    },
+    {
+      "username": "ems_admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Administrador",
+      "lastName": "EMISERV",
+      "email": "ems_admin@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ems_admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "EMS_ADMIN",
+        "EMS_RESP",
+        "tothom"
+      ]
+    },
+    {
+      "username": "ems_resp",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Responsable",
+      "lastName": "EMISERV",
+      "email": "ems_resp@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ems_resp",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "EMS_RESP",
+        "tothom"
+      ]
+    },
+    {
+      "username": "ems_ws",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Aplicació",
+      "lastName": "EMISERV",
+      "email": "ems_ws@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ems_ws",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "EMS_COM",
+        "EMS_REPORT"
+      ]
+    },
+    {
+      "username": "pbl_admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Administrador",
+      "lastName": "PINBAL",
+      "email": "pbl_admin@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pbl_admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "PBL_ADMIN",
+        "tothom"
+      ]
+    },
+    {
+      "username": "pbl_delegat",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Delegat",
+      "lastName": "PINBAL",
+      "email": "pbl_delegat@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pbl_delegat",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "tothom"
+      ]
+    },
+    {
+      "username": "pbl_repres",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Representant",
+      "lastName": "PINBAL",
+      "email": "pbl_repres@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pbl_repres",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "PBL_REPRES",
+        "tothom"
+      ]
+    },
+    {
+      "username": "pbl_audit",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Auditor",
+      "lastName": "PINBAL",
+      "email": "pbl_audit@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pbl_audit",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "PBL_AUDIT",
+        "tothom"
+      ]
+    },
+    {
+      "username": "pbl_all",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Tots els rols",
+      "lastName": "PINBAL",
+      "email": "pbl_all@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pbl_all",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "PBL_REPRES",
+        "PBL_AUDIT",
+        "tothom"
+      ]
+    },
+    {
+      "username": "pbl_ws",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Aplicació",
+      "lastName": "PINBAL",
+      "email": "pbl_ws@integracio.localhost",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pbl_ws",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "PBL_WS",
+        "tothom"
+      ]
+    },
+    {
+      "username": "service-account-goib-ws",
+      "enabled": true,
+      "serviceAccountClientId": "goib-ws",
+      "clientRoles": {
+        "realm-management": [
+          "view-users",
+          "query-users"
+        ]
+      }
+    }
+  ]
+}

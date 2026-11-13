@@ -1,0 +1,333 @@
+version: "3"
+
+# Entorn d'integració semblant a producció: PINBAL consulta l'EMISERV central (CAIB), que
+# encamina el padró (SCDCPAJU) cap a l'EMISERV d'un ajuntament cedent amb backoffice propi,
+# cap a un altre ajuntament simulat o directament al backoffice d'un tercer. Els serveis de
+# l'Estat (RedSARA) i els backoffices els simulen pinbal-scsp-fake i emiserv-scsp-fake.
+#
+#   navegador ──► keycloak.localhost:8090 (Keycloak, realm GOIB)
+#   PINBAL :8081 ──► EMISERV central :8082 ──► EMISERV cedent :8083 ──► emiserv-scsp-fake
+#        │                    └──────────────► emiserv-scsp-fake (/scsp i /ws/EmiservBackoffice)
+#        └──► pinbal-scsp-fake (serveis RedSARA)
+#
+# Ús i usuaris: vegeu README.md. Totes les contrasenyes d'aquest fitxer són locals d'aquest
+# entorn (Oracle efímer i Keycloak propi); no s'hi ha de posar cap credencial real.
+
+x-emiserv: &emiserv
+  image: ${EMISERV_IMAGE:-docker.io/280421/emiserv:latest}
+  restart: "no"
+  healthcheck:
+    # Desplegat quan l'inici del backoffice redirigeix al login (302); 127.0.0.1 perquè JBoss no escolta a ::1
+    test: ["CMD-SHELL", "wget -q -S -O /dev/null http://127.0.0.1:8080/emiservback/ 2>&1 | grep -q ' 302 '"]
+    interval: 15s
+    timeout: 10s
+    retries: 40
+    start_period: 60s
+
+x-emiserv-env: &emiserv-env
+  JBOSS_APP_NAME: emiserv
+  SPRING_PROFILES_ACTIVE: default
+  JBOSS_DB_DRIVER: oracle
+  JBOSS_DB_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+  JBOSS_AUTH_URL: http://keycloak.localhost:8090
+  JBOSS_AUTH_REALM: GOIB
+  JBOSS_AUTH_CLIENTID: goib-default
+  JBOSS_AUTH_CLIENTID_REST: goib-ws
+  JBOSS_AUTH_SECRET: ${KEYCLOAK_WS_SECRET:-integracio-goib-ws}
+  SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: es.caib.emiserv.persist.dialect.OracleCaibDialect
+  JAVAX_NET_SSL_TRUSTSTORE: /home/jboss/keystores/truststore.jks
+  JAVAX_NET_SSL_TRUSTSTOREPASSWORD: tecnologies
+  ES_CAIB_EMISERV_FITXERS: /home/jboss/apps/emiserv
+  ES_CAIB_EMISERV_XSD_BASE_PATH: /home/jboss/apps/emiserv/xsd
+  # Propietats SCSP: jboss_config.sh només substitueix les claus de jboss.properties amb el
+  # mateix nom (amb punts); les llegeix el mòdul emiserv-api-interna-scsp.
+  es.caib.emiserv.scsp.afirma.enabled: "false"
+  es.caib.emiserv.scsp.keystoreFile: file:/home/jboss/keystores/interoperabilitat.jks
+  es.caib.emiserv.scsp.keystorePass: tecnologies
+  # inetaddr.ttl: si es recrea un contenidor (nova IP), els JBoss el tornen a trobar
+  JAVA_OPTS: -Xms1303m -Xmx1303m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=512m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=30
+  DEBUG: "true"
+
+# Contenidors de Liquibase: apliquen el changelog i després es queden en marxa i «healthy». Els
+# serveis que els necessiten hi depenen amb service_healthy i no amb service_completed_successfully,
+# perquè podman-compose només espera que el contenidor s'aturi (no en comprova el codi de sortida:
+# un Liquibase que falla deixaria arrencar l'aplicació) i torna a engegar les dependències aturades
+# en engegar-ne un dependent (--requires), cosa que tornaria a executar el Liquibase en paral·lel.
+# Si el Liquibase falla, el contenidor s'atura sense arribar a «healthy» i els dependents no
+# s'engeguen (podman-compose up -d s'hi queda esperant): vegeu podman logs del contenidor *-bd.
+x-liquibase: &liquibase
+  image: docker.io/liquibase/liquibase:4.23.2
+  restart: "no"
+  depends_on:
+    oracle:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD", "test", "-f", "/tmp/liquibase-fet"]
+    interval: 5s
+    timeout: 5s
+    retries: 120
+    start_period: 10s
+  volumes:
+    - ./liquibase:/integracio:ro,z
+    - ../emiserv-persistence/src/main/resources:/emiserv:ro,z
+
+services:
+
+  oracle:
+    image: docker.io/gvenzl/oracle-free:23-slim-faststart
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-Integracio_1}
+      INTEGRACIO_DB_PASSWORD: ${DB_PASSWORD:-Integracio_1}
+    ports:
+      - "${ORACLE_PORT:-1523}:1521"
+    volumes:
+      - ./oracle:/container-entrypoint-initdb.d:ro,z
+    healthcheck:
+      # healthcheck.sh només diu que la BD respon; cal esperar també els esquemes de l'init
+      test: ["CMD-SHELL", "/opt/oracle/healthcheck.sh && test -f /tmp/integracio-usuaris-creats"]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+      start_period: 30s
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1.2
+    command:
+      - start-dev
+      - --import-realm
+      - --http-port=8090
+      # El navegador i els contenidors hi accedeixen amb el mateix nom (keycloak.localhost):
+      # així l'emissor (iss) dels tokens coincideix per a tothom
+      - --hostname-strict=false
+      # Els adaptadors JBoss (Keycloak 12) tanquen la sessió amb redirect_uri
+      - --spi-login-protocol-openid-connect-legacy-logout-redirect-uri=true
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - "${KEYCLOAK_PORT:-8090}:8090"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro,z
+    networks:
+      default:
+        aliases:
+          - keycloak.localhost
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8090 && printf 'GET /realms/GOIB HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # Esquemes d'EMISERV: l'EAR no executa Liquibase, ho fa aquest contenidor (changelog del
+  # projecte + dades de l'entorn) abans d'arrencar cada EMISERV. Liquibase 4.23: la 4.4.3 del
+  # projecte talla els triggers pel «;» i a partir de la 4.24 els BOOLEAN serien natius a
+  # Oracle 23 (a producció són NUMBER(1)).
+  emiserv-central-bd:
+    <<: *liquibase
+    # Liquibase amb l'entrypoint de la imatge; si acaba bé deixa la marca del healthcheck i es queda en marxa
+    command: >-
+      sh -c '/liquibase/docker-entrypoint.sh "$$@" && touch /tmp/liquibase-fet && exec sleep infinity' liquibase
+      --classpath=/integracio:/emiserv
+      --url=jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      --username=EMISERV --password=${DB_PASSWORD:-Integracio_1}
+      --database-changelog-table-name=EMS_DATABASECHANGELOG
+      --database-changelog-lock-table-name=EMS_DATABASECHANGELOGLOCK
+      update --changelog-file=emiserv-central.yaml --contexts=integracio -Dacl_pk_type=BIGINT
+
+  emiserv-cedent-bd:
+    <<: *liquibase
+    # Liquibase amb l'entrypoint de la imatge; si acaba bé deixa la marca del healthcheck i es queda en marxa
+    command: >-
+      sh -c '/liquibase/docker-entrypoint.sh "$$@" && touch /tmp/liquibase-fet && exec sleep infinity' liquibase
+      --classpath=/integracio:/emiserv
+      --url=jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      --username=EMISERV_CEDENT --password=${DB_PASSWORD:-Integracio_1}
+      --database-changelog-table-name=EMS_DATABASECHANGELOG
+      --database-changelog-lock-table-name=EMS_DATABASECHANGELOGLOCK
+      update --changelog-file=emiserv-cedent.yaml --contexts=integracio -Dacl_pk_type=BIGINT
+
+  emiserv-central:
+    <<: *emiserv
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      emiserv-central-bd:
+        condition: service_healthy
+    environment:
+      <<: *emiserv-env
+      JBOSS_DB_USERNAME: EMISERV
+      JBOSS_DB_PASSWORD: ${DB_PASSWORD:-Integracio_1}
+      es.caib.emiserv.scsp.cif.emisor: S0711001H
+      es.caib.emiserv.scsp.nombre.emisor: Govern de les Illes Balears
+      es.caib.emiserv.scsp.prefijo.idtransmision: EMS
+      ES_CAIB_EMISERV_PINBAL_URL: http://pinbal:8080/pinbalapi/interna
+      ES_CAIB_EMISERV_PINBAL_USERNAME: pbl_ws
+      ES_CAIB_EMISERV_PINBAL_PASSWORD: pbl_ws
+      # Credencials dels backoffices amb autenticació TEXT_CLAR (el fake no les comprova)
+      ES_CAIB_EMISERV_BACKOFFICE_CAIB_AUTH_USERNAME: emiserv
+      ES_CAIB_EMISERV_BACKOFFICE_CAIB_AUTH_PASSWORD: integracio
+      # Permet marcar serveis en mode fake (vegeu el README)
+      es.caib.emiserv.fake.permes: "true"
+    ports:
+      - "${EMISERV_CENTRAL_PORT:-8082}:8080"
+      - "${EMISERV_CENTRAL_DEBUG_PORT:-8782}:8787"
+    volumes:
+      - ../emiserv-scsp-fake/src/main/resources/interoperabilitat.jks:/home/jboss/keystores/interoperabilitat.jks:ro,z
+
+  emiserv-cedent:
+    <<: *emiserv
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      emiserv-cedent-bd:
+        condition: service_healthy
+    environment:
+      <<: *emiserv-env
+      JBOSS_DB_USERNAME: EMISERV_CEDENT
+      JBOSS_DB_PASSWORD: ${DB_PASSWORD:-Integracio_1}
+      es.caib.emiserv.scsp.cif.emisor: P0704000A
+      es.caib.emiserv.scsp.nombre.emisor: Ajuntament de Manacor
+      es.caib.emiserv.scsp.prefijo.idtransmision: MAN
+    ports:
+      - "${EMISERV_CEDENT_PORT:-8083}:8080"
+      - "${EMISERV_CEDENT_DEBUG_PORT:-8783}:8787"
+    volumes:
+      - ../emiserv-scsp-fake/src/main/resources/interoperabilitat.jks:/home/jboss/keystores/interoperabilitat.jks:ro,z
+
+  pinbal:
+    image: ${PINBAL_IMAGE:-docker.io/goib/pinbal:latest}
+    restart: "no"
+    depends_on:
+      oracle:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      JBOSS_DB_DRIVER: oracle
+      JBOSS_DB_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      JBOSS_DB_USERNAME: PINBAL
+      JBOSS_DB_PASSWORD: ${DB_PASSWORD:-Integracio_1}
+      # PINBAL només consulta usuarisDS si un usuari no és a PBL_USUARI: el mateix esquema
+      JBOSS_USER_DB_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      JBOSS_USER_DB_USERNAME: PINBAL
+      JBOSS_USER_DB_PASSWORD: ${DB_PASSWORD:-Integracio_1}
+      JBOSS_AUTH_URL: http://keycloak.localhost:8090
+      JBOSS_AUTH_REALM: GOIB
+      JBOSS_AUTH_SSL_REQUIRED: none
+      JBOSS_AUTH_CLIENTID: goib-default
+      JBOSS_AUTH_CLIENTID_REST: goib-ws
+      JBOSS_AUTH_SECRET: ${KEYCLOAK_WS_SECRET:-integracio-goib-ws}
+      JAVA_OPTS_APPEND: -Xms1024m -Xmx2048m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -Dsun.net.inetaddr.ttl=30 -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787
+      # Correus a Mailpit (sense TLS; Mailpit accepta qualsevol usuari)
+      JBOSS_MAIL_HOST: mailpit
+      JBOSS_MAIL_PORT: "1025"
+      JBOSS_MAIL_USERNAME: pinbal
+      JBOSS_MAIL_PASSWORD: pinbal
+      JBOSS_MAIL_SSL: "false"
+      JBOSS_MAIL_TLS: "false"
+      es.caib.pinbal.email.remitent: pinbal@integracio.localhost
+      es.caib.pinbal.email.footer: PINBAL - entorn d'integració
+      JBOSS_TRUSTSTORE: /opt/eap/apps/pinbal/truststore.jks
+      JBOSS_TRUSTSTORE_PASSWORD: tecnologies
+      JBOSS_PINBAL_PROPERTIES_PATH: /opt/eap/apps/pinbal/pinbal.properties
+      JBOSS_PINBAL_SYSTEM_PROPERTIES_PATH: /opt/eap/apps/pinbal/pinbal_system.properties
+      spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.Oracle12cDialect
+      spring.jpa.properties.hibernate.hbm2ddl.auto: none
+      es.caib.pinbal.hibernate.dialect: org.hibernate.dialect.Oracle12cDialect
+      es.caib.pinbal.hibernate.show_sql: "false"
+      es.caib.pinbal.hibernate.hbm2ddl.auto: none
+      spring.jpa.show_sql: "false"
+      spring.jpa.properties.hibernate.format_sql: "false"
+      es.caib.pinbal.recobriment.base.url: http://localhost:${PINBAL_PORT:-8081}/pinbalapi/interna
+      es.caib.pinbal.tasca.auto.email.report.estat.cron: 0 0 22 * * *
+      es.caib.pinbal.dadescomunes.base.url: https://proves.caib.es/dadescomunsfront
+      es.caib.pinbal.datasource.jndi: java:jboss/datasources/pinbalDS
+      es.caib.pinbal.plugin.dades.usuari.jdbc.datasource.jndi.name: java:jboss/datasources/usuarisDS
+      es.caib.pinbal.xsd.base.path: /opt/eap/apps/pinbal/xsd
+      es.caib.pinbal.scsp.almacenamiento.ficheros: /opt/webapps/pinbal/scsp/ficheros
+      es.caib.pinbal.scsp.keystoreFile: file:/opt/webapps/keystores/interoperabilitat.jks
+      es.caib.pinbal.scsp.keystorePass: tecnologies
+      es.caib.pinbal.auth.url: http://keycloak.localhost:8090
+      es.caib.pinbal.auth.realm: GOIB
+      es.caib.pinbal.front.api.url: http://localhost:${PINBAL_PORT:-8081}/pinbalback/apinew/
+      es.caib.pinbal.plugin.dades.usuari.class: es.caib.pinbal.plugin.usuari.DadesUsuariPluginKeycloak
+      es.caib.pinbal.plugin.dades.usuari.pluginsib.userinformation.keycloak.serverurl: http://keycloak.localhost:8090
+      es.caib.pinbal.plugin.dades.usuari.pluginsib.userinformation.keycloak.realm: GOIB
+      es.caib.pinbal.plugin.dades.usuari.pluginsib.userinformation.keycloak.client_id: goib-ws
+      es.caib.pinbal.plugin.dades.usuari.pluginsib.userinformation.keycloak.password_secret: ${KEYCLOAK_WS_SECRET:-integracio-goib-ws}
+      es.caib.pinbal.plugin.dades.usuari.pluginsib.userinformation.keycloak.client_id_for_user_autentication: goib-default
+      # Sense PortaFIB, arxiu ni LibreOffice: els mateixos substituts que l'entorn e2e de PINBAL
+      es.caib.pinbal.conversio.tipus: xdocreport
+      es.caib.pinbal.plugin.firmaservidor.class: es.caib.pinbal.plugin.firmaservidor.FirmaServidorPluginMock
+      es.caib.pinbal.plugin.arxiu.class: es.caib.pinbal.plugin.arxiu.ArxiuPluginMock
+      # Esquema i dades de prova (entitat, procediments, serveis i usuaris) amb el Liquibase de
+      # PINBAL; pinbal-bd hi afegeix després l'encaminament cap a l'EMISERV central.
+      SPRING_LIQUIBASE_ENABLED: "true"
+      SPRING_LIQUIBASE_CONTEXTS: e2e
+      SPRING_LIQUIBASE_PARAMETERS_E2EADMINUSERNAME: pbl_admin
+      SPRING_LIQUIBASE_PARAMETERS_E2EDELEGATUSERNAME: pbl_delegat
+      SPRING_LIQUIBASE_PARAMETERS_E2EREPRESENTANTUSERNAME: pbl_repres
+      SPRING_LIQUIBASE_PARAMETERS_E2EAUDITORUSERNAME: pbl_audit
+      SPRING_LIQUIBASE_PARAMETERS_E2EUSERACTIUUSERNAME: E2E_USER_ACTIU
+      SPRING_LIQUIBASE_PARAMETERS_E2EUSERINACTIUUSERNAME: E2E_USER_INACTIU
+      SPRING_LIQUIBASE_PARAMETERS_E2EUSERALLROLESUSERNAME: pbl_all
+      SPRING_LIQUIBASE_PARAMETERS_FAKESCSPBASEURL: http://pinbal-scsp-fake:18080
+    ports:
+      - "${PINBAL_PORT:-8081}:8080"
+      - "${PINBAL_DEBUG_PORT:-8781}:8787"
+    volumes:
+      - ${PINBAL_DIR:-../../pinbal2}/pinbal-ear/src/main/docker/keystores/truststore.jks:/opt/eap/apps/pinbal/truststore.jks:ro,z
+      - ${PINBAL_DIR:-../../pinbal2}/pinbal-ear/src/main/docker/keystores:/opt/webapps/keystores:ro,z
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/pinbalback/ | grep -q 302"]
+      interval: 15s
+      timeout: 10s
+      retries: 60
+      start_period: 90s
+
+  # Dades de l'entorn a PINBAL (encaminament cap a l'EMISERV central, usuari d'aplicació):
+  # s'han d'afegir quan PINBAL ja ha creat l'esquema amb el seu Liquibase.
+  pinbal-bd:
+    <<: *liquibase
+    depends_on:
+      pinbal:
+        condition: service_healthy
+    # Liquibase amb l'entrypoint de la imatge; si acaba bé deixa la marca del healthcheck i es queda en marxa
+    command: >-
+      sh -c '/liquibase/docker-entrypoint.sh "$$@" && touch /tmp/liquibase-fet && exec sleep infinity' liquibase
+      --classpath=/integracio
+      --url=jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      --username=PINBAL --password=${DB_PASSWORD:-Integracio_1}
+      --database-changelog-table-name=INT_DATABASECHANGELOG
+      --database-changelog-lock-table-name=INT_DATABASECHANGELOGLOCK
+      update --changelog-file=pinbal.yaml
+
+  mailpit:
+    image: docker.io/axllent/mailpit:v1.21.8
+    restart: "no"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
+
+  emiserv-scsp-fake:
+    image: docker.io/library/eclipse-temurin:11-jre
+    restart: "no"
+    command: ["sh", "-c", "exec java -Dfake.emiserv.host=0.0.0.0 -Dfake.emiserv.port=18080 -jar /fake/emiserv-scsp-fake-*.jar"]
+    ports:
+      - "${EMISERV_FAKE_PORT:-18081}:18080"
+    volumes:
+      - ../emiserv-scsp-fake/target:/fake:ro,z
+
+  pinbal-scsp-fake:
+    image: docker.io/library/eclipse-temurin:11-jre
+    restart: "no"
+    command: ["sh", "-c", "exec java -Dfake.scsp.host=0.0.0.0 -Dfake.scsp.port=18080 -jar /fake/pinbal-scsp-fake-*.jar"]
+    ports:
+      - "${PINBAL_FAKE_PORT:-18082}:18080"
+    volumes:
+      - ${PINBAL_DIR:-../../pinbal2}/pinbal-scsp-fake/target:/fake:ro,z
