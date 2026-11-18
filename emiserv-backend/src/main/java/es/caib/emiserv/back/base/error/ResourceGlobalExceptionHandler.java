@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import javax.ejb.EJBException;
 import java.lang.reflect.Field;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -123,7 +125,7 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 					errorMessage = messageSource.getMessage(
 							errorKey,
 							null,
-							request.getLocale());
+							missatgesLocale());
 				} catch (NoSuchMessageException nmex) {
 					String errorKey = BaseBootConfig.BASE_PACKAGE + ".error.handling.ConstraintViolationException.message";
 					if (constraintNameUpper.endsWith("_FK")) {
@@ -136,7 +138,7 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 					errorMessage = messageSource.getMessage(
 							errorKey,
 							new String[] { constraintName },
-							request.getLocale());
+							missatgesLocale());
 				}
 			} else {
 				log.error("Data integrity violation", ex);
@@ -248,7 +250,7 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 				"error.exportacio.massa.gran",
 				new Object[] { ex.getTotal(), ex.getMaxim() },
 				ex.getMessage(),
-				request.getLocale());
+				missatgesLocale());
 		return buildErrorResponse(
 				ex,
 				message,
@@ -382,7 +384,7 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 				messageSource.getMessage(
 						BaseBootConfig.BASE_PACKAGE + ".error.handling.MethodArgumentNotValidException.message",
 						new String[] { "validationErrors" },
-						request.getLocale())); // "Validation error. Check 'validationErrors' field for details."
+						missatgesLocale())); // "Validation error. Check 'validationErrors' field for details."
 		for (ObjectError objectError: ex.getBindingResult().getGlobalErrors()) {
 			fieldValidationErrorResponse.addValidationError(
 					null,
@@ -488,6 +490,17 @@ public class ResourceGlobalExceptionHandler extends ResponseEntityExceptionHandl
 			errorResponse.setStackTrace(ExceptionUtils.getStackTrace(ex));
 		}
 		return toErrorResponseEntity(httpStatus, errorResponse);
+	}
+
+	/**
+	 * Adaptació d'EMISERV: idioma dels missatges d'error. Es fa servir l'idioma resolt per
+	 * l'aplicació (LocaleResolver: el de la sessió o un de suportat, ca/es) i no el de la capçalera
+	 * Accept-Language (request.getLocale()): amb un idioma sense missatges (p. ex. en) el
+	 * MessageSource llançava NoSuchMessageException dins el gestor, Spring tornava l'error al
+	 * contenidor i aquest el reenviava a la JSP d'error (un PUT acabava en 405 HTML).
+	 */
+	private static Locale missatgesLocale() {
+		return LocaleContextHolder.getLocale();
 	}
 
 	private boolean isTraceOn(WebRequest request) {

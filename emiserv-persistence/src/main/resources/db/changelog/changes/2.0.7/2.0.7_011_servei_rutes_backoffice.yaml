@@ -1,0 +1,39 @@
+# Enrutadors que admeten rutes cap al backoffice dels cedents (consulta directa). Només aquests
+# enrutadors mostren la configuració SCSP i les autoritzacions, que són les de les rutes cap als cedents.
+databaseChangeLog:
+  - changeSet:
+      id: 1794873600000-1
+      author: limit
+      comment: 'Indicador dels enrutadors que admeten rutes cap al backoffice dels cedents'
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ems_servei
+                columnName: rutes_backoffice
+      changes:
+        - addColumn:
+            tableName: ems_servei
+            columns:
+              - column:
+                  name: rutes_backoffice
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 1794873600000-2
+      author: limit
+      comment: 'Activa les rutes cap al backoffice dels enrutadors que ja en tenen o que estan configurats a l''emisor SCSP'
+      changes:
+        # tipus: 1 = ENRUTADOR, 2 = ENRUTADOR_MULTIPLE; desti_tipus: 1 = BACKOFFICE
+        - update:
+            tableName: ems_servei
+            columns:
+              - column:
+                  name: rutes_backoffice
+                  valueBoolean: true
+            where: >-
+              tipus IN (1, 2)
+              AND (EXISTS (SELECT 1 FROM ems_servei_ruta_desti r WHERE r.servei_id = ems_servei.id AND r.desti_tipus = 1)
+                OR EXISTS (SELECT 1 FROM core_servicio cs WHERE cs.codcertificado = ems_servei.codi))

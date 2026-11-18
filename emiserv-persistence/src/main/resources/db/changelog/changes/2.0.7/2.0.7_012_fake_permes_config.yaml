@@ -1,0 +1,35 @@
+# Propietat es.caib.emiserv.fake.permes a la pantalla de configuració. Origen FILE: es mostra però no
+# es pot modificar des de l'aplicació (s'ha de definir al fitxer de propietats o a l'entorn, i no
+# s'ha d'activar mai a producció)
+databaseChangeLog:
+  - changeSet:
+      id: 1794960000000-1
+      author: limit
+      comment: 'Propietat es.caib.emiserv.fake.permes a la configuració'
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM ems_config WHERE key = 'es.caib.emiserv.fake.permes'
+      changes:
+        - insert:
+            tableName: ems_config
+            columns:
+              - column:
+                  name: key
+                  value: es.caib.emiserv.fake.permes
+              - column:
+                  name: description_key
+                  value: propietat.fake.permes
+              - column:
+                  name: group_code
+                  value: GENERAL
+              - column:
+                  name: position
+                  valueNumeric: 15
+              - column:
+                  name: source_property
+                  value: FILE
+              - column:
+                  name: type_code
+                  value: BOOL

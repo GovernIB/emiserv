@@ -1,0 +1,41 @@
+# Mode fake dels serveis: respostes simulades (resultat i plantilla de DatosEspecificos opcional)
+# sense consultar el cedent
+databaseChangeLog:
+  - property:
+      name: varcharUnit
+      value: CHAR
+      dbms: oracle
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: postgresql
+  - property:
+      name: varcharUnit
+      value: ''
+      dbms: hsqldb
+  - changeSet:
+      id: 1763078400000-1
+      author: limit
+      comment: 'Columnes del mode fake dels serveis'
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: ems_servei
+                columnName: fake
+      changes:
+        - addColumn:
+            tableName: ems_servei
+            columns:
+              - column:
+                  name: fake
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fake_resultat
+                  type: varchar(20 ${varcharUnit})
+              - column:
+                  name: fake_dades_esp
+                  type: CLOB
