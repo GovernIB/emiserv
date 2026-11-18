@@ -31,7 +31,7 @@ pageContext.setAttribute(
 <script type="text/javascript">var requestLocale = '${idioma}';</script>
 </head>
 <body>
-	<div class="container container-main" style="padding-top:12px">
+	<div class="container container-main" style="padding:12px 20px;">
 		<div id="contingut-missatges"><emi:missatges/></div>
 		<decorator:body />
 	</div>

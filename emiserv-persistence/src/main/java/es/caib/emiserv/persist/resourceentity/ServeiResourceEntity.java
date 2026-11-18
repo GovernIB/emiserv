@@ -2,6 +2,7 @@ package es.caib.emiserv.persist.resourceentity;
 
 import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiFakeResultatEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.model.ServeiResource;
 import es.caib.emiserv.persist.base.entity.BaseResourceEntity;
@@ -16,6 +17,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 /**
@@ -30,7 +32,9 @@ import javax.persistence.Table;
  *   <li>{@code permisosCount}: principals diferents (usuaris o rols) amb entrades ACL sobre el
  *   servei, igual que ObjecteAmbPermisosDto.getPermisosCount() a la JSP (PermisosHelper agrupa
  *   les entrades per principal);</li>
- *   <li>{@code rutesCount}: rutes de destí del servei.</li>
+ *   <li>{@code rutesCount}: rutes de destí del servei;</li>
+ *   <li>{@code autoritzacionsCount}: autoritzacions de l'emissor SCSP (CORE_EM_AUTORIZACION_CERT)
+ *   del servei amb el mateix codi.</li>
  * </ul>
  * La columna {@code ems_acl_object_identity.object_id_identity} és NUMBER a Oracle i VARCHAR(36) a
  * PostgreSQL. Per això l'id del servei es compara convertit a text, igual que fa Spring ACL
@@ -85,12 +89,22 @@ public class ServeiResourceEntity extends BaseResourceEntity<ServeiResource, Lon
 	private String urlPerDefecte;
 	@Column(name = "response_resolver_class", length = 256)
 	private String responseResolverClass;
+	@Column(name = "rutes_backoffice")
+	private boolean rutesBackoffice;
 	@Column(name = "async_sincron")
 	private boolean asyncSincron;
 	@Column(name = "async_interval")
 	private Integer asyncInterval;
 	@Column(name = "async_concurrencia")
 	private Integer asyncConcurrencia;
+	@Column(name = "fake")
+	private boolean fake;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "fake_resultat", length = 20)
+	private ServeiFakeResultatEnumDto fakeResultat;
+	@Lob
+	@Column(name = "fake_dades_esp")
+	private String fakeDadesEspecifiques;
 	@Column(name = "actiu")
 	private boolean actiu;
 	@Column(name = "configurat")
@@ -104,5 +118,9 @@ public class ServeiResourceEntity extends BaseResourceEntity<ServeiResource, Lon
 	private long permisosCount;
 	@Formula("(select count(*) from ems_servei_ruta_desti srd where srd.servei_id = id)")
 	private long rutesCount;
+	@Formula("(select count(*) from core_em_autorizacion_cert cac " +
+			"join core_servicio cs on cac.idcertificado = cs.id " +
+			"where cs.codcertificado = codi)")
+	private long autoritzacionsCount;
 
 }

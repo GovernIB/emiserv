@@ -86,6 +86,9 @@ public interface ServeiRepository extends JpaRepository<ServeiEntity, Long> {
 	public List<ServeiEntity> findByTipusIn(
 			List<ServeiTipusEnumDto> tipus);
 
+	/** Serveis en mode fake (les seves peticions asíncrones es processen com a síncrones). */
+	public List<ServeiEntity> findByFakeTrue();
+
     List<ServeiEntity> findByActiuTrue();
 
 	@Query(	"select distinct s.codi " +

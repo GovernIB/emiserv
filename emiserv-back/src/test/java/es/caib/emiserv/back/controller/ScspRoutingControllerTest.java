@@ -126,4 +126,23 @@ public class ScspRoutingControllerTest {
 		verify(redireccioService, times(2)).processarPeticio(any(), eq(true));
 		verify(redireccioService, times(1)).processarPeticio(any(), eq(false));
 	}
+
+	@Test
+	public void urlFakeEsResolAlPortLocal() {
+		org.springframework.mock.web.MockHttpServletRequest request = new org.springframework.mock.web.MockHttpServletRequest();
+		request.setLocalPort(8080);
+		request.setContextPath("/emiservback");
+		ScspRoutingController controller = new ScspRoutingController();
+		assertEquals(
+				"http://localhost:8080/emiservback/scspFake/S/E/",
+				controller.resoldreUrlFake(request, "fake:S/E/"));
+	}
+
+	@Test
+	public void urlNormalNoEsToca() {
+		org.springframework.mock.web.MockHttpServletRequest request = new org.springframework.mock.web.MockHttpServletRequest();
+		ScspRoutingController controller = new ScspRoutingController();
+		assertEquals("http://host/x/", controller.resoldreUrlFake(request, "http://host/x/"));
+		assertEquals(null, controller.resoldreUrlFake(request, null));
+	}
 }

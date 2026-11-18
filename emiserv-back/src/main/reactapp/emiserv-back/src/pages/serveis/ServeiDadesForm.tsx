@@ -5,10 +5,12 @@ import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import { FormField, useFormContext } from 'reactlib';
+import { useSessioUsuari } from '../../components/EmiservAuthProvider';
 import {
     BACKOFFICE_ASYNC_TIPUS,
     BACKOFFICE_AUTENTICACIO,
     esEnrutador,
+    FAKE_RESULTAT,
     SERVEI_TIPUS,
     type MotiuDiagnostic,
     type ServeiTipus,
@@ -44,6 +46,9 @@ export const ServeiDadesForm: React.FC<ServeiDadesFormProps> = ({ existent, moti
     const opcionsTipus = useOpcionsEnum(SERVEI_TIPUS, 'serveis.tipus');
     const opcionsAutenticacio = useOpcionsEnum(BACKOFFICE_AUTENTICACIO, 'serveis.enum.autenticacio');
     const opcionsAsync = useOpcionsEnum(BACKOFFICE_ASYNC_TIPUS, 'serveis.enum.asyncTipus');
+    const opcionsFakeResultat = useOpcionsEnum(FAKE_RESULTAT, 'serveis.enum.fakeResultat');
+    const { usuari } = useSessioUsuari();
+    const fakePermes = usuari?.fakePermes === true;
     const faltaConfigScsp = motius?.some((m) => m === 'FALTA_CONFIG_SCSP' || m === 'FALTA_EMISOR');
     return (
         <Grid container spacing={2} sx={{ pt: 1 }}>
@@ -117,6 +122,15 @@ export const ServeiDadesForm: React.FC<ServeiDadesFormProps> = ({ existent, moti
                 <>
                     <Grid size={12}>
                         <Typography variant="subtitle2" color="text.secondary">
+                            {t('serveis.form.rutesBackofficeTitol')}
+                        </Typography>
+                        <FormField name="rutesBackoffice" label={t('serveis.form.rutesBackoffice')} />
+                        <Typography variant="body2" color="text.secondary">
+                            {t('serveis.form.rutesBackofficeAjuda')}
+                        </Typography>
+                    </Grid>
+                    <Grid size={12}>
+                        <Typography variant="subtitle2" color="text.secondary">
                             {t('serveis.form.asincron')}
                         </Typography>
                         <FormField name="asyncSincron" label={t('serveis.form.asyncSincron')} />
@@ -135,6 +149,32 @@ export const ServeiDadesForm: React.FC<ServeiDadesFormProps> = ({ existent, moti
                             label={t('serveis.form.asyncConcurrencia')}
                             disabled={!data?.asyncSincron}
                             componentProps={{ placeholder: t('serveis.form.valorGlobal') }}
+                        />
+                    </Grid>
+                </>
+            )}
+            {fakePermes && (
+                <>
+                    <Grid size={12}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                            {t('serveis.form.modeFake')}
+                        </Typography>
+                        <FormField name="fake" label={t('serveis.form.fake')} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 4 }}>
+                        <FormField
+                            name="fakeResultat"
+                            label={t('serveis.form.fakeResultat')}
+                            options={opcionsFakeResultat}
+                            disabled={!data?.fake}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 8 }}>
+                        <FormField
+                            name="fakeDadesEspecifiques"
+                            label={t('serveis.form.fakeDadesEspecifiques')}
+                            type="textarea"
+                            disabled={!data?.fake}
                         />
                     </Grid>
                 </>

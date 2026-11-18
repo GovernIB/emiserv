@@ -15,6 +15,7 @@ import es.caib.emiserv.logic.intf.service.ws.backoffice.*;
 import es.caib.emiserv.logic.resolver.ResponseResolver;
 import es.caib.emiserv.logic.service.ws.DatosEspecificosHandler;
 import es.caib.emiserv.logic.service.ws.EmiservBackofficeImpl;
+import es.caib.emiserv.logic.service.ws.FakeEmiservBackoffice;
 import es.caib.emiserv.logic.service.ws.PeticioRespostaHandler;
 import es.caib.emiserv.logic.service.ws.WsClientHelper;
 import es.caib.emiserv.persist.entity.BackofficeComunicacioEntity;
@@ -129,6 +130,8 @@ public class BackofficeHelper {
 	private ClientScspHelper clientScspHelper;
 	@Autowired
 	private ServeiRutaDestiRepository serveiRutaDestiRepository;
+	@Autowired
+	private ServeiFakeHelper serveiFakeHelper;
 	@PersistenceContext
 	private EntityManager entityManager;
 
@@ -619,12 +622,13 @@ public class BackofficeHelper {
 			if (generarLogs) {
 				log.debug("Enviant petició síncrona al backoffice " +
 						getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + "(" +
-						"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipusEfectiu() + ", " +
+						"backofficeAsyncTipus=" + getAsyncTipusEfectiu(servei) + ", " +
 						"backofficeDesti=" + desti + ")");
 			}
 			modificarDatosEspecificosTransmisionPeticio(peticion);
 			EmiservBackoffice emiservBackoffice = getEmiservBackoffice(
 					getIdentificacioDelsAtributsScsp(peticion.getAtributos()),
+					servei,
 					desti,
 					peticioRespostaHandler,
 					datosEspecificosHandler);
@@ -718,7 +722,9 @@ public class BackofficeHelper {
 			// Les peticions de les consultes asíncrones (amb sol·licitud) també es fan als emisors dels
 			// cedents (rutes de tipus EMISERV). Les tasques es creen per ordre de les rutes.
 			List<Callable<RespostaBackofficeEntitat>> tasques = new ArrayList<Callable<RespostaBackofficeEntitat>>();
-			List<PeticioEmisorCedent> peticionsCedents = backofficeSolicitud != null ?
+			// En mode fake no es contacta cap cedent: la resposta de cada ruta es simula
+			boolean fake = isServeiFake(servei);
+			List<PeticioEmisorCedent> peticionsCedents = backofficeSolicitud != null && !fake ?
 					prepararPeticionsEmisorsCedents(backofficePeticio, backofficeSolicitud, servei) :
 					Collections.<PeticioEmisorCedent>emptyList();
 			List<BackofficeDesti> destins = backofficeSolicitud != null ?
@@ -730,7 +736,8 @@ public class BackofficeHelper {
 						"backofficeDestins=" + destins + ")");
 			}
 			modificarDatosEspecificosTransmisionPeticio(peticion);
-			for (BackofficeDesti desti: destins) {
+			for (BackofficeDesti destiRuta: destins) {
+				BackofficeDesti desti = fake ? BackofficeDesti.fake(servei.getCodi(), destiRuta.getEntitatCodi()) : destiRuta;
 				PeticioEmisorCedent peticioCedent = null;
 				for (PeticioEmisorCedent p: peticionsCedents) {
 					if (p.getEntitatCodi().equals(desti.getEntitatCodi()) && desti.getUrl() == null) {
@@ -743,7 +750,7 @@ public class BackofficeHelper {
 				} else if (desti.getUrl() != null) {
 					// Cada fil fa servir la seva còpia de la petició (els DOM no són segurs entre fils)
 					Peticion copia = copiarPeticio(peticion);
-					tasques.add(() -> enviarPeticioSincronaBackoffice(copia, desti, generarLogs));
+					tasques.add(() -> enviarPeticioSincronaBackoffice(copia, servei, desti, generarLogs));
 				}
 			}
 			if (tasques.isEmpty()) {
@@ -814,6 +821,7 @@ public class BackofficeHelper {
 
 	private RespostaBackofficeEntitat enviarPeticioSincronaBackoffice(
 			Peticion peticion,
+			ServeiEntity servei,
 			BackofficeDesti desti,
 			boolean generarLogs) {
 		RespostaBackofficeEntitat resposta = new RespostaBackofficeEntitat(desti.getEntitatCodi());
@@ -824,6 +832,7 @@ public class BackofficeHelper {
 		try {
 			EmiservBackoffice emiservBackoffice = getEmiservBackoffice(
 					getIdentificacioDelsAtributsScsp(peticion.getAtributos()),
+					servei,
 					desti,
 					peticioRespostaHandler,
 					datosEspecificosHandler);
@@ -945,7 +954,7 @@ public class BackofficeHelper {
 	private ServeiRutaDestiEntity getRutaEmisorCedent(
 			ServeiEntity servei,
 			BackofficeSolicitudEntity solicitud) {
-		if (!ServeiTipusEnumDto.ENRUTADOR.equals(servei.getTipus()) || solicitud.getEntitatCodi() == null || isPropertyBackofficeMock()) {
+		if (!ServeiTipusEnumDto.ENRUTADOR.equals(servei.getTipus()) || solicitud.getEntitatCodi() == null || isPropertyBackofficeMock() || isServeiFake(servei)) {
 			return null;
 		}
 		ServeiRutaDestiEntity ruta = serveiRutaDestiRepository.findPrimeraByServeiAndEntitatCodi(servei, solicitud.getEntitatCodi());
@@ -1220,10 +1229,10 @@ public class BackofficeHelper {
 			BackofficePeticioEntity backofficePeticio) {
 		String serveiCodi = peticion.getAtributos().getCodigoCertificado();
 		ServeiEntity servei = serveiRepository.findByCodi(serveiCodi);
-		if (BackofficeAsyncTipusEnumDto.REENVIAR_BACKOFFICE.equals(servei.getBackofficeCaibAsyncTipusEfectiu())) {
+		if (BackofficeAsyncTipusEnumDto.REENVIAR_BACKOFFICE.equals(getAsyncTipusEfectiu(servei))) {
 			log.debug("Reenviant petició asíncrona al backoffice " +
 					getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + "(" +
-					"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipusEfectiu() + ", " +
+					"backofficeAsyncTipus=" + getAsyncTipusEfectiu(servei) + ", " +
 					"backofficeUrl=" + servei.getBackofficeCaibUrl() + ")");
 			ByteArrayOutputStream xmlPeticio = new ByteArrayOutputStream();
 			ByteArrayOutputStream xmlResposta = new ByteArrayOutputStream();
@@ -1237,6 +1246,7 @@ public class BackofficeHelper {
 						xmlResposta);
 				EmiservBackoffice emiservBackoffice = getEmiservBackoffice(
 						getIdentificacioDelsAtributsScsp(peticion.getAtributos()),
+						servei,
 						desti,
 						peticioRespostaHandler,
 						null);
@@ -1265,7 +1275,7 @@ public class BackofficeHelper {
 		} else {
 			log.debug("Emmagatzemant petició asíncrona per a reenviar-la posteriorment al backoffice com a sol·licituds síncrones " +
 					getIdentificacioDelsAtributsScsp(peticion.getAtributos()) + "(" +
-					"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipusEfectiu() + ", " +
+					"backofficeAsyncTipus=" + getAsyncTipusEfectiu(servei) + ", " +
 					"backofficeUrl=" + servei.getBackofficeCaibUrl() + ", " +
 					"backofficeAsyncTer=" + servei.getBackofficeCaibAsyncTer() + ")");
 			ConfirmacionPeticion confirmacionPeticion = new ConfirmacionPeticion();
@@ -1288,10 +1298,10 @@ public class BackofficeHelper {
 			BackofficePeticioEntity backofficePeticio) {
 		String serveiCodi = solicitudRespuesta.getAtributos().getCodigoCertificado();
 		ServeiEntity servei = serveiRepository.findByCodi(serveiCodi);
-		if (BackofficeAsyncTipusEnumDto.REENVIAR_BACKOFFICE.equals(servei.getBackofficeCaibAsyncTipusEfectiu())) {
+		if (BackofficeAsyncTipusEnumDto.REENVIAR_BACKOFFICE.equals(getAsyncTipusEfectiu(servei))) {
 			log.debug("Reenviant sol·licitud de resposta al backoffice " +
 					getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + "(" +
-					"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipusEfectiu() + ", " +
+					"backofficeAsyncTipus=" + getAsyncTipusEfectiu(servei) + ", " +
 					"backofficeUrl=" + servei.getBackofficeCaibUrl() + ")");
 			ByteArrayOutputStream xmlPeticio = new ByteArrayOutputStream();
 			ByteArrayOutputStream xmlResposta = new ByteArrayOutputStream();
@@ -1305,6 +1315,7 @@ public class BackofficeHelper {
 				// Només per als serveis BACKOFFICE: els enrutadors sempre processen les asíncrones com a síncrones
 				EmiservBackoffice emiservBackoffice = getEmiservBackoffice(
 						getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()),
+						servei,
 						getBackofficeDesti(servei, null, null),
 						peticioRespostaHandler,
 						datosEspecificosHandler);
@@ -1346,7 +1357,7 @@ public class BackofficeHelper {
 		} else {
 			log.debug("Consultant estat de la petició asíncrona " + 
 					getIdentificacioDelsAtributsScsp(solicitudRespuesta.getAtributos()) + "(" +
-					"backofficeAsyncTipus=" + servei.getBackofficeCaibAsyncTipusEfectiu() + ", " +
+					"backofficeAsyncTipus=" + getAsyncTipusEfectiu(servei) + ", " +
 					"backofficeUrl=" + servei.getBackofficeCaibUrl() + ", " +
 					"backofficeAsyncTer=" + servei.getBackofficeCaibAsyncTer() + ")");
 			Respuesta respuesta = new Respuesta();
@@ -1808,6 +1819,20 @@ public class BackofficeHelper {
 		if (isPropertyBackofficeMock()) {
 			return null;
 		}
+		if (isServeiFake(servei)) {
+			// No es contacta cap backoffice: només es resol l'entitat (enrutadors), si es pot
+			String entitatCodi = null;
+			try {
+				entitatCodi = backofficeDestiHelper.getDesti(servei, peticion).getEntitatCodi();
+			} catch (ValidationException ex) {
+				log.debug("Servei fake sense backoffice de destí resolt (" +
+						"codigoCertificado=" + servei.getCodi() + "): " + ex.getMessage());
+			}
+			if (backofficePeticio != null && entitatCodi != null) {
+				backofficePeticio.updateEntitatCodi(entitatCodi);
+			}
+			return BackofficeDesti.fake(servei.getCodi(), entitatCodi);
+		}
 		try {
 			BackofficeDesti desti = backofficeDestiHelper.getDesti(servei, peticion);
 			if (backofficePeticio != null && desti.getEntitatCodi() != null) {
@@ -1823,9 +1848,20 @@ public class BackofficeHelper {
 
 	private EmiservBackoffice getEmiservBackoffice(
 			String identificacio,
+			ServeiEntity servei,
 			BackofficeDesti desti,
 			PeticioRespostaHandler peticioRespostaHandler,
 			DatosEspecificosHandler datosEspecificosHandler) throws RemoteException, NamingException, MalformedURLException {
+		if (desti != null && desti.isFake()) {
+			// Una instància per petició: les peticions (i els fils dels enrutadors múltiples) no
+			// comparteixen el handler ni el backoffice de test
+			log.debug("Generant backoffice fake per a la petició " + identificacio + " (" +
+					"backofficeDesti=" + desti + ")");
+			EmiservBackofficeHandlerProxy fake = new EmiservBackofficeHandlerProxy(
+					new FakeEmiservBackoffice(servei, serveiFakeHelper));
+			fake.setPeticioRespostaHandler(peticioRespostaHandler);
+			return fake;
+		}
 		if (isPropertyBackofficeMock() && testBackoffice == null) {
 			testBackoffice = new EmiservBackofficeHandlerProxy(
 					new EmiservBackofficeImpl());
@@ -2024,47 +2060,69 @@ public class BackofficeHelper {
 		}
 		private String toXml(
 				Object obj) {
-			try {
-				JAXBContext context = JAXBContext.newInstance(obj.getClass());
-				Marshaller marshaller = context.createMarshaller();
-				marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-				StringWriter sw = new StringWriter();
-				if (obj instanceof Peticion) {
-					marshaller.marshal(
-							new JAXBElement<Peticion>(
-									new QName("http://caib.es/emiserv/backoffice", "peticion"),
-									Peticion.class,
-									(Peticion)obj),
-							sw);
-				} else if (obj instanceof Respuesta) {
-					marshaller.marshal(
-							new JAXBElement<Respuesta>(
-									new QName("http://caib.es/emiserv/backoffice", "respuesta"),
-									Respuesta.class,
-									(Respuesta)obj),
-							sw);
-				} else if (obj instanceof ConfirmacionPeticion) {
-					marshaller.marshal(
-							new JAXBElement<ConfirmacionPeticion>(
-									new QName("http://caib.es/emiserv/backoffice", "confirmacionPeticion"),
-									ConfirmacionPeticion.class,
-									(ConfirmacionPeticion)obj),
-							sw);
-				} else if (obj instanceof SolicitudRespuesta) {
-					marshaller.marshal(
-							new JAXBElement<SolicitudRespuesta>(
-									new QName("http://caib.es/emiserv/backoffice", "solicitudRespuesta"),
-									SolicitudRespuesta.class,
-									(SolicitudRespuesta)obj),
-							sw);
-				} else {
-					return "<CLASSE_DESCONEGUDA>";
-				}
-				return sw.toString();
-			} catch (JAXBException ex) {
-				return ExceptionUtils.getFullStackTrace(ex);
-			}
+			return toXmlBackoffice(obj);
 		}
+	}
+
+	/**
+	 * XML d'un missatge del model de backoffice (petició, resposta, confirmació o sol·licitud de
+	 * resposta), amb l'element arrel del namespace del backoffice d'EMISERV.
+	 */
+	public static String toXmlBackoffice(
+			Object obj) {
+		try {
+			JAXBContext context = JAXBContext.newInstance(obj.getClass());
+			Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			StringWriter sw = new StringWriter();
+			if (obj instanceof Peticion) {
+				marshaller.marshal(
+						new JAXBElement<Peticion>(
+								new QName("http://caib.es/emiserv/backoffice", "peticion"),
+								Peticion.class,
+								(Peticion)obj),
+						sw);
+			} else if (obj instanceof Respuesta) {
+				marshaller.marshal(
+						new JAXBElement<Respuesta>(
+								new QName("http://caib.es/emiserv/backoffice", "respuesta"),
+								Respuesta.class,
+								(Respuesta)obj),
+						sw);
+			} else if (obj instanceof ConfirmacionPeticion) {
+				marshaller.marshal(
+						new JAXBElement<ConfirmacionPeticion>(
+								new QName("http://caib.es/emiserv/backoffice", "confirmacionPeticion"),
+								ConfirmacionPeticion.class,
+								(ConfirmacionPeticion)obj),
+						sw);
+			} else if (obj instanceof SolicitudRespuesta) {
+				marshaller.marshal(
+						new JAXBElement<SolicitudRespuesta>(
+								new QName("http://caib.es/emiserv/backoffice", "solicitudRespuesta"),
+								SolicitudRespuesta.class,
+								(SolicitudRespuesta)obj),
+						sw);
+			} else {
+				return "<CLASSE_DESCONEGUDA>";
+			}
+			return sw.toString();
+		} catch (JAXBException ex) {
+			return ExceptionUtils.getFullStackTrace(ex);
+		}
+	}
+
+	/** Servei en mode fake (i el mode fake permès): les respostes es simulen. */
+	private boolean isServeiFake(ServeiEntity servei) {
+		return serveiFakeHelper != null && serveiFakeHelper.isFake(servei);
+	}
+
+	/**
+	 * Tipus de processament efectiu de les peticions asíncrones: els serveis fake no es reenvien
+	 * mai al backoffice (es processen com a síncrones).
+	 */
+	private BackofficeAsyncTipusEnumDto getAsyncTipusEfectiu(ServeiEntity servei) {
+		return isServeiFake(servei) ? BackofficeAsyncTipusEnumDto.PROCESSAR_SINCRONES : servei.getBackofficeCaibAsyncTipusEfectiu();
 	}
 
 	private boolean isPropertyBackofficeMock() {

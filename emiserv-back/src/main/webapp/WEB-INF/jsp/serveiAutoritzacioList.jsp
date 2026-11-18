@@ -21,6 +21,9 @@
 	<script src="<c:url value="/webjars/select2/4.0.1/dist/js/i18n/${idioma}.js"/>"></script>
 </head>
 <body>
+	<c:if test="${servei.tipus != 'BACKOFFICE'}">
+		<div class="alert alert-info"><span class="fa fa-info-circle"></span>&nbsp;<spring:message code="servei.scsp.rutes.backoffice.info"/></div>
+	</c:if>
 	<form:form action="" method="post" cssClass="well" modelAttribute="autoritzacioFiltreCommand">
 		<div class="row">
 			<div class="col-md-4">

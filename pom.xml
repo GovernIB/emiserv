@@ -62,6 +62,7 @@
 		<module>emiserv-backend</module>
 		<module>emiserv-scsp</module>
 <!--		<module>emiserv-scsp-fake</module>-->
+		<module>emiserv-scsp-fake-core</module>
 		<module>emiserv-back</module>
 		<module>emiserv-ear</module>
 		<module>emiserv-ejb</module>
@@ -75,6 +76,15 @@
 		<module>emiserv-client</module>
 		<module>emiserv-client-legacy</module>
 	</modules>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>es.caib.emiserv</groupId>
+				<artifactId>emiserv-scsp-fake-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<build>
 		<plugins>
 			<plugin>

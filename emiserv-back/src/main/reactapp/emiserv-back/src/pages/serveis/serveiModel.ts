@@ -6,6 +6,8 @@ export type ServeiTipus = (typeof SERVEI_TIPUS)[number];
 export const BACKOFFICE_AUTENTICACIO = ['NINGUNA', 'TOKEN_CAIB', 'TEXT_CLAR'] as const;
 /** Tractament de les peticions asíncrones d'un backoffice (`BackofficeAsyncTipusEnumDto`). */
 export const BACKOFFICE_ASYNC_TIPUS = ['REENVIAR_BACKOFFICE', 'PROCESSAR_SINCRONES'] as const;
+/** Resultat de la resposta fake d'un servei (`ServeiFakeResultatEnumDto`). */
+export const FAKE_RESULTAT = ['OK', 'SENSE_DADES', 'ERROR'] as const;
 /** Destí d'una ruta (`ServeiRutaDestiTipusEnumDto`). */
 export const RUTA_DESTI_TIPUS = ['EMISERV', 'BACKOFFICE'] as const;
 /** Tipus de principal d'un permís (`PrincipalTipusEnumDto`). */
@@ -34,17 +36,29 @@ export type Servei = {
     nom: string;
     tipus: ServeiTipus;
     actiu: boolean;
+    fake?: boolean;
+    /** Enrutadors: admeten rutes cap al backoffice dels cedents. */
+    rutesBackoffice?: boolean;
+    asyncSincron?: boolean;
     configurat?: boolean;
     configuratScsp?: boolean;
     xsdGestioActiva?: boolean;
     permisosCount?: number;
     rutesCount?: number;
+    autoritzacionsCount?: number;
     diagnostic?: MotiuDiagnostic[];
 };
 
 /** Els enrutadors (simples o múltiples) tenen rutes; els backoffices, no. */
 export const esEnrutador = (tipus?: ServeiTipus | null): boolean =>
     tipus === 'ENRUTADOR' || tipus === 'ENRUTADOR_MULTIPLE';
+
+/**
+ * Configuració SCSP i autoritzacions: els serveis backoffice i els enrutadors que admeten rutes cap al
+ * backoffice dels cedents (les seves són per a aquestes rutes).
+ */
+export const ambConfiguracioScsp = (tipus?: ServeiTipus | null, rutesBackoffice?: boolean): boolean =>
+    tipus === 'BACKOFFICE' || (esEnrutador(tipus) && rutesBackoffice === true);
 
 /** Id del servei nou a la URL de la finestra (`/serveis/nou`). */
 export const ID_NOU = 'nou';

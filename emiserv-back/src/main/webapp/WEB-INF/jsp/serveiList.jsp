@@ -61,6 +61,32 @@
 				<th data-col-name="tipus"><spring:message code="servei.list.columna.tipus"/></th>
 				<th data-col-name="configurat" data-visible="false"><spring:message code="servei.list.columna.configurat"/></th>
 				<th data-col-name="configuratScsp" data-visible="false"></th>
+				<th data-col-name="autoritzacionsCount" data-visible="false"></th>
+				<th data-col-name="rutesBackoffice" data-template="#cellRutesBackofficeTemplate" width="1%">
+					<span title="<spring:message code="servei.list.columna.rutes.backoffice.info"/>"><spring:message code="servei.list.columna.rutes.backoffice"/></span>
+					<script id="cellRutesBackofficeTemplate" type="text/x-jsrender">
+						{{if rutesBackoffice}}<span class="fa fa-check" title="<spring:message code="servei.list.columna.rutes.backoffice.info"/>"></span>{{/if}}
+					</script>
+				</th>
+				<th data-col-name="asyncSincron" data-template="#cellAsyncSincronTemplate" width="1%">
+					<span title="<spring:message code="servei.form.camp.async.sincron"/>"><spring:message code="servei.list.columna.async"/></span>
+					<script id="cellAsyncSincronTemplate" type="text/x-jsrender">
+						{{if asyncSincron}}<span class="fa fa-check" title="<spring:message code="servei.form.camp.async.sincron"/>"></span>{{/if}}
+					</script>
+				</th>
+				<c:choose>
+					<c:when test="${fakePermes}">
+						<th data-col-name="fake" data-template="#cellFakeTemplate" width="1%">
+							<spring:message code="servei.list.columna.fake"/>
+							<script id="cellFakeTemplate" type="text/x-jsrender">
+								{{if fake}}<span class="label label-warning"><spring:message code="servei.llistat.fake"/></span>{{/if}}
+							</script>
+						</th>
+					</c:when>
+					<c:otherwise>
+						<th data-col-name="fake" data-visible="false"></th>
+					</c:otherwise>
+				</c:choose>
 				<c:if test="${isRolActualAdministrador}">
 					<th data-col-name="actiu" data-template="#cellActiuTemplate">
 						<spring:message code="servei.list.columna.actiu"/>
@@ -75,7 +101,9 @@
 					</th>
 					<th data-template="#cellAutoritzacionsTemplate" width="1%" data-orderable="false">
 						<script id="cellAutoritzacionsTemplate" type="text/x-jsrender">
-							<a href="servei/{{:id}}/autoritzacio" class="btn btn-default{{if !configuratScsp}} disabled{{/if}}"><span class="fa fa-thumbs-o-up"></span>&nbsp;<spring:message code="servei.list.boto.autoritzacions"/></a>
+							{{if tipus == 'BACKOFFICE' || rutesBackoffice}}
+								<a href="servei/{{:id}}/autoritzacio" class="btn btn-default{{if !configuratScsp}} disabled{{/if}}"{{if tipus != 'BACKOFFICE'}} title="<spring:message code="servei.list.boto.autoritzacions.rutes.backoffice"/>"{{/if}}><span class="fa fa-thumbs-o-up"></span>&nbsp;<spring:message code="servei.list.boto.autoritzacions"/>&nbsp;<span class="badge">{{:autoritzacionsCount}}</span></a>
+							{{/if}}
 						</script>
 					</th>
 				</c:if>
@@ -84,17 +112,19 @@
 					<script id="cellAccionsTemplate" type="text/x-jsrender">
 						<div class="dropdown">
 							<button class="btn btn-primary" data-toggle="dropdown"><span class="fa fa-cog"></span>&nbsp;<spring:message code="comu.boto.accions"/>&nbsp;<span class="caret"></span></button>
-							<ul class="dropdown-menu">
+							<ul class="dropdown-menu dropdown-menu-right">
 								<li><a href="servei/{{:id}}" data-toggle="modal"><span class="fa fa-pencil"></span>&nbsp;&nbsp;<spring:message code="comu.boto.modificar"/></a></li>
 								{{if tipus == 'BACKOFFICE'}}
-									<li><a href="servei/{{:id}}/configScsp" data-toggle="modal"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.scsp"/></a></li>
+									<li><a href="servei/{{:id}}/configScsp" data-toggle="modal" data-modal-width="95%"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.scsp"/></a></li>
 									{{if xsdGestioActiva}}
 										<li><a href="servei/{{:id}}/xsd" data-toggle="modal"><span class="fa fa-file-excel-o"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.xsds"/></a></li>
 									{{/if}}
 								{{else}}
-									<li><a href="servei/{{:id}}/rutes" data-toggle="modal"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.rutes"/></a></li>
-									<%-- Necessària per a les rutes de tipus BACKOFFICE (consulta directa al backoffice del cedent) --%>
-									<li><a href="servei/{{:id}}/configScsp" data-toggle="modal"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.scsp"/></a></li>
+									<li><a href="servei/{{:id}}/rutes" data-toggle="modal" data-modal-width="95%"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.rutes"/></a></li>
+									<%-- Necessària per a les rutes cap al backoffice dels cedents (consulta directa) --%>
+									{{if rutesBackoffice}}
+										<li><a href="servei/{{:id}}/configScsp" data-toggle="modal" data-modal-width="95%"><span class="fa fa-wrench"></span>&nbsp;&nbsp;<spring:message code="servei.list.accio.config.scsp.rutes.backoffice"/></a></li>
+									{{/if}}
 								{{/if}}
 								<c:if test="${isRolActualAdministrador}">
 									{{if !actiu}}

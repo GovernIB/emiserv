@@ -10,6 +10,7 @@ import es.caib.emiserv.logic.intf.base.permission.PermissionEnum;
 import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDiagnosticEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiFakeResultatEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.validation.ServeiValid;
 import lombok.Getter;
@@ -133,6 +134,11 @@ public class ServeiResource extends BaseResource<Long> {
 	@Size(max = 256)
 	@ResourceField(enumType = true)
 	private String responseResolverClass;
+	/**
+	 * Enrutadors: admeten rutes cap al backoffice dels cedents. Només aquests enrutadors tenen
+	 * configuració SCSP i autoritzacions (les de les rutes cap als cedents).
+	 */
+	private boolean rutesBackoffice;
 	/** Enrutadors: acceptar peticions asíncrones encara que els cedents només admetin síncrones. */
 	private boolean asyncSincron;
 	/** Temps mínim entre peticions a un mateix cedent (ms); buit: el valor global. */
@@ -141,6 +147,11 @@ public class ServeiResource extends BaseResource<Long> {
 	/** Peticions simultànies màximes a un mateix cedent; buit: el valor global. */
 	@Min(1)
 	private Integer asyncConcurrencia;
+	/** Mode fake: respostes simulades sense consultar el cedent. */
+	private boolean fake;
+	private ServeiFakeResultatEnumDto fakeResultat;
+	/** Plantilla opcional de DatosEspecificos de la resposta simulada. */
+	private String fakeDadesEspecifiques;
 	private boolean actiu;
 	private boolean configurat;
 	/** Configurat a l'emissor SCSP (mateixa regla que ServeiDto.configuratScsp). */
@@ -150,6 +161,8 @@ public class ServeiResource extends BaseResource<Long> {
 	private long permisosCount;
 	/** Nombre de rutes de destí del servei. */
 	private long rutesCount;
+	/** Nombre d'autoritzacions de l'emissor SCSP del servei. */
+	private long autoritzacionsCount;
 	/** Motius pels quals el servei no està ben configurat (buit si no n'hi ha cap). */
 	private List<ServeiDiagnosticEnumDto> diagnostic;
 

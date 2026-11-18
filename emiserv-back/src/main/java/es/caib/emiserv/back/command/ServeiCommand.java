@@ -15,6 +15,7 @@ import es.caib.emiserv.back.validation.CodiServeiNoRepetit;
 import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiFakeResultatEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 
 /**
@@ -51,8 +52,15 @@ public class ServeiCommand {
 	@Size(max=256)
 	@NotNull(groups = TipusEnrutadorMultiple.class)
 	private String responseResolverClass;
+	/** Enrutadors: admetre rutes cap al backoffice dels cedents (requereixen configuració SCSP i autoritzacions). */
+	private boolean rutesBackoffice;
 	/** Enrutadors: acceptar peticions asíncrones encara que els cedents només admetin síncrones. */
 	private boolean asyncSincron;
+	/** Mode fake: el servei respon sense cridar el cedent. */
+	private boolean fake;
+	private ServeiFakeResultatEnumDto fakeResultat;
+	/** Plantilla XML DatosEspecificos de la resposta fake (el servei en valida el format). */
+	private String fakeDadesEspecifiques;
 	@Min(0)
 	private Integer asyncInterval;
 	@Min(1)
@@ -112,11 +120,35 @@ public class ServeiCommand {
 	public void setBackofficeCaibAsyncTipus(BackofficeAsyncTipusEnumDto backofficeCaibAsyncTipus) {
 		this.backofficeCaibAsyncTipus = backofficeCaibAsyncTipus;
 	}
+	public boolean isRutesBackoffice() {
+		return rutesBackoffice;
+	}
+	public void setRutesBackoffice(boolean rutesBackoffice) {
+		this.rutesBackoffice = rutesBackoffice;
+	}
 	public boolean isAsyncSincron() {
 		return asyncSincron;
 	}
 	public void setAsyncSincron(boolean asyncSincron) {
 		this.asyncSincron = asyncSincron;
+	}
+	public boolean isFake() {
+		return fake;
+	}
+	public void setFake(boolean fake) {
+		this.fake = fake;
+	}
+	public ServeiFakeResultatEnumDto getFakeResultat() {
+		return fakeResultat;
+	}
+	public void setFakeResultat(ServeiFakeResultatEnumDto fakeResultat) {
+		this.fakeResultat = fakeResultat;
+	}
+	public String getFakeDadesEspecifiques() {
+		return fakeDadesEspecifiques;
+	}
+	public void setFakeDadesEspecifiques(String fakeDadesEspecifiques) {
+		this.fakeDadesEspecifiques = fakeDadesEspecifiques;
 	}
 	public Integer getAsyncInterval() {
 		return asyncInterval;

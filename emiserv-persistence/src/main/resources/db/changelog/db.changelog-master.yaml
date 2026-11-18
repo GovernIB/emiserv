@@ -1,4 +1,12 @@
 databaseChangeLog:
+- property:
+    name: acl_pk_type
+    value: BIGINT
+    dbms: oracle,hsqldb
+- property:
+    name: acl_pk_type
+    value: BIGSERIAL
+    dbms: postgresql
 - include:
     file: db/changelog/initial_schema_table.yaml
 - include:

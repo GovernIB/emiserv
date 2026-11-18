@@ -12,6 +12,7 @@ import es.caib.emiserv.logic.intf.base.model.DownloadableFile;
 import es.caib.emiserv.logic.intf.base.model.ReportFileType;
 import es.caib.emiserv.logic.intf.dto.ServeiDiagnosticEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiFakeResultatEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.base.exception.ResourceNotFoundException;
 import es.caib.emiserv.logic.intf.exception.ExportacioMassaGranException;
@@ -206,6 +207,19 @@ class ServeiResourceServiceTest {
 		assertEquals(0, perCodi.get("S2").getPermisosCount());
 		assertEquals(1, perCodi.get("S2").getRutesCount());
 		assertEquals(0, perCodi.get("S3").getRutesCount());
+	}
+
+	@Test
+	void comptadorAutoritzacions() {
+		crearServeisBasics();
+		// Les autoritzacions es relacionen amb el servei pel codi (CORE_SERVICIO.codcertificado)
+		jdbcTemplate.update("insert into core_servicio (id, codcertificado) values (100, 'S1'), (200, 'ALTRE')");
+		jdbcTemplate.update("insert into core_em_autorizacion_cert (id, idcertificado) values (1, 100), (2, 100), (3, 200)");
+		autenticar("EMS_ADMIN");
+		Map<String, ServeiResource> perCodi = service.findPage(null, null, null, null, PageRequest.of(0, 10)).
+				getContent().stream().collect(Collectors.toMap(ServeiResource::getCodi, r -> r));
+		assertEquals(2, perCodi.get("S1").getAutoritzacionsCount());
+		assertEquals(0, perCodi.get("S2").getAutoritzacionsCount());
 	}
 
 	@Test
@@ -414,6 +428,39 @@ class ServeiResourceServiceTest {
 		assertThrows(ResourceNotFoundException.class, () -> service.update(1L, canvis, null));
 	}
 
+	@Test
+	void actualitzaElModeFake() {
+		crearServeisBasics();
+		autenticar("EMS_ADMIN");
+		String plantilla = "<DatosEspecificos><Valor>${nom}</Valor></DatosEspecificos>";
+		// ServeiService (simulat) desa el mode fake a la fila, com ServeiServiceImpl.update
+		when(serveiService.update(any())).thenAnswer(inv -> {
+			ServeiDto dto = inv.getArgument(0);
+			jdbcTemplate.update(
+					"update ems_servei set fake = ?, fake_resultat = ?, fake_dades_esp = ? where id = ?",
+					dto.isFake(), dto.getFakeResultat().name(), dto.getFakeDadesEspecifiques(), dto.getId());
+			return dto;
+		});
+		ServeiResource canvis = serveiEnrutador("S2");
+		canvis.setFake(true);
+		canvis.setFakeResultat(ServeiFakeResultatEnumDto.SENSE_DADES);
+		canvis.setFakeDadesEspecifiques(plantilla);
+		ServeiResource desat = service.update(2L, canvis, null);
+		verify(serveiService).update(argThat(dto ->
+				dto.isFake() &&
+				dto.getFakeResultat() == ServeiFakeResultatEnumDto.SENSE_DADES &&
+				plantilla.equals(dto.getFakeDadesEspecifiques())));
+		assertTrue(desat.isFake());
+		assertEquals(ServeiFakeResultatEnumDto.SENSE_DADES, desat.getFakeResultat());
+		assertEquals(plantilla, desat.getFakeDadesEspecifiques());
+		ServeiResource llegit = service.getOne(2L, null);
+		assertTrue(llegit.isFake());
+		assertEquals(ServeiFakeResultatEnumDto.SENSE_DADES, llegit.getFakeResultat());
+		assertEquals(plantilla, llegit.getFakeDadesEspecifiques());
+		// Els altres serveis no tenen el mode fake
+		assertFalse(service.getOne(1L, null).isFake());
+	}
+
 	private static ServeiResource serveiEnrutador(String codi) {
 		ServeiResource resource = new ServeiResource();
 		resource.setCodi(codi);
@@ -444,7 +491,7 @@ class ServeiResourceServiceTest {
 
 	private void inserirServei(Long id, String codi, String nom, int tipus, boolean actiu, boolean configurat) {
 		jdbcTemplate.update(
-				"insert into ems_servei (id, codi, nom, tipus, actiu, configurat, xsd_activa, async_sincron) values (?, ?, ?, ?, ?, ?, false, false)",
+				"insert into ems_servei (id, codi, nom, tipus, actiu, configurat, xsd_activa, async_sincron, fake, rutes_backoffice) values (?, ?, ?, ?, ?, ?, false, false, false, false)",
 				id, codi, nom, tipus, actiu, configurat);
 	}
 

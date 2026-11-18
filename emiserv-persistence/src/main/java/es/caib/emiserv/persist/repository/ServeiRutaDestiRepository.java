@@ -51,6 +51,11 @@ public interface ServeiRutaDestiRepository extends JpaRepository<ServeiRutaDesti
 	/** Totes les rutes d'un conjunt de serveis (màxim 1000 ids per l'IN d'Oracle). */
 	public List<ServeiRutaDestiEntity> findByServeiIdIn(java.util.Collection<Long> serveiIds);
 
+	/** Nombre de rutes d'un servei amb un tipus de destí. */
+	public long countByServeiAndDestiTipus(
+			ServeiEntity servei,
+			es.caib.emiserv.logic.intf.dto.ServeiRutaDestiTipusEnumDto destiTipus);
+
 	/** Consulta el següent valor per a ordre de les agrupacions. */
 	@Query(	"select coalesce( max( r.ordre), -1) + 1 " +
 			"from ServeiRutaDestiEntity r " +

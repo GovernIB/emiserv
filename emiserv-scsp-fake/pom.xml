@@ -14,6 +14,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>es.caib.emiserv</groupId>
+			<artifactId>emiserv-scsp-fake-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
@@ -32,6 +37,22 @@
 						</manifest>
 					</archive>
 				</configuration>
+			</plugin>
+			<!-- Jar executable amb el core (generador i signador) i el keystore dins -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

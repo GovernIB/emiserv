@@ -42,6 +42,9 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 	private String faultErrorString;
 	private Integer numElements;
 
+	/** Les destinacions s'han reescrit a l'esquema "fake:" (servei en mode fake). */
+	private boolean fake;
+
 	public RedireccioProcessarResultatDto() {
 		super();
 	}
@@ -145,6 +148,7 @@ public class RedireccioProcessarResultatDto extends ObjecteAmbPermisosDto {
 		copy.setFaultErrorString(this.faultErrorString);
 		copy.setNumElements(this.numElements);
 		copy.setSolicitantId(this.solicitantId);
+		copy.setFake(this.fake);
 
 		return copy;
 	}

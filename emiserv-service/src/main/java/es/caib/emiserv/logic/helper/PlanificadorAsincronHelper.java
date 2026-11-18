@@ -66,6 +66,8 @@ public class PlanificadorAsincronHelper {
 	@Autowired
 	private ScspCoreServicioRepository scspCoreServicioRepository;
 	@Autowired
+	private ServeiFakeHelper serveiFakeHelper;
+	@Autowired
 	private BackofficePeticioRepository backofficePeticioRepository;
 	@Autowired
 	private BackofficeSolicitudRepository backofficeSolicitudRepository;
@@ -246,7 +248,8 @@ public class PlanificadorAsincronHelper {
 
 	/**
 	 * Serveis amb les peticions asíncrones processades com a síncrones: els de tipus backoffice amb
-	 * aquest tipus de processament i els enrutadors (els cedents només admeten peticions síncrones).
+	 * aquest tipus de processament, els enrutadors (els cedents només admeten peticions síncrones) i
+	 * els serveis en mode fake.
 	 */
 	public Map<Long, ServeiEntity> getServeisPerCertificat() {
 		Map<String, ServeiEntity> serveisPerCodi = new HashMap<String, ServeiEntity>();
@@ -255,6 +258,12 @@ public class PlanificadorAsincronHelper {
 		}
 		for (ServeiEntity servei: serveiRepository.findByTipusIn(Arrays.asList(ServeiTipusEnumDto.ENRUTADOR, ServeiTipusEnumDto.ENRUTADOR_MULTIPLE))) {
 			serveisPerCodi.put(servei.getCodi(), servei);
+		}
+		if (serveiFakeHelper != null && serveiFakeHelper.isPermes()) {
+			// Els serveis fake mai reenvien les asíncrones al backoffice: es processen com a síncrones
+			for (ServeiEntity servei: serveiRepository.findByFakeTrue()) {
+				serveisPerCodi.put(servei.getCodi(), servei);
+			}
 		}
 		Map<Long, ServeiEntity> serveis = new HashMap<Long, ServeiEntity>();
 		if (!serveisPerCodi.isEmpty()) {

@@ -48,10 +48,18 @@ type ProvaResultat = {
 };
 
 /** Formulari d'una ruta (fila d'edició de `serveiRutes.jsp`). */
-const ServeiRutaForm: React.FC = () => {
+const ServeiRutaForm: React.FC<{ rutesBackoffice: boolean }> = ({ rutesBackoffice }) => {
     const { t } = useTranslation();
     const { data } = useFormContext();
-    const opcionsDesti = useOpcionsEnum(RUTA_DESTI_TIPUS, 'serveis.enum.destiTipus');
+    const totesOpcionsDesti = useOpcionsEnum(RUTA_DESTI_TIPUS, 'serveis.enum.destiTipus');
+    // Les rutes cap al backoffice dels cedents només si el servei les admet (o si la ruta ja ho és)
+    const opcionsDesti = React.useMemo(
+        () =>
+            rutesBackoffice || data?.destiTipus === 'BACKOFFICE'
+                ? totesOpcionsDesti
+                : totesOpcionsDesti.filter((o) => o.value !== 'BACKOFFICE'),
+        [rutesBackoffice, data?.destiTipus, totesOpcionsDesti]
+    );
     const opcionsAutenticacio = useOpcionsEnum(BACKOFFICE_AUTENTICACIO, 'serveis.enum.autenticacio');
     return (
         <Grid container spacing={2} sx={{ pt: 1 }}>
@@ -126,7 +134,10 @@ const AutenticacioRuta: React.FC<{ ruta: Ruta }> = ({ ruta }) => {
  * finestra, reordenació arrossegant les files (l'ordre decideix la ruta quan n'hi ha més d'una per a
  * una entitat) i prova de connexió de cada ruta.
  */
-export const ServeiRutes: React.FC<{ serveiId: number }> = ({ serveiId }) => {
+export const ServeiRutes: React.FC<{ serveiId: number; rutesBackoffice: boolean }> = ({
+    serveiId,
+    rutesBackoffice,
+}) => {
     const { t } = useTranslation();
     const { temporalMessageShow } = useBaseAppContext();
     const { isReady, artifactAction } = useResourceApiService(RECURS_RUTA);
@@ -228,7 +239,7 @@ export const ServeiRutes: React.FC<{ serveiId: number }> = ({ serveiId }) => {
                     toolbarHideQuickFilter
                     toolbarCreateLabel={t('serveis.rutes.nova')}
                     popupEditActive
-                    popupEditFormContent={<ServeiRutaForm />}
+                    popupEditFormContent={<ServeiRutaForm rutesBackoffice={rutesBackoffice} />}
                     popupEditFormDialogResourceTitle={t('serveis.rutes.recurs')}
                     popupEditFormDialogComponentProps={{ maxWidth: 'md', fullWidth: true }}
                     rowReordering

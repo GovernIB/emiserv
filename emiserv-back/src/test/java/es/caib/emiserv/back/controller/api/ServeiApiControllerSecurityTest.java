@@ -6,6 +6,7 @@ import es.caib.emiserv.back.base.config.HalFormsTemplateBuilderConfig;
 import es.caib.emiserv.back.base.config.MethodSecurityConfig;
 import es.caib.emiserv.back.base.error.ResourceGlobalExceptionHandler;
 import es.caib.emiserv.back.base.util.ResourceServiceLocator;
+import es.caib.emiserv.back.config.WebMvcConfig;
 import es.caib.emiserv.logic.base.helper.AuthenticationHelper;
 import es.caib.emiserv.logic.base.service.PermissionEvaluatorService;
 import es.caib.emiserv.logic.helper.PermissionHelper;
@@ -36,6 +37,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.servlet.LocaleResolver;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,7 +79,14 @@ class ServeiApiControllerSecurityTest {
 		public StaticMessageSource messageSource() {
 			StaticMessageSource ms = new StaticMessageSource();
 			ms.addMessage("error.exportacio.massa.gran", new Locale("ca"), "L''exportació té {0} files i supera el màxim permès ({1})");
+			// Com base-boot-messages: els missatges només existeixen en català i castellà
+			ms.addMessage("es.caib.emiserv.error.handling.MethodArgumentNotValidException.message", new Locale("ca"), "S''han produït errors de validació. Revisi el camp {0} per a més detalls.");
 			return ms;
+		}
+		@Bean
+		public LocaleResolver localeResolver() {
+			// El mateix resolutor d'idioma que l'aplicació (WebMvcConfig)
+			return new WebMvcConfig().localeResolver();
 		}
 		@Bean
 		public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -241,6 +250,26 @@ class ServeiApiControllerSecurityTest {
 						with(csrf()).
 						contentType(MediaType.APPLICATION_JSON).content("{}")).
 				andExpect(status().is2xxSuccessful());
+	}
+
+	@Test
+	@WithMockUser(username = "admin", authorities = "EMS_ADMIN")
+	void errorValidacioEs422JsonEnQualsevolIdioma() throws Exception {
+		// Servei BACKOFFICE sense tipus de processament asíncron (ServeiValid). Amb un idioma del
+		// navegador sense missatges (en) el gestor d'errors no ha de fallar: si falla, Spring envia
+		// l'error al contenidor, que el reenvia a la JSP d'error i un PUT acaba en 405.
+		mockMvc.perform(put("/api/servei/900002").
+						header("Accept-Language", "en-US,en;q=0.9").
+						with(csrf()).
+						contentType(MediaType.APPLICATION_JSON).
+						content("{\"codi\":\"SVDCCAACPCWS01\",\"nom\":\"Prova\",\"tipus\":\"BACKOFFICE\"," +
+								"\"backofficeClass\":\"es.caib.emiserv.backoffice.CaibBackoffice\"," +
+								"\"backofficeCaibUrl\":\"http://localhost/ws\",\"backofficeCaibAutenticacio\":\"NINGUNA\"}")).
+				andExpect(status().isUnprocessableEntity()).
+				andExpect(content().contentTypeCompatibleWith("application/problem+json")).
+				andExpect(jsonPath("$.message").value("S'han produït errors de validació. Revisi el camp validationErrors per a més detalls.")).
+				andExpect(jsonPath("$.validationErrors[0].field").value("backofficeCaibAsyncTipus"));
+		verify(serveiResourceService, never()).update(any(), any(), any());
 	}
 
 }

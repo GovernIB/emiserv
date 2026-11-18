@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,12 +35,14 @@ public class SessioUsuariControllerTest {
 
 	private AplicacioService aplicacioService;
 	private MockMvc mockMvc;
+	private MockEnvironment environment;
 
 	@BeforeEach
 	public void configurar() {
+		environment = new MockEnvironment();
 		aplicacioService = mock(AplicacioService.class);
 		mockMvc = MockMvcBuilders.standaloneSetup(
-				new SessioUsuariController(aplicacioService, " EMS_ADMIN, EMS_RESP ", " http://localhost:5173/ ")).build();
+				new SessioUsuariController(aplicacioService, " EMS_ADMIN, EMS_RESP ", " http://localhost:5173/ ", environment)).build();
 		SecurityContextHolder.clearContext();
 	}
 
@@ -101,7 +104,7 @@ public class SessioUsuariControllerTest {
 	@Test
 	public void loginNoRedirigeixAlServidorDeViteSenseLaPropietat() throws Exception {
 		MockMvc senseOrigens = MockMvcBuilders.standaloneSetup(
-				new SessioUsuariController(aplicacioService, "EMS_ADMIN,EMS_RESP", "")).build();
+				new SessioUsuariController(aplicacioService, "EMS_ADMIN,EMS_RESP", "", environment)).build();
 		String location = senseOrigens.perform(get("/sessioUsuari/login").param("redirect", "http://localhost:5173/reactapp")).
 				andExpect(status().isFound()).
 				andReturn().getResponse().getHeader("Location");
@@ -121,6 +124,24 @@ public class SessioUsuariControllerTest {
 				content("{\"interficie\":null}")).
 				andExpect(status().isNoContent());
 		verify(aplicacioService).updateInterficie(null);
+	}
+
+	@Test
+	public void exposaFakePermes() throws Exception {
+		autenticar("u1", "EMS_ADMIN");
+		// Sense la propietat: fake no permes
+		assertEquals(false, fakePermes());
+		environment.setProperty("es.caib.emiserv.fake.permes", "true");
+		assertEquals(true, fakePermes());
+		environment.setProperty("es.caib.emiserv.fake.permes", "false");
+		assertEquals(false, fakePermes());
+	}
+
+	private boolean fakePermes() throws Exception {
+		String cos = mockMvc.perform(get("/api/sessioUsuari")).
+				andExpect(status().isOk()).
+				andReturn().getResponse().getContentAsString();
+		return new ObjectMapper().readTree(cos).get("fakePermes").asBoolean();
 	}
 
 }

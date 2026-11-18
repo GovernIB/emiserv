@@ -381,10 +381,10 @@ public class ClientScspHelper {
 			this.clauPrivada = clauPrivada;
 			this.certificat = certificat;
 		}
-		PrivateKey getClauPrivada() {
+		public PrivateKey getClauPrivada() {
 			return clauPrivada;
 		}
-		X509Certificate getCertificat() {
+		public X509Certificate getCertificat() {
 			return certificat;
 		}
 	}

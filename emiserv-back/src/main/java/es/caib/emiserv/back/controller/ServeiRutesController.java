@@ -6,6 +6,8 @@ package es.caib.emiserv.back.controller;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -27,6 +29,7 @@ import es.caib.emiserv.back.helper.DatatablesHelper;
 import es.caib.emiserv.back.helper.AjaxHelper.AjaxFormResponse;
 import es.caib.emiserv.back.helper.DatatablesHelper.DatatablesResponse;
 import es.caib.emiserv.back.helper.HtmlSelectOptionHelper;
+import es.caib.emiserv.back.helper.HtmlSelectOptionHelper.HtmlOption;
 import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.dto.ServeiRutaDestiProvaDto;
@@ -55,11 +58,16 @@ public class ServeiRutesController extends BaseController {
 		model.addAttribute(
 				"servei",
 				servei);
+		List<HtmlOption> destiTipusOptions = HtmlSelectOptionHelper.getOptionsForEnum(
+				ServeiRutaDestiTipusEnumDto.class,
+				"servei.ruta.desti.tipus.enum.");
+		if (!servei.isRutesBackoffice()) {
+			// Les rutes cap al backoffice dels cedents només si el servei les admet
+			destiTipusOptions.removeIf(o -> ServeiRutaDestiTipusEnumDto.BACKOFFICE.name().equals(o.getValue()));
+		}
 		model.addAttribute(
 				"destiTipusEnumOptions",
-				HtmlSelectOptionHelper.getOptionsForEnum(
-						ServeiRutaDestiTipusEnumDto.class,
-						"servei.ruta.desti.tipus.enum."));
+				destiTipusOptions);
 		model.addAttribute(
 				"backofficeAutenticacioTipusEnumOptions",
 				HtmlSelectOptionHelper.getOptionsForEnum(

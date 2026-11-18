@@ -25,6 +25,7 @@ import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
 import es.caib.emiserv.persist.repository.RedireccioPeticioRepository;
 import es.caib.emiserv.persist.repository.ServeiRepository;
 import es.caib.emiserv.persist.repository.ServeiRutaDestiRepository;
+import es.caib.emiserv.persist.repository.scsp.ScspCoreEmAutorizacionCertificadoRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreEmBackofficeRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCoreEmisorCertificadoRepository;
 import es.caib.emiserv.persist.repository.scsp.ScspCorePeticionRespuestaRepository;
@@ -46,12 +47,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 
 /**
  * Implementació del servei de gestió de serveis.
@@ -82,6 +92,8 @@ public class ServeiServiceImpl implements ServeiService {
 	@Autowired
 	private ScspCoreEmisorCertificadoRepository scspCoreEmisorCertificadoRepository;
 	@Autowired
+	private ScspCoreEmAutorizacionCertificadoRepository scspCoreEmAutorizacionCertificadoRepository;
+	@Autowired
 	private RedireccioPeticioRepository redireccioPeticioRepository;
 
 	@Autowired
@@ -101,6 +113,7 @@ public class ServeiServiceImpl implements ServeiService {
 	@Override
 	public ServeiDto create(ServeiDto servei) {
 		log.debug("Creant un nou servei (servei=" + servei + ")");
+		validarPlantillaFake(servei.getFakeDadesEspecifiques());
 		ServeiEntity entity;
 		if (ServeiTipusEnumDto.BACKOFFICE.equals(servei.getTipus())) {
 			entity = ServeiEntity.getBuilder(
@@ -125,11 +138,16 @@ public class ServeiServiceImpl implements ServeiService {
 					descripcio(servei.getDescripcio()).
 					resolverClass(servei.getResolverClass()).
 					build();
+			entity.updateRutesBackoffice(servei.isRutesBackoffice());
 			entity.updateAsyncSincron(
 					servei.isAsyncSincron(),
 					servei.getAsyncInterval(),
 					servei.getAsyncConcurrencia());
 		}
+		entity.updateFake(
+				servei.isFake(),
+				servei.getFakeResultat(),
+				servei.getFakeDadesEspecifiques());
 		return conversioTipusHelper.convertir(
 				serveiRepository.save(entity),
 				ServeiDto.class);
@@ -141,6 +159,7 @@ public class ServeiServiceImpl implements ServeiService {
 			ServeiDto servei) {
 		log.debug("Modificant el servei (" +
 				"servei=" + servei + ")");
+		validarPlantillaFake(servei.getFakeDadesEspecifiques());
 		ServeiEntity entity = comprovarServei(
 				servei.getId());
 		if (ServeiTipusEnumDto.BACKOFFICE.equals(servei.getTipus())) {
@@ -165,13 +184,62 @@ public class ServeiServiceImpl implements ServeiService {
 					servei.getDescripcio(),
 					servei.getResponseResolverClass());
 		}
+		if (entity.isEnrutador() && !servei.isRutesBackoffice() && entity.isRutesBackoffice()) {
+			comprovarSenseRutesBackoffice(entity);
+		}
+		entity.updateRutesBackoffice(servei.isRutesBackoffice());
 		entity.updateAsyncSincron(
 				servei.isAsyncSincron(),
 				servei.getAsyncInterval(),
 				servei.getAsyncConcurrencia());
+		entity.updateFake(
+				servei.isFake(),
+				servei.getFakeResultat(),
+				servei.getFakeDadesEspecifiques());
 		return conversioTipusHelper.convertir(
 				entity,
 				ServeiDto.class);
+	}
+
+	/**
+	 * Un enrutador no pot deixar d'admetre rutes cap al backoffice dels cedents mentre en tingui alguna.
+	 */
+	private void comprovarSenseRutesBackoffice(ServeiEntity servei) {
+		long rutesBackoffice = serveiRutaDestiRepository.countByServeiAndDestiTipus(
+				servei,
+				ServeiRutaDestiTipusEnumDto.BACKOFFICE);
+		if (rutesBackoffice > 0) {
+			throw new ValidationException(
+					"El servei (codi=" + servei.getCodi() + ") té " + rutesBackoffice + " rutes cap al " +
+					"backoffice dels cedents: s'han d'esborrar o canviar de tipus abans de desactivar-les");
+		}
+	}
+
+	/**
+	 * Comprova que la plantilla de DatosEspecificos del mode fake és un XML ben format amb
+	 * l'element arrel DatosEspecificos. Els marcadors ${...} són text i no afecten la validació.
+	 */
+	static void validarPlantillaFake(String plantilla) {
+		if (plantilla == null || plantilla.isBlank()) {
+			return;
+		}
+		boolean valida;
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(true);
+			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document document = builder.parse(new InputSource(new StringReader(plantilla)));
+			Element arrel = document.getDocumentElement();
+			String nomLocal = arrel.getLocalName() != null ? arrel.getLocalName() : arrel.getNodeName();
+			valida = "DatosEspecificos".equals(nomLocal);
+		} catch (Exception ex) {
+			valida = false;
+		}
+		if (!valida) {
+			throw new ValidationException("La plantilla de dades específiques no és un XML DatosEspecificos vàlid");
+		}
 	}
 
 	@Transactional
@@ -229,6 +297,11 @@ public class ServeiServiceImpl implements ServeiService {
 				servei,
 				ServeiDto.class);
 		omplirConfiguratScsp(dto);
+		if (servei.isEnrutador()) {
+			dto.setRutesBackofficeCount(serveiRutaDestiRepository.countByServeiAndDestiTipus(
+					servei,
+					ServeiRutaDestiTipusEnumDto.BACKOFFICE));
+		}
 		permisosHelper.omplirPermisos(
 				dto,
 				new ObjectIdentifierExtractor<ServeiDto>() {
@@ -313,10 +386,43 @@ public class ServeiServiceImpl implements ServeiService {
 			for (ServeiDto servei: resposta.getContingut()) {
 				omplirConfiguratScsp(servei);
 			}
+			omplirAutoritzacionsCount(resposta.getContingut());
 			return resposta;
 		} else {
 			return paginacioHelper.getPaginaDtoBuida(ServeiDto.class);
 		}
+	}
+
+	/**
+	 * Nombre d'autoritzacions dels serveis que en poden tenir: els BACKOFFICE i els enrutadors amb
+	 * rutes cap al backoffice dels cedents, configurats a l'emisor SCSP.
+	 */
+	private void omplirAutoritzacionsCount(List<ServeiDto> serveis) {
+		List<String> codis = new ArrayList<>();
+		for (ServeiDto servei: serveis) {
+			if (servei.isConfiguratScsp() && isAmbConfiguracioScsp(servei.getTipus(), servei.isRutesBackoffice())) {
+				codis.add(servei.getCodi());
+			}
+		}
+		Map<String, Long> counts = new HashMap<>();
+		for (List<String> trosso: trossejar(codis)) {
+			for (Object[] fila: scspCoreEmAutorizacionCertificadoRepository.countByServicioCodigoCertificadoIn(trosso)) {
+				counts.put((String)fila[0], ((Number)fila[1]).longValue());
+			}
+		}
+		for (ServeiDto servei: serveis) {
+			servei.setAutoritzacionsCount(counts.getOrDefault(servei.getCodi(), 0L));
+		}
+	}
+
+	/**
+	 * Indica si el servei té configuració SCSP i autoritzacions: els BACKOFFICE i els enrutadors que
+	 * admeten rutes cap al backoffice dels cedents.
+	 */
+	static boolean isAmbConfiguracioScsp(
+			ServeiTipusEnumDto tipus,
+			boolean rutesBackoffice) {
+		return ServeiTipusEnumDto.BACKOFFICE.equals(tipus) || rutesBackoffice;
 	}
 
 	/** Màxim d'ids per consulta (límit de l'IN d'Oracle). */
@@ -364,7 +470,8 @@ public class ServeiServiceImpl implements ServeiService {
 			boolean requereixScsp;
 			if (servei.isEnrutador()) {
 				List<ServeiRutaDestiEntity> rutesServei = rutes.getOrDefault(servei.getId(), new ArrayList<>());
-				requereixScsp = false;
+				// Les rutes cap al backoffice dels cedents necessiten la configuració SCSP
+				requereixScsp = servei.isRutesBackoffice();
 				boolean credencialsPendents = false;
 				for (ServeiRutaDestiEntity ruta: rutesServei) {
 					requereixScsp |= ruta.isDestiBackoffice();
@@ -875,6 +982,11 @@ public class ServeiServiceImpl implements ServeiService {
 			ServeiEntity servei,
 			ServeiRutaDestiTipusEnumDto destiTipus,
 			boolean configuratScsp) {
+		if (ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(destiTipus) && !servei.isRutesBackoffice()) {
+			throw new ValidationException(
+					"El servei (codi=" + servei.getCodi() + ") no admet rutes cap al backoffice dels cedents: " +
+					"s'ha d'activar primer a la configuració del servei");
+		}
 		if (ServeiRutaDestiTipusEnumDto.BACKOFFICE.equals(destiTipus) && !configuratScsp) {
 			throw new ValidationException(
 					"Per afegir rutes de tipus BACKOFFICE el servei (codi=" + servei.getCodi() + ") " +

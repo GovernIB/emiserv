@@ -11,6 +11,7 @@ import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
 import es.caib.emiserv.logic.intf.dto.RedireccioRespostaDto;
+import es.caib.emiserv.logic.intf.dto.RedireccioRespostaFakeDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.exception.ScspParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,16 @@ public class RedireccioService extends AbstractService<es.caib.emiserv.logic.int
 			byte[] xml,
 			boolean asincrona) throws ScspParseException {
 		return getDelegateService().processarPeticio(xml, asincrona);
+	}
+
+	@Override
+	@PermitAll
+	public RedireccioRespostaFakeDto generarRespostaFake(
+			String serveiCodi,
+			String entitatCodi,
+			byte[] xml,
+			boolean asincrona) {
+		return getDelegateService().generarRespostaFake(serveiCodi, entitatCodi, xml, asincrona);
 	}
 
 	@Override

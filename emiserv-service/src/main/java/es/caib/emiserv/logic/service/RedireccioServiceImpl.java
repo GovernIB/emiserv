@@ -3,7 +3,16 @@
  */
 package es.caib.emiserv.logic.service;
 
+import es.caib.emiserv.logic.helper.ClientScspHelper;
 import es.caib.emiserv.logic.helper.ConversioTipusHelper;
+import es.caib.emiserv.logic.helper.ServeiFakeHelper;
+import es.caib.emiserv.logic.intf.dto.RedireccioRespostaFakeDto;
+import es.caib.emiserv.logic.intf.dto.ServeiFakeResultatEnumDto;
+import es.caib.emiserv.logic.intf.exception.ValidationException;
+import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
+import es.caib.emiserv.scsp.fake.core.FakeRequest;
+import es.caib.emiserv.scsp.fake.core.FakeResponses;
+import es.caib.emiserv.scsp.fake.core.FakeSigner;
 import es.caib.emiserv.logic.helper.PaginacioHelper;
 import es.caib.emiserv.logic.helper.PermisosHelper;
 import es.caib.emiserv.logic.helper.SecurityHelper;
@@ -56,6 +65,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -117,6 +127,10 @@ public class RedireccioServiceImpl implements RedireccioService {
 	private EntitatRepository entitatRepository;
 
 	@Autowired
+	private ServeiFakeHelper serveiFakeHelper;
+	@Autowired
+	private ClientScspHelper clientScspHelper;
+	@Autowired
 	private XmlHelper xmlHelper;
 	@Autowired
 	private PaginacioHelper paginacioHelper;
@@ -143,6 +157,111 @@ public class RedireccioServiceImpl implements RedireccioService {
 	@Transactional
 	@Override
 	public RedireccioProcessarResultatDto processarPeticio(
+			byte[] xml,
+			boolean asincrona) {
+		RedireccioProcessarResultatDto resultat = processarPeticioIntern(xml, asincrona);
+		try {
+			if (!resultat.isError()) {
+				marcarFake(resultat);
+			}
+		} catch (Exception ex) {
+			// El mode fake no ha de trencar mai l'enrutament normal
+			log.error("Error al comprovar el mode fake del servei (" + ex.getMessage() + ")", ex);
+		}
+		return resultat;
+	}
+
+	/**
+	 * Si el servei està en mode fake, es reescriuen a "fake:&lt;servei&gt;/&lt;entitat o -&gt;/" totes les
+	 * destinacions que no van a l'emisor SCSP d'EMISERV (les que sí hi van, p. ex. les peticions
+	 * síncrones, les sol·licituds de resposta o les peticions asíncrones asyncSincron, no es toquen).
+	 * Només es marca el resultat com a fake si s'ha reescrit alguna destinació.
+	 */
+	private void marcarFake(RedireccioProcessarResultatDto resultat) {
+		String serveiCodi = resultat.getAtributCodigoCertificado();
+		if (serveiCodi == null || !serveiFakeHelper.isPermes()) {
+			return;
+		}
+		ServeiEntity servei = serveiRepository.findByCodi(serveiCodi);
+		if (!serveiFakeHelper.isFake(servei)) {
+			return;
+		}
+		String urlEmisor = getUrlEmisor();
+		boolean reescrit = false;
+		if (resultat.getTipus() == ServeiTipusEnumDto.ENRUTADOR_MULTIPLE) {
+			for (Map.Entry<String, String> desti : resultat.getUrlDestins().entrySet()) {
+				if (desti.getValue() != null && !desti.getValue().startsWith(urlEmisor)) {
+					desti.setValue(urlFake(serveiCodi, desti.getKey()));
+					reescrit = true;
+				}
+			}
+		} else if (resultat.getUrlDesti() != null && !resultat.getUrlDesti().startsWith(urlEmisor)) {
+			resultat.setUrlDesti(urlFake(serveiCodi, resultat.getEntitatCodiRedireccio()));
+			reescrit = true;
+		}
+		resultat.setFake(reescrit);
+	}
+
+	private static String urlFake(String serveiCodi, String entitatCodi) {
+		return "fake:" + serveiCodi + "/" + (entitatCodi != null ? entitatCodi : "-") + "/";
+	}
+
+	@Transactional(readOnly = true)
+	@Override
+	public RedireccioRespostaFakeDto generarRespostaFake(
+			String serveiCodi,
+			String entitatCodi,
+			byte[] xml,
+			boolean asincrona) {
+		ServeiEntity servei = serveiRepository.findByCodi(serveiCodi);
+		if (!serveiFakeHelper.isFake(servei)) {
+			return new RedireccioRespostaFakeDto(404, null);
+		}
+		if (asincrona) {
+			// El fake només genera respostes síncrones: una petició asíncrona a un enrutador que no és
+			// asyncSincron no es pot contestar amb una Respuesta (SOAP Fault sense signar, com els altres errors previs)
+			return new RedireccioRespostaFakeDto(
+					500,
+					FakeResponses.soapFault("0502", ServeiFakeHelper.LITERAL_PREFIX + "Les peticions asíncrones només s'admeten amb asyncSincron"));
+		}
+		FakeRequest peticio;
+		try {
+			peticio = FakeRequest.fromXml(new String(xml, StandardCharsets.UTF_8));
+		} catch (IOException | RuntimeException ex) {
+			return new RedireccioRespostaFakeDto(500, FakeResponses.soapFault("Server", "[FAKE] No s'ha pogut llegir la petició: " + ex.getMessage()));
+		}
+		ClientScspHelper.Credencials credencials;
+		try {
+			ScspCoreServicioEntity coreServicio = scspCoreServicioRepository.findByCodigoCertificado(serveiCodi);
+			if (coreServicio == null) {
+				throw new ValidationException("El servei " + serveiCodi + " no està configurat a l'emisor SCSP (core_servicio)");
+			}
+			credencials = clientScspHelper.getCredencials(coreServicio.getClaveFirma());
+		} catch (ValidationException ex) {
+			// Sense clau de signatura es retorna un SOAP Fault sense signar
+			return new RedireccioRespostaFakeDto(
+					500,
+					FakeResponses.scspFault(peticio, "0502", ServeiFakeHelper.LITERAL_PREFIX + ex.getMessage()));
+		}
+		FakeSigner signador = new FakeSigner(credencials.getClauPrivada(), credencials.getCertificat());
+		if (servei.getFakeResultat() == ServeiFakeResultatEnumDto.ERROR) {
+			return new RedireccioRespostaFakeDto(
+					500,
+					signador.sign(
+							FakeResponses.scspFault(peticio, "0502", ServeiFakeHelper.LITERAL_PREFIX + "Error simulat"),
+							peticio.getSignatureStyle()));
+		}
+		// Les dades específiques es generen amb la primera sol·licitud i es repeteixen a totes les transmissions
+		List<String> idSolicituds = peticio.getSolicitudIds();
+		String dadesEspecifiques = serveiFakeHelper.dadesEspecifiques(
+				servei,
+				peticio,
+				idSolicituds != null && !idSolicituds.isEmpty() ? idSolicituds.get(0) : null);
+		String resposta = FakeResponses.scspResponse(peticio, dadesEspecifiques, serveiFakeHelper.literalEstat(servei));
+		return new RedireccioRespostaFakeDto(200, signador.sign(resposta, peticio.getSignatureStyle()));
+	}
+
+	private RedireccioProcessarResultatDto processarPeticioIntern(
 			byte[] xml,
 			boolean asincrona) {
 		String xmlstr = xml != null ? new String(xml) : null;

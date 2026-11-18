@@ -10,6 +10,7 @@ import es.caib.emiserv.logic.intf.dto.PaginaDto;
 import es.caib.emiserv.logic.intf.dto.PaginacioParamsDto;
 import es.caib.emiserv.logic.intf.dto.ProcedimentDto;
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
+import es.caib.emiserv.logic.intf.dto.RedireccioRespostaFakeDto;
 import es.caib.emiserv.logic.intf.dto.RedireccioRespostaDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
 import es.caib.emiserv.logic.intf.exception.ScspParseException;
@@ -90,6 +91,26 @@ public interface RedireccioService {
 			Map<String, String> urlsPerEntitat,
 			String peticioId,
 			String serveiCodi);
+
+	/**
+	 * Genera la resposta fake (signada) d'un servei enrutador en mode fake.
+	 *
+	 * @param serveiCodi
+	 *            el codi del servei.
+	 * @param entitatCodi
+	 *            el codi de l'entitat de la ruta o "-".
+	 * @param xml
+	 *            el missatge XML de la petició.
+	 * @param asincrona
+	 *            true si la petició s'ha fet a l'operació asíncrona (peticionAsincrona): el fake
+	 *            només contesta de forma síncrona i retorna un SOAP Fault 0502.
+	 * @return el codi HTTP i el missatge de resposta (404 si el servei no és fake).
+	 */
+	public RedireccioRespostaFakeDto generarRespostaFake(
+			String serveiCodi,
+			String entitatCodi,
+			byte[] xml,
+			boolean asincrona);
 
 	/**
 	 * Genera un missatge SOAPFault a partir del valor retornat en

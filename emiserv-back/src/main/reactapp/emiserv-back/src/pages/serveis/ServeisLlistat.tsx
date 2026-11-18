@@ -20,13 +20,21 @@ import {
 } from 'reactlib';
 import { icons, lot2ScreenGridProps, ScreenFrame, ScreenTitle } from '../../lot2';
 import { emiservIcons } from '../../components/EmiservBaseApp';
-import { useEsAdmin } from '../../components/EmiservAuthProvider';
+import { useEsAdmin, useSessioUsuari } from '../../components/EmiservAuthProvider';
 import ExportarBoto from '../../components/ExportarBoto';
 import DiagnosticAvis from './DiagnosticAvis';
 import ServeiDialog from './ServeiDialog';
 import ServeisFiltre from './ServeisFiltre';
 import { missatgeError } from '../../util/missatgeError';
-import { esEnrutador, ID_NOU, PESTANYES_SERVEI, type PestanyaServei, rutaServei, type Servei } from './serveiModel';
+import {
+    ambConfiguracioScsp,
+    esEnrutador,
+    ID_NOU,
+    PESTANYES_SERVEI,
+    type PestanyaServei,
+    rutaServei,
+    type Servei,
+} from './serveiModel';
 
 /** Nom del recurs de l'API (rel de l'índex, veure ServeiApiController). */
 const RECURS = 'servei';
@@ -148,7 +156,7 @@ const useAccionsFila = (
             label: t('serveis.accio.autoritzacions'),
             icon: 'thumb_up',
             showInMenu: true,
-            hidden: (row: Servei) => !row?.configuratScsp,
+            hidden: (row: Servei) => !row?.configuratScsp || !ambConfiguracioScsp(row?.tipus, row?.rutesBackoffice),
             onClick: (id: unknown) => obrir(id, 'autoritzacions'),
         },
         {
@@ -192,6 +200,7 @@ export const ServeisLlistat: React.FC = () => {
     const theme = useTheme();
     const navigate = useNavigate();
     const esAdmin = useEsAdmin();
+    const fakePermes = useSessioUsuari().usuari?.fakePermes === true;
     const apiRef = useMuiDataGridApiRef();
     const [filtreObert, setFiltreObert] = React.useState(false);
     const refresh = React.useCallback(() => apiRef.current?.refresh?.(), [apiRef]);
@@ -233,7 +242,19 @@ export const ServeisLlistat: React.FC = () => {
                     </Box>
                 ),
             },
-            { field: 'nom', headerName: t('serveis.columna.nom'), flex: 3, minWidth: 200 },
+            {
+                field: 'nom',
+                headerName: t('serveis.columna.nom'),
+                flex: 3,
+                minWidth: 200,
+                renderCell: (params: GridRenderCellParams<Servei>) => (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%', minWidth: 0 }}>
+                        <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {params.row.nom}
+                        </Box>
+                    </Box>
+                ),
+            },
             {
                 field: 'tipus',
                 headerName: t('serveis.columna.tipus'),
@@ -242,6 +263,41 @@ export const ServeisLlistat: React.FC = () => {
                 renderCell: (params: GridRenderCellParams<Servei>) =>
                     params.row.tipus != null ? t(`serveis.tipus.${params.row.tipus}`) : '',
             },
+            {
+                field: 'rutesBackoffice',
+                headerName: t('serveis.columna.rutesBackoffice'),
+                description: t('serveis.columna.rutesBackofficeInfo'),
+                width: 150,
+                align: 'center',
+                headerAlign: 'center',
+                renderCell: (params: GridRenderCellParams<Servei>) =>
+                    params.row.rutesBackoffice === true && <Icon fontSize="small">check</Icon>,
+            },
+            {
+                field: 'asyncSincron',
+                headerName: t('serveis.columna.async'),
+                description: t('serveis.form.asyncSincron'),
+                width: 100,
+                align: 'center',
+                headerAlign: 'center',
+                renderCell: (params: GridRenderCellParams<Servei>) =>
+                    params.row.asyncSincron === true && <Icon fontSize="small">check</Icon>,
+            },
+            ...(fakePermes
+                ? [
+                      {
+                          field: 'fake',
+                          headerName: t('serveis.columna.fake'),
+                          width: 90,
+                          align: 'center',
+                          headerAlign: 'center',
+                          renderCell: (params: GridRenderCellParams<Servei>) =>
+                              params.row.fake === true && (
+                                  <Chip size="small" color="warning" label={t('serveis.fake')} />
+                              ),
+                      } as MuiDataGridColDef,
+                  ]
+                : []),
         ];
         if (!esAdmin) {
             return comunes;
@@ -299,33 +355,47 @@ export const ServeisLlistat: React.FC = () => {
                 align: 'center',
                 headerAlign: 'center',
                 sortable: false,
-                // Com el botó de la JSP: només per als serveis configurats a l'emissor SCSP
-                renderCell: (params: GridRenderCellParams<Servei>) => (
-                    <Tooltip
-                        title={t(
-                            params.row.configuratScsp
-                                ? 'serveis.accio.autoritzacions'
-                                : 'serveis.autoritzacions.noConfigurat'
-                        )}
-                    >
-                        <span>
-                            <IconButton
-                                size="small"
-                                aria-label={t('serveis.accio.autoritzacions')}
-                                disabled={!params.row.configuratScsp}
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    obrir(params.row.id, 'autoritzacions');
-                                }}
-                            >
-                                <Icon fontSize="small">thumb_up</Icon>
-                            </IconButton>
-                        </span>
-                    </Tooltip>
-                ),
+                // Com el botó de la JSP: només els serveis amb configuració SCSP (backoffices i enrutadors amb rutes
+                // cap al backoffice dels cedents), amb el nombre d'autoritzacions si ja estan configurats
+                renderCell: (params: GridRenderCellParams<Servei>) =>
+                    !ambConfiguracioScsp(params.row.tipus, params.row.rutesBackoffice) ? null : params.row
+                          .configuratScsp ? (
+                        <XipComptador
+                            icona="thumb_up"
+                            valor={params.row.autoritzacionsCount}
+                            title={t(
+                                esEnrutador(params.row.tipus)
+                                    ? 'serveis.autoritzacions.titolRutesBackoffice'
+                                    : 'serveis.accio.autoritzacions'
+                            )}
+                            onClick={() => obrir(params.row.id, 'autoritzacions')}
+                        />
+                    ) : (
+                        <Tooltip
+                            title={t(
+                                params.row.configuratScsp
+                                    ? 'serveis.accio.autoritzacions'
+                                    : 'serveis.autoritzacions.noConfigurat'
+                            )}
+                        >
+                            <span>
+                                <IconButton
+                                    size="small"
+                                    aria-label={t('serveis.accio.autoritzacions')}
+                                    disabled={!params.row.configuratScsp}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        obrir(params.row.id, 'autoritzacions');
+                                    }}
+                                >
+                                    <Icon fontSize="small">thumb_up</Icon>
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                    ),
             },
         ];
-    }, [t, esAdmin, obrir]);
+    }, [t, esAdmin, fakePermes, obrir]);
 
     const toolbarElements = [
         {

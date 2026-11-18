@@ -114,6 +114,7 @@ public class MockRedireccioService implements RedireccioService {
     }
 
     // Altres mètodes de la interfície no utilitzats per aquests tests poden quedar sense implementar amb UnsupportedOperation
+    @Override public es.caib.emiserv.logic.intf.dto.RedireccioRespostaFakeDto generarRespostaFake(String serveiCodi, String entitatCodi, byte[] xml, boolean asincrona) { return redireccioService.generarRespostaFake(serveiCodi, entitatCodi, xml, asincrona); }
     // Les consultes de l'auditoria (JSP i REACT) no se simulen: es deleguen al servei real, perquè amb
     // aquest perfil es vegin les peticions que s'han processat amb el mock.
     @Override public java.util.List<es.caib.emiserv.logic.intf.dto.ProcedimentDto> procedimentFindAll() { return redireccioService.procedimentFindAll(); }

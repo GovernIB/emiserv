@@ -13,6 +13,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
+import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Version;
@@ -21,6 +22,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
+import es.caib.emiserv.logic.intf.dto.ServeiFakeResultatEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 
 /**
@@ -67,6 +69,12 @@ public class ServeiEntity extends AbstractAuditableEntity<Long> {
 	@Column(name = "actiu")
 	private boolean actiu = true;
 	/**
+	 * Enrutadors: admeten rutes cap al backoffice dels cedents (consulta directa). Aquestes rutes les
+	 * processa l'emisor SCSP d'EMISERV, per això el servei necessita configuració SCSP i autoritzacions.
+	 */
+	@Column(name = "rutes_backoffice", nullable = false)
+	private boolean rutesBackoffice;
+	/**
 	 * Enrutadors: s'accepten peticions asíncrones encara que els cedents només admetin peticions
 	 * síncrones (EMISERV les processa com a peticions síncrones a cada cedent).
 	 */
@@ -78,6 +86,16 @@ public class ServeiEntity extends AbstractAuditableEntity<Long> {
 	/** Peticions simultànies màximes a un mateix cedent (si és null, el valor global). */
 	@Column(name = "async_concurrencia")
 	private Integer asyncConcurrencia;
+	/** Mode fake: les peticions es responen amb dades simulades, sense consultar cap cedent. */
+	@Column(name = "fake", nullable = false)
+	private boolean fake;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "fake_resultat", length = 20)
+	private ServeiFakeResultatEnumDto fakeResultat;
+	/** Plantilla opcional de DatosEspecificos de la resposta simulada. */
+	@Lob
+	@Column(name = "fake_dades_esp")
+	private String fakeDadesEspecifiques;
 	@OneToMany(
 			mappedBy = "servei",
 			fetch = FetchType.LAZY,
@@ -113,6 +131,13 @@ public class ServeiEntity extends AbstractAuditableEntity<Long> {
 	public BackofficeAsyncTipusEnumDto getBackofficeCaibAsyncTipus() {
 		return backofficeCaibAsyncTipus;
 	}
+	public boolean isRutesBackoffice() {
+		return rutesBackoffice;
+	}
+	/** Admet rutes cap al backoffice dels cedents (només enrutadors). */
+	public void updateRutesBackoffice(boolean rutesBackoffice) {
+		this.rutesBackoffice = isEnrutador() && rutesBackoffice;
+	}
 	public boolean isAsyncSincron() {
 		return asyncSincron;
 	}
@@ -130,6 +155,31 @@ public class ServeiEntity extends AbstractAuditableEntity<Long> {
 		this.asyncSincron = isEnrutador() && asyncSincron;
 		this.asyncInterval = this.asyncSincron ? asyncInterval : null;
 		this.asyncConcurrencia = this.asyncSincron ? asyncConcurrencia : null;
+	}
+	public boolean isFake() {
+		return fake;
+	}
+	public ServeiFakeResultatEnumDto getFakeResultat() {
+		return fakeResultat;
+	}
+	public String getFakeDadesEspecifiques() {
+		return fakeDadesEspecifiques;
+	}
+	/**
+	 * Configuració del mode fake. Si s'activa sense resultat es desa OK. En desactivar-lo es
+	 * conserven el resultat i la plantilla (només es desactiva el flag).
+	 */
+	public void updateFake(
+			boolean fake,
+			ServeiFakeResultatEnumDto resultat,
+			String dadesEspecifiques) {
+		if (fake) {
+			this.fake = true;
+			this.fakeResultat = resultat != null ? resultat : ServeiFakeResultatEnumDto.OK;
+			this.fakeDadesEspecifiques = dadesEspecifiques != null && !dadesEspecifiques.isBlank() ? dadesEspecifiques : null;
+		} else {
+			this.fake = false;
+		}
 	}
 	public boolean isEnrutador() {
 		return ServeiTipusEnumDto.ENRUTADOR.equals(tipus) || ServeiTipusEnumDto.ENRUTADOR_MULTIPLE.equals(tipus);

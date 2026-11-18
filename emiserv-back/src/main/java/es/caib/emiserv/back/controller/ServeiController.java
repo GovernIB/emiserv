@@ -16,11 +16,14 @@ import es.caib.emiserv.logic.intf.dto.BackofficeAsyncTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.BackofficeAutenticacioTipusEnumDto;
 import es.caib.emiserv.logic.intf.dto.CodiValorDto;
 import es.caib.emiserv.logic.intf.dto.ServeiDto;
+import es.caib.emiserv.logic.intf.dto.ServeiFakeResultatEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiFiltreDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.logic.intf.service.BackofficeService;
 import es.caib.emiserv.logic.intf.service.ServeiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -54,10 +57,13 @@ public class ServeiController extends BaseController {
 
 	@Autowired(required = true)
 	private Validator validator;
+	@Autowired
+	private Environment environment;
 
 	@RequestMapping(method = RequestMethod.GET)
 	public String get(HttpServletRequest request, Model model) {
 		model.addAttribute(getFiltreCommand(request));
+		model.addAttribute("fakePermes", isFakePermes());
 		getActius(model);
 		return "serveiList";
 	}
@@ -150,25 +156,60 @@ public class ServeiController extends BaseController {
 							command, 
 							bindingResult);
 		}
+		long rutesBackofficeCount = getRutesBackofficeCount(command.getId());
+		if (!ServeiTipusEnumDto.BACKOFFICE.equals(command.getTipus()) && !command.isRutesBackoffice() && rutesBackofficeCount > 0) {
+			// No es poden deixar d'admetre rutes cap al backoffice mentre el servei en tingui
+			bindingResult.rejectValue(
+					"rutesBackoffice",
+					"servei.form.camp.rutes.backoffice.error",
+					new Object[] {rutesBackofficeCount},
+					null);
+		}
 		if (bindingResult.hasErrors()) {
 			emplenarModelForm(
 					command.getId(),
 					model);
 			return "serveiForm";
 		}
-		if (command.getId() != null) {
-			serveiService.update(ServeiCommand.toDto(command));
-			return getModalControllerReturnValueSuccess(
-					request,
-					"redirect:servei",
-					"servei.controller.modificat.ok");
-		} else {
-			serveiService.create(ServeiCommand.toDto(command));
-			return getModalControllerReturnValueSuccess(
-					request,
-					"redirect:servei",
-					"servei.controller.creat.ok");
+		try {
+			if (command.getId() != null) {
+				serveiService.update(ServeiCommand.toDto(command));
+				return getModalControllerReturnValueSuccess(
+						request,
+						"redirect:servei",
+						"servei.controller.modificat.ok");
+			} else {
+				serveiService.create(ServeiCommand.toDto(command));
+				return getModalControllerReturnValueSuccess(
+						request,
+						"redirect:servei",
+						"servei.controller.creat.ok");
+			}
+		} catch (RuntimeException ex) {
+			// Plantilla de dades fake no vàlida: es mostra com la resta d'errors del formulari
+			ValidationException validacio = causaValidacio(ex);
+			if (validacio == null) {
+				throw ex;
+			}
+			bindingResult.rejectValue(
+					"fakeDadesEspecifiques",
+					"servei.fake.dades.error",
+					new Object[] {validacio.getMessage()},
+					validacio.getMessage());
+			emplenarModelForm(
+					command.getId(),
+					model);
+			return "serveiForm";
 		}
+	}
+
+	/** A l'EAR l'excepció arriba embolcallada per l'EJB (EJBException). */
+	private ValidationException causaValidacio(Throwable ex) {
+		Throwable causa = ex;
+		while (causa != null && !(causa instanceof ValidationException)) {
+			causa = causa.getCause();
+		}
+		return (ValidationException)causa;
 	}
 
 	@RequestMapping(value = "/{id}/enable", method = RequestMethod.GET)
@@ -203,9 +244,25 @@ public class ServeiController extends BaseController {
 				"servei.controller.esborrat.ok");
 	}
 
+	private boolean isFakePermes() {
+		return environment.getProperty("es.caib.emiserv.fake.permes", Boolean.class, false);
+	}
+
+	/** Rutes cap al backoffice dels cedents d'un servei existent (0 si és nou). */
+	private long getRutesBackofficeCount(Long id) {
+		return id != null ? serveiService.findById(id).getRutesBackofficeCount() : 0;
+	}
+
 	private void emplenarModelForm(
 			Long id,
 			Model model) {
+		model.addAttribute("fakePermes", isFakePermes());
+		model.addAttribute("rutesBackofficeCount", getRutesBackofficeCount(id));
+		model.addAttribute(
+				"serveiFakeResultatEnumOptions",
+				HtmlSelectOptionHelper.getOptionsForEnum(
+						ServeiFakeResultatEnumDto.class,
+						"servei.fake.resultat.enum."));
 		model.addAttribute(
 				"serveiTipusEnumOptions",
 				HtmlSelectOptionHelper.getOptionsForEnum(

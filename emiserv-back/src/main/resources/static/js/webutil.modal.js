@@ -66,6 +66,7 @@
 							$('#' + modalDivId).webutilModalShow({
 								adjustHeight: plugin.settings.adjustHeight,
 								maximized: plugin.settings.maximized,
+								modalWidth: plugin.settings.modalWidth,
 								refreshMissatges: plugin.settings.refreshMissatges,
 								refreshDatatable: plugin.settings.refreshDatatable,
 								reloadOnClose: plugin.settings.reloadOnClose,
@@ -79,6 +80,7 @@
 							$('#' + modalDivId).webutilModalShow({
 								adjustHeight: plugin.settings.adjustHeight,
 								maximized: plugin.settings.maximized,
+								modalWidth: plugin.settings.modalWidth,
 								refreshMissatges: plugin.settings.refreshMissatges,
 								refreshDatatable: plugin.settings.refreshDatatable,
 								reloadOnClose: plugin.settings.reloadOnClose,
@@ -113,6 +115,10 @@
 	$.fn.webutilModalShow = function(settings) {
 		return this.filter("div").each(function() {
 			var modalobj = $('div.modal', this);
+			// Amplada de la finestra (atribut data-modal-width de l'enllaç, p. ex. "95%"); per defecte, modal-lg
+			if (settings.modalWidth && !settings.maximized) {
+				$('.modal-dialog', modalobj).css('width', settings.modalWidth);
+			}
 			if (!modalobj.data('modal-configurada')) {
 				var iframe = $('iframe', modalobj);
 				modalobj.on('show.bs.modal', function () {

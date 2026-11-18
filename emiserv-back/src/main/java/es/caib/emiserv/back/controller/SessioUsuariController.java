@@ -12,6 +12,7 @@ import es.caib.emiserv.logic.intf.service.AplicacioService;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -46,16 +47,22 @@ import java.util.stream.Collectors;
 @RestController
 public class SessioUsuariController {
 
+	/** Propietat global que permet configurar el mode fake als serveis. */
+	private static final String PROPIETAT_FAKE_PERMES = "es.caib.emiserv.fake.permes";
+
 	private final AplicacioService aplicacioService;
 	private final List<String> rolsInterficie;
 	/** Origens, a mes del propi, a on es permet tornar despres del login (p. ex. el servidor de Vite). */
 	private final List<String> origensPermesos;
+	private final Environment environment;
 
 	@Autowired
 	public SessioUsuariController(
 			AplicacioService aplicacioService,
 			@org.springframework.beans.factory.annotation.Value("${es.caib.emiserv.security.mappableRoles:EMS_ADMIN,EMS_RESP}") String mappableRoles,
-			@org.springframework.beans.factory.annotation.Value("${" + ApiOrigenFilter.PROPIETAT_ORIGENS + ":}") String origensPermesos) {
+			@org.springframework.beans.factory.annotation.Value("${" + ApiOrigenFilter.PROPIETAT_ORIGENS + ":}") String origensPermesos,
+			Environment environment) {
+		this.environment = environment;
 		this.aplicacioService = aplicacioService;
 		this.rolsInterficie = parseRols(mappableRoles);
 		this.origensPermesos = ApiOrigenFilter.parseOrigens(origensPermesos);
@@ -98,7 +105,8 @@ public class SessioUsuariController {
 				preferida != null ? preferida.name() : null,
 				idiomaUsuari(),
 				temaUsuari(),
-				RolHelper.getRolActual(request, RolHelper.getRolsAutoritats())));
+				RolHelper.getRolActual(request, RolHelper.getRolsAutoritats()),
+				environment.getProperty(PROPIETAT_FAKE_PERMES, Boolean.class, false)));
 	}
 
 	/**
@@ -209,6 +217,8 @@ public class SessioUsuariController {
 		String tema;
 		/** Rol actual (EMS_ADMIN o EMS_RESP), el mateix que el selector de rol de la JSP. */
 		String rolActual;
+		/** Es permet configurar el mode fake als serveis (propietat es.caib.emiserv.fake.permes). */
+		boolean fakePermes;
 	}
 
 	@Data

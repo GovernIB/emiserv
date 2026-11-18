@@ -46,6 +46,8 @@ export type SessioUsuari = {
     tema?: Tema | null;
     /** Rol actual (el del selector de rol, compartit amb la JSP). */
     rolActual?: Rol | null;
+    /** Es permet configurar el mode fake als serveis (propietat es.caib.emiserv.fake.permes). */
+    fakePermes?: boolean;
 };
 
 export type Rol = 'EMS_ADMIN' | 'EMS_RESP';

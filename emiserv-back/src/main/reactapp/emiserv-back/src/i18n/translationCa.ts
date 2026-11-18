@@ -336,6 +336,7 @@ const translationCa = {
         },
     },
     serveis: {
+        fake: 'FAKE',
         titol: 'Serveis',
         columna: {
             codi: 'Codi',
@@ -345,6 +346,10 @@ const translationCa = {
             permisos: 'Permisos',
             rutes: 'Rutes',
             autoritzacions: 'Autoritzacions',
+            rutesBackoffice: 'Backoffice cedents',
+            rutesBackofficeInfo: 'Admet rutes cap al backoffice dels cedents (consulta directa)',
+            async: 'Asíncron',
+            fake: 'Fake',
         },
         tipus: {
             BACKOFFICE: 'Backoffice',
@@ -427,6 +432,11 @@ const translationCa = {
                 TOKEN_CAIB: 'Token CAIB',
                 TEXT_CLAR: 'Text en clar',
             },
+            fakeResultat: {
+                OK: 'OK',
+                SENSE_DADES: 'Sense dades',
+                ERROR: 'Error',
+            },
             asyncTipus: {
                 REENVIAR_BACKOFFICE: 'Reenviar al backoffice',
                 PROCESSAR_SINCRONES: 'Processar com a síncrones',
@@ -454,15 +464,25 @@ const translationCa = {
             resolverClass: "Classe per resoldre l'entitat",
             urlPerDefecte: 'URL de la ruta per defecte',
             responseResolverClass: 'Classe per discriminar la resposta',
+            rutesBackofficeTitol: 'Rutes cap al backoffice dels cedents',
+            rutesBackoffice: 'Admet rutes cap al backoffice dels cedents',
+            rutesBackofficeAjuda:
+                "Permet rutes que consulten directament el backoffice del cedent. Aquestes rutes les processa l'emissor SCSP d'EMISERV: el servei necessita la configuració SCSP i les autoritzacions, que són per a les rutes cap als cedents.",
             asincron: 'Peticions asíncrones',
             asyncSincron: 'Acceptar peticions asíncrones (cedents només síncrons)',
             asyncInterval: 'Temps mínim entre peticions a un cedent (ms)',
             asyncConcurrencia: 'Peticions simultànies màximes a un cedent',
             valorGlobal: 'Valor global de la configuració',
+            modeFake: 'Mode fake',
+            fake: 'Mode fake (respon sense consultar el cedent)',
+            fakeResultat: 'Resultat fake',
+            fakeDadesEspecifiques: 'Plantilla de dades específiques (XML DatosEspecificos)',
             avisConfigScsp: "Aquest servei encara no està configurat a l'emissor SCSP:",
             anarScsp: 'configura-ho a la pestanya SCSP',
         },
         scsp: {
+            rutesBackofficeInfo:
+                'Aquest servei és un enrutador: la configuració SCSP i les autoritzacions són per a les rutes cap al backoffice dels cedents.',
             senseConfiguracio: 'Aquest servei encara no té configuració SCSP: es crearà en desar.',
             desar: 'Desa la configuració SCSP',
             desat: "S'ha desat la configuració SCSP",
@@ -527,6 +547,7 @@ const translationCa = {
             nova: 'Nova autorització',
             recurs: 'autorització',
             noConfigurat: "El servei no està configurat a l'emissor SCSP",
+            titolRutesBackoffice: 'Autoritzacions de les rutes cap al backoffice dels cedents',
         },
     },
     page: {

@@ -37,6 +37,13 @@ public class EmiservBackBootApp {
 		Map<String, Object> propietats = new HashMap<>();
 		// A JBoss la BBDD s'actualitza amb els scripts de versions/: Liquibase només s'executa aquí
 		propietats.put("spring.liquibase.enabled", "true");
+		// Taules de control de Liquibase amb el prefix EMS_, com a l'entorn d'integració i als scripts de
+		// sincronització. Les de l'application.properties d'emiserv-persistence no es llegeixen: el
+		// d'emiserv-back les amaga (Spring Boot només carrega un classpath:application.properties).
+		// En majúscules: a Oracle, Liquibase 4.4.3 no troba la taula si el nom és en minúscules i la
+		// torna a crear (ORA-00955). PostgreSQL les passa a minúscules.
+		propietats.put("spring.liquibase.database-change-log-table", "EMS_DATABASECHANGELOG");
+		propietats.put("spring.liquibase.database-change-log-lock-table", "EMS_DATABASECHANGELOGLOCK");
 		// La galeta de sessió no viatja a les peticions d'altres llocs (protecció CSRF de l'API, a més
 		// de la comprovació d'Origin/Referer de BaseWebSecurityConfig). A JBoss es configura al servidor.
 		propietats.put("server.servlet.session.cookie.same-site", "lax");

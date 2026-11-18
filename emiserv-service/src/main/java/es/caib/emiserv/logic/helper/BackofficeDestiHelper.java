@@ -272,15 +272,43 @@ public class BackofficeDestiHelper {
 		private final String entitatCodi;
 		private final String url;
 		private final BackofficeAutenticacioTipusEnumDto autenticacio;
+		private final boolean fake;
 		public BackofficeDesti(
 				String serveiCodi,
 				String entitatCodi,
 				String url,
 				BackofficeAutenticacioTipusEnumDto autenticacio) {
+			this(serveiCodi, entitatCodi, url, autenticacio, false);
+		}
+		private BackofficeDesti(
+				String serveiCodi,
+				String entitatCodi,
+				String url,
+				BackofficeAutenticacioTipusEnumDto autenticacio,
+				boolean fake) {
 			this.serveiCodi = serveiCodi;
 			this.entitatCodi = entitatCodi;
 			this.url = url;
 			this.autenticacio = autenticacio != null ? autenticacio : BackofficeAutenticacioTipusEnumDto.NINGUNA;
+			this.fake = fake;
+		}
+		/**
+		 * Destí d'un servei en mode fake: la resposta es simula sense contactar cap backoffice. La URL
+		 * és interna (fake:SERVEI/ENTITAT/, amb "-" si no hi ha entitat) i només serveix per identificar-lo.
+		 */
+		public static BackofficeDesti fake(
+				String serveiCodi,
+				String entitatCodi) {
+			return new BackofficeDesti(
+					serveiCodi,
+					entitatCodi,
+					"fake:" + serveiCodi + "/" + (entitatCodi != null ? entitatCodi : "-") + "/",
+					BackofficeAutenticacioTipusEnumDto.NINGUNA,
+					true);
+		}
+		/** Indica si la resposta s'ha de simular (servei en mode fake). */
+		public boolean isFake() {
+			return fake;
 		}
 		public String getServeiCodi() {
 			return serveiCodi;
@@ -312,7 +340,7 @@ public class BackofficeDestiHelper {
 		}
 		@Override
 		public String toString() {
-			return "BackofficeDesti [serveiCodi=" + serveiCodi + ", entitatCodi=" + entitatCodi + ", url=" + url + ", autenticacio=" + autenticacio + "]";
+			return "BackofficeDesti [serveiCodi=" + serveiCodi + ", entitatCodi=" + entitatCodi + ", url=" + url + ", autenticacio=" + autenticacio + ", fake=" + fake + "]";
 		}
 	}
 

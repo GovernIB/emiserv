@@ -38,6 +38,8 @@ $(document).ready(function() {
 			$('#camps-multi-resolver :input').removeAttr('disabled');
 		}
 		if (tipusVal == 'ENRUTADOR' || tipusVal == 'ENRUTADOR_MULTIPLE') {
+			$('#camps-rutes-backoffice').show();
+			$('#camps-rutes-backoffice :input').removeAttr('disabled');
 			$('#camps-asincron').show();
 			$('#camps-asincron :input').removeAttr('disabled');
 			$("form input#asyncSincron").trigger('change');
@@ -48,6 +50,12 @@ $(document).ready(function() {
 		var actiu = $(this).is(':checked') && !$(this).is(':disabled');
 		$('#asyncInterval, #asyncConcurrencia').prop('disabled', !actiu);
 	});
+	// Mode fake: el resultat i la plantilla només s'editen amb el mode fake actiu
+	$("form input#fake").on('change', function() {
+		var actiu = $(this).is(':checked');
+		$('#fakeResultat, #fakeDadesEspecifiques').prop('disabled', !actiu);
+	});
+	$("form input#fake").trigger('change');
 	$("form select#tipus").trigger('change');
 });
 </script>
@@ -82,11 +90,37 @@ $(document).ready(function() {
 		<div id="camps-multi-resolver">
 			<emi:inputSelect name="responseResolverClass" textKey="servei.form.camp.class.responseResolver" required="true" optionItems="${classesResponseResolver}"/>
 		</div>
+		<div id="camps-rutes-backoffice">
+			<emi:inputCheckbox name="rutesBackoffice" textKey="servei.form.camp.rutes.backoffice"/>
+			<div class="form-group">
+				<div class="col-xs-8 col-xs-offset-4">
+					<p class="help-block" style="margin-top:-10px">
+						<span class="fa fa-info-circle"></span>&nbsp;<spring:message code="servei.form.camp.rutes.backoffice.ajuda"/>
+						<c:if test="${rutesBackofficeCount > 0}"><br/><span class="fa fa-warning"></span>&nbsp;<spring:message code="servei.form.camp.rutes.backoffice.existents" arguments="${rutesBackofficeCount}"/></c:if>
+					</p>
+				</div>
+			</div>
+		</div>
 		<div id="camps-asincron">
 			<emi:inputCheckbox name="asyncSincron" textKey="servei.form.camp.async.sincron"/>
 			<emi:inputText name="asyncInterval" textKey="servei.form.camp.async.interval" placeholderKey="servei.form.camp.async.valor.global"/>
 			<emi:inputText name="asyncConcurrencia" textKey="servei.form.camp.async.concurrencia" placeholderKey="servei.form.camp.async.valor.global"/>
 		</div>
+		<c:choose>
+			<c:when test="${fakePermes}">
+				<div id="bloc-fake">
+					<emi:inputCheckbox name="fake" textKey="servei.form.camp.fake"/>
+					<emi:inputSelect name="fakeResultat" textKey="servei.form.camp.fake.resultat" optionItems="${serveiFakeResultatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true"/>
+					<emi:inputTextarea name="fakeDadesEspecifiques" textKey="servei.form.camp.fake.dades"/>
+				</div>
+			</c:when>
+			<c:otherwise>
+				<%-- El servei aplica sempre els camps fake en desar: s'han de tornar a enviar tal com estan --%>
+				<form:hidden path="fake"/>
+				<form:hidden path="fakeResultat"/>
+				<form:hidden path="fakeDadesEspecifiques"/>
+			</c:otherwise>
+		</c:choose>
 		<div id="modal-botons" class="well">
 			<button type="submit" class="btn btn-success"><span class="fa fa-save"></span> <spring:message code="comu.boto.guardar"/></button>
 			<a href="<c:url value="/servei"/>" class="btn btn-default" data-modal-cancel="true"><spring:message code="comu.boto.cancelar"/></a>

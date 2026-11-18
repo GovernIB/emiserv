@@ -152,7 +152,7 @@ public class ScspRoutingController extends BaseController {
 						// ENRUTADOR SIMPLE
 						proxyUrl = getProxyUrl(
 								request,
-								resultat.getUrlDesti());
+								resoldreUrlFake(request, resultat.getUrlDesti()));
 						postMethod = new PostMethod(proxyUrl);
 						headerCopier.copiarCapsaleresHttp(
 								request,
@@ -181,7 +181,7 @@ public class ScspRoutingController extends BaseController {
 											request,
 											requestEntity,
 											codiEntitat,
-											resultat.getUrlDestins().get(codiEntitat),
+											resoldreUrlFake(request, resultat.getUrlDestins().get(codiEntitat)),
 											resultat.copy()));
 						}
 						// Llença totes les peticions en paral·lel
@@ -526,6 +526,18 @@ public class ScspRoutingController extends BaseController {
 	static boolean isOperacioAsincrona(HttpServletRequest request) {
 		String path = request.getRequestURI();
 		return path != null && path.contains("/peticionAsincrona");
+	}
+
+	/**
+	 * Resol les URLs internes del mode fake (<code>fake:servei/entitat/</code>) cap a l'endpoint
+	 * local /scspFake. Qualsevol altra URL es retorna sense canvis.
+	 */
+	String resoldreUrlFake(HttpServletRequest request, String url) {
+		if (url != null && url.startsWith("fake:")) {
+			return "http://localhost:" + request.getLocalPort() + request.getContextPath() +
+					"/scspFake/" + url.substring(5);
+		}
+		return url;
 	}
 
 	private String getProxyUrl(

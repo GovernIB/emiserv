@@ -28,6 +28,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -117,7 +118,18 @@ class ServeiServiceImplEnrutadorScspTest {
 	}
 
 	@Test
+	void rutaBackofficeRequereixAdmetreRutesBackoffice() {
+		configuratScsp();
+		ServeiRutaDestiDto ruta = ruta(ServeiRutaDestiTipusEnumDto.BACKOFFICE);
+
+		assertThrows(ValidationException.class, () -> serveiService.rutaDestiCreate(SERVEI_ID, ruta));
+
+		verify(serveiRutaDestiRepository, never()).save(any());
+	}
+
+	@Test
 	void rutaBackofficeRequereixServeiConfigurat() {
+		servei.updateRutesBackoffice(true);
 		// Els enrutadors sempre tenen configurat=true: el que compta és la configuració SCSP
 		assertTrue(servei.isConfigurat());
 		ServeiRutaDestiDto ruta = ruta(ServeiRutaDestiTipusEnumDto.BACKOFFICE);
@@ -129,6 +141,7 @@ class ServeiServiceImplEnrutadorScspTest {
 
 	@Test
 	void rutaBackofficeAmbServeiConfigurat() {
+		servei.updateRutesBackoffice(true);
 		configuratScsp();
 		when(serveiRutaDestiRepository.getNextOrdre(anyLong())).thenReturn(1L);
 
@@ -152,6 +165,7 @@ class ServeiServiceImplEnrutadorScspTest {
 
 	@Test
 	void modificacioARutaBackofficeRequereixServeiConfigurat() {
+		servei.updateRutesBackoffice(true);
 		ServeiRutaDestiEntity existent = ServeiRutaDestiEntity.getBuilder(servei, "7040", "https://cedent.es/emisor/services/peticionSincrona", 1L).build();
 		ReflectionTestUtils.setField(existent, "id", 30L);
 		when(serveiRutaDestiRepository.findById(30L)).thenReturn(Optional.of(existent));
@@ -179,6 +193,55 @@ class ServeiServiceImplEnrutadorScspTest {
 		serveiService.delete(SERVEI_ID);
 
 		verify(scspEmisorBackofficeRepository).deleteById(CORE_SERVICIO_ID);
+	}
+
+	@Test
+	void desarRutesBackofficeDUnEnrutador() {
+		serveiService.update(enrutador(true));
+
+		assertTrue(servei.isRutesBackoffice());
+	}
+
+	@Test
+	void noEsPotDesactivarRutesBackofficeAmbRutesBackoffice() {
+		servei.updateRutesBackoffice(true);
+		when(serveiRutaDestiRepository.countByServeiAndDestiTipus(servei, ServeiRutaDestiTipusEnumDto.BACKOFFICE)).thenReturn(2L);
+
+		assertThrows(ValidationException.class, () -> serveiService.update(enrutador(false)));
+
+		assertTrue(servei.isRutesBackoffice());
+	}
+
+	@Test
+	void desactivarRutesBackofficeSenseRutesBackoffice() {
+		servei.updateRutesBackoffice(true);
+		when(serveiRutaDestiRepository.countByServeiAndDestiTipus(servei, ServeiRutaDestiTipusEnumDto.BACKOFFICE)).thenReturn(0L);
+
+		serveiService.update(enrutador(false));
+
+		assertFalse(servei.isRutesBackoffice());
+	}
+
+	@Test
+	void elsServeisBackofficeNoTenenRutesBackoffice() {
+		ServeiEntity serveiBackoffice = ServeiEntity.getBuilder("SVDSCDWS01", "Canvi de domicili", ServeiTipusEnumDto.BACKOFFICE).build();
+
+		serveiBackoffice.updateRutesBackoffice(true);
+
+		assertFalse(serveiBackoffice.isRutesBackoffice());
+		assertTrue(ServeiServiceImpl.isAmbConfiguracioScsp(ServeiTipusEnumDto.BACKOFFICE, false));
+		assertTrue(ServeiServiceImpl.isAmbConfiguracioScsp(ServeiTipusEnumDto.ENRUTADOR, true));
+		assertFalse(ServeiServiceImpl.isAmbConfiguracioScsp(ServeiTipusEnumDto.ENRUTADOR, false));
+	}
+
+	private ServeiDto enrutador(boolean rutesBackoffice) {
+		ServeiDto dto = new ServeiDto();
+		dto.setId(SERVEI_ID);
+		dto.setNom("Padró de convivència");
+		dto.setTipus(ServeiTipusEnumDto.ENRUTADOR);
+		dto.setResolverClass("es.caib.emiserv.logic.resolver.EmpadronamentEntitatResolver");
+		dto.setRutesBackoffice(rutesBackoffice);
+		return dto;
 	}
 
 	@Test

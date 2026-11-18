@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -18,7 +19,13 @@ import ServeiConfigScsp from './ServeiConfigScsp';
 import ServeiDadesForm from './ServeiDadesForm';
 import ServeiPermisos from './ServeiPermisos';
 import ServeiRutes from './ServeiRutes';
-import { esEnrutador, type MotiuDiagnostic, type PestanyaServei, type ServeiTipus } from './serveiModel';
+import {
+    ambConfiguracioScsp,
+    esEnrutador,
+    type MotiuDiagnostic,
+    type PestanyaServei,
+    type ServeiTipus,
+} from './serveiModel';
 
 /** Camps del formulari de dades (els que es comparen per saber si hi ha canvis sense desar). */
 const CAMPS_EDITABLES = [
@@ -34,9 +41,14 @@ const CAMPS_EDITABLES = [
     'resolverClass',
     'urlPerDefecte',
     'responseResolverClass',
+    'rutesBackoffice',
     'asyncSincron',
     'asyncInterval',
     'asyncConcurrencia',
+    // Encara que la secció estigui amagada, el servidor aplica sempre aquests camps en desar
+    'fake',
+    'fakeResultat',
+    'fakeDadesEspecifiques',
 ] as const;
 
 /**
@@ -56,6 +68,7 @@ type ServeiCarregat = {
     id: number;
     codi: string;
     tipus: ServeiTipus;
+    rutesBackoffice?: boolean;
     configuratScsp?: boolean;
     diagnostic?: MotiuDiagnostic[];
 };
@@ -114,15 +127,18 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
 
     const disponibles: PestanyaServei[] = ['dades'];
     if (existent && servei != null) {
-        // Configuració SCSP: tots els tipus (els enrutadors la necessiten per a les rutes de backoffice) i
-        // els dos rols, com l'acció «Configuració SCSP» de la JSP
-        disponibles.push('scsp');
+        // Configuració SCSP: els backoffices i els enrutadors que admeten rutes cap al backoffice dels
+        // cedents, per als dos rols, com l'acció «Configuració SCSP» de la JSP
+        const ambScsp = ambConfiguracioScsp(servei.tipus, servei.rutesBackoffice);
+        if (ambScsp) {
+            disponibles.push('scsp');
+        }
         if (esEnrutador(servei.tipus)) {
             disponibles.push('rutes');
         }
         if (esAdmin) {
             disponibles.push('permisos');
-            if (servei.configuratScsp) {
+            if (ambScsp && servei.configuratScsp) {
                 disponibles.push('autoritzacions');
             }
         }
@@ -136,6 +152,7 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
                 id: dades.id,
                 codi: dades.codi,
                 tipus: dades.tipus,
+                rutesBackoffice: dades.rutesBackoffice,
                 configuratScsp: dades.configuratScsp,
                 diagnostic: dades.diagnostic,
             });
@@ -226,7 +243,9 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
                         resourceName="servei"
                         id={serveiId}
                         apiRef={formApiRef}
-                        initialData={existent ? undefined : { tipus: 'ENRUTADOR', asyncSincron: false }}
+                        initialData={
+                            existent ? undefined : { tipus: 'ENRUTADOR', rutesBackoffice: false, asyncSincron: false }
+                        }
                         onReady={(dades: ServeiCarregat) => {
                             valorsDesatsRef.current = valorsEditables(dades as unknown as Record<string, unknown>);
                             actualitzarServei(dades);
@@ -246,6 +265,11 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
                 </Box>
                 {servei != null && activa !== 'dades' && (
                     <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                        {(activa === 'scsp' || activa === 'autoritzacions') && esEnrutador(servei.tipus) && (
+                            <Alert severity="info" sx={{ mb: 1 }}>
+                                {t('serveis.scsp.rutesBackofficeInfo')}
+                            </Alert>
+                        )}
                         {activa === 'scsp' && (
                             <ServeiConfigScsp
                                 serveiId={servei.id}
@@ -258,7 +282,9 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
                                 }}
                             />
                         )}
-                        {activa === 'rutes' && <ServeiRutes serveiId={servei.id} />}
+                        {activa === 'rutes' && (
+                            <ServeiRutes serveiId={servei.id} rutesBackoffice={servei.rutesBackoffice === true} />
+                        )}
                         {activa === 'permisos' && <ServeiPermisos serveiId={servei.id} />}
                         {activa === 'autoritzacions' && <ServeiAutoritzacions serveiId={servei.id} />}
                     </Box>

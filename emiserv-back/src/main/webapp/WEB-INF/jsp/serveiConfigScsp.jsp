@@ -33,6 +33,9 @@ $(document).ready(function() {
 </script>
 </head>
 <body>
+	<c:if test="${servei.tipus != 'BACKOFFICE'}">
+		<div class="alert alert-info"><span class="fa fa-info-circle"></span>&nbsp;<spring:message code="servei.scsp.rutes.backoffice.info"/></div>
+	</c:if>
 	<c:set var="formAction"><emi:modalUrl value="/servei/${servei.id}/configScsp"/></c:set>
 	<form:form action="${formAction}" method="post" cssClass="form-horizontal" modelAttribute="serveiConfigScspCommand" role="form">
 		<form:hidden path="codigoCertificado"/>

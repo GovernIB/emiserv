@@ -171,6 +171,14 @@ class ServeiDiagnosticTest {
 	}
 
 	@Test
+	void enrutadorQueAdmetRutesBackofficeRequereixScsp() {
+		ServeiEntity s = servei(1, "EN", ServeiTipusEnumDto.ENRUTADOR, true);
+		s.updateRutesBackoffice(true);
+		ruta(s, ServeiRutaDestiTipusEnumDto.EMISERV, null);
+		assertEquals(Collections.singletonList(ServeiDiagnosticEnumDto.FALTA_CONFIG_SCSP), diag(1));
+	}
+
+	@Test
 	void motiusEnOrdreDeLEnum() {
 		ServeiEntity s = servei(1, "EN", ServeiTipusEnumDto.ENRUTADOR, true);
 		core("EN", false);

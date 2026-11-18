@@ -270,10 +270,14 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 		dto.setResolverClass(resource.getResolverClass());
 		dto.setUrlPerDefecte(resource.getUrlPerDefecte());
 		dto.setResponseResolverClass(resource.getResponseResolverClass());
+		dto.setRutesBackoffice(resource.isRutesBackoffice());
 		// Ritme d'enviament als cedents: només té sentit si s'accepten peticions asíncrones com a síncrones
 		dto.setAsyncSincron(resource.isAsyncSincron());
 		dto.setAsyncInterval(resource.isAsyncSincron() ? resource.getAsyncInterval() : null);
 		dto.setAsyncConcurrencia(resource.isAsyncSincron() ? resource.getAsyncConcurrencia() : null);
+		dto.setFake(resource.isFake());
+		dto.setFakeResultat(resource.getFakeResultat());
+		dto.setFakeDadesEspecifiques(resource.getFakeDadesEspecifiques());
 		return dto;
 	}
 
