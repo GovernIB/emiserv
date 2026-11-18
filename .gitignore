@@ -17,3 +17,4 @@
 /emiserv-back/src/main/webapp/reactapp/
 node_modules/
 dist/
+/docs/
