@@ -114,6 +114,12 @@ Les APIs REST (`goib-ws`, secret `integracio-goib-ws`) accepten basic auth amb a
   l'XSD per als padrons: el fake respon la resta de backoffices amb dades genèriques. La resta de
   serveis de prova de PINBAL (`Q2827003ATGSS001`, `SVDDGPCIWS02`, `SVDDGTVEHICULOSANCWS01`) van a
   `pinbal-scsp-fake`.
+- Peticions asíncrones dels padrons des de PINBAL: PINBAL només porta els XSD síncrons de
+  `SCDCPAJUv3`/`SCDHPAJUv3` (a producció el padró és síncron) i, sense `confirmacion-peticion.xsd`,
+  la confirmació falla amb «No se puede obtener el recurso». `pinbal/schemas` es munta a `/schemas`
+  del contenidor (el validador SCSP de PINBAL cerca el fitxer al disc abans que al classpath) amb els
+  XSD de PINBAL més `confirmacion-peticion.xsd` i `solicitud-respuesta.xsd` genèrics (els de
+  `Q2827003ATGSS001v3`). El servei de l'EMISERV central ha d'admetre asíncrones.
 
 ## Serveis en mode fake
 
@@ -125,7 +131,12 @@ backoffice. Així es pot provar PINBAL contra EMISERV sense dependre dels destin
   resultat (`OK`, `SENSE_DADES` o `ERROR`; `SENSE_DADES` només genera una resposta sense dades per a
   SVDSCTFNWS01, SCDCPAJU i SCDHPAJU: la resta de serveis necessiten una plantilla) i, opcionalment, les dades específiques de la resposta
   (plantilla amb `${codigoCertificado}`, `${idPeticion}`, `${idSolicitud}`, `${documentacion}`,
-  `${nombre}`, `${apellido1}`, `${apellido2}`). Només és visible si la propietat és `true`; si es
+  `${tipoDocumentacion}`, `${nombre}`, `${apellido1}`, `${apellido2}`, `${provinciaSolicitud}`,
+  `${municipioSolicitud}`; `${marcador:valor}` posa `valor` si la petició no informa el camp). En
+  activar el mode fake d'un servei sense plantilla, el formulari hi posa la plantilla per defecte
+  del servei si en té (`emiserv-service/src/main/resources/es/caib/emiserv/logic/fake/plantilles/<CODI>.xml`,
+  vàlides segons l'XSD de cada servei, llevat de SVDNIVCAT i SVDCCAAIRPHWS01, que copien les respostes
+  reals de PRE perquè no segueixen el seu XSD). Només és visible si la propietat és `true`; si es
   treu, els serveis fake deixen de ser-ho a l'execució (tornen als destins reals) però es
   conserven les dades del fake. Els serveis fake surten amb l'etiqueta FAKE als llistats.
 - **Backoffices** (i rutes BACKOFFICE, i peticions asíncrones): un backoffice en procés respon i la
@@ -161,6 +172,18 @@ proves/consulta.sh SCDHPAJU 033       # resposta d'error de l'emissor
 proves/consulta.sh SVDSCTFNWS01       # enrutador múltiple: consulta els tres destins i en tria una resposta
 proves/consulta.sh SVDCCAACPCWS01     # backoffice de la CAIB
 proves/consulta.sh SVDSCDDWS01        # backoffice amb les dades específiques xifrades (WS-Security)
+```
+
+`proves/consulta-asincrona.sh [servei] [municipi...]` fa una petició **asíncrona** amb una
+sol·licitud per municipi (per defecte `SCDCPAJU 040 011`: una a l'EMISERV cedent, ruta d'emissor SCSP,
+i l'altra directament al backoffice de l'ajuntament, ruta BACKOFFICE) i en consulta la resposta cada
+10 s. El servei ha de tenir «Processar les asíncrones com a síncrones» a l'EMISERV central; el
+progrés i els reintents de cada sol·licitud es veuen a Auditoria → Consultes asíncrones. Les
+peticions a l'EMISERV cedent es signen amb el tipus de seguretat del servei (`XMLSignature`).
+
+```bash
+proves/consulta-asincrona.sh                   # SCDCPAJU: 040 (EMISERV cedent) + 011 (backoffice directe)
+proves/consulta-asincrona.sh SCDCPAJU 040 033  # una correcta i una que es reintenta i acaba amb error
 ```
 
 Les peticions dels enrutadors es veuen a l'auditoria de l'enrutador de l'EMISERV central; les dels

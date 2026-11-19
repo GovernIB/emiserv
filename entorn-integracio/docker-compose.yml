@@ -281,6 +281,9 @@ services:
     volumes:
       - ${PINBAL_DIR:-../../pinbal2}/pinbal-ear/src/main/docker/keystores/truststore.jks:/opt/eap/apps/pinbal/truststore.jks:ro,z
       - ${PINBAL_DIR:-../../pinbal2}/pinbal-ear/src/main/docker/keystores:/opt/webapps/keystores:ro,z
+      # XSD dels padrons amb els de les peticions asíncrones (PINBAL només inclou els síncrons):
+      # el validador SCSP de PINBAL cerca /schemas/<servei>v3/... al disc abans que al classpath
+      - ./pinbal/schemas:/schemas:ro,z
     healthcheck:
       test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/pinbalback/ | grep -q 302"]
       interval: 15s
