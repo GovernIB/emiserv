@@ -6,6 +6,7 @@ export type ServeiTipus = (typeof SERVEI_TIPUS)[number];
 export const BACKOFFICE_AUTENTICACIO = ['NINGUNA', 'TOKEN_CAIB', 'TEXT_CLAR'] as const;
 /** Tractament de les peticions asíncrones d'un backoffice (`BackofficeAsyncTipusEnumDto`). */
 export const BACKOFFICE_ASYNC_TIPUS = ['REENVIAR_BACKOFFICE', 'PROCESSAR_SINCRONES'] as const;
+export type BackofficeAsyncTipus = (typeof BACKOFFICE_ASYNC_TIPUS)[number];
 /** Resultat de la resposta fake d'un servei (`ServeiFakeResultatEnumDto`). */
 export const FAKE_RESULTAT = ['OK', 'SENSE_DADES', 'ERROR'] as const;
 /** Destí d'una ruta (`ServeiRutaDestiTipusEnumDto`). */
@@ -40,6 +41,7 @@ export type Servei = {
     /** Enrutadors: admeten rutes cap al backoffice dels cedents. */
     rutesBackoffice?: boolean;
     asyncSincron?: boolean;
+    backofficeCaibAsyncTipus?: BackofficeAsyncTipus | null;
     configurat?: boolean;
     configuratScsp?: boolean;
     xsdGestioActiva?: boolean;
@@ -48,6 +50,17 @@ export type Servei = {
     autoritzacionsCount?: number;
     diagnostic?: MotiuDiagnostic[];
 };
+
+/**
+ * Les peticions asíncrones es processen dins EMISERV com a síncrones a cada destí: enrutadors amb
+ * asyncSincron i backoffices amb el tipus asíncron PROCESSAR_SINCRONES (`ServeiDto.isAsyncProcessatSincron`).
+ */
+export const asyncProcessatSincron = (
+    servei: Pick<Servei, 'tipus' | 'asyncSincron' | 'backofficeCaibAsyncTipus'>
+): boolean =>
+    servei.tipus === 'BACKOFFICE'
+        ? servei.backofficeCaibAsyncTipus === 'PROCESSAR_SINCRONES'
+        : servei.tipus != null && servei.asyncSincron === true;
 
 /** Els enrutadors (simples o múltiples) tenen rutes; els backoffices, no. */
 export const esEnrutador = (tipus?: ServeiTipus | null): boolean =>

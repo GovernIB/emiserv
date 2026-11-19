@@ -55,6 +55,18 @@ public class ServeiDto extends ObjecteAmbPermisosDto {
 	private Integer asyncConcurrencia;
 	private boolean actiu;
 
+	/**
+	 * Les peticions asíncrones es processen dins EMISERV com a síncrones a cada destí: enrutadors amb
+	 * asyncSincron i backoffices amb el tipus asíncron PROCESSAR_SINCRONES (els altres backoffices
+	 * reenvien l'asíncrona al seu backoffice).
+	 */
+	public boolean isAsyncProcessatSincron() {
+		if (ServeiTipusEnumDto.BACKOFFICE.equals(tipus)) {
+			return BackofficeAsyncTipusEnumDto.PROCESSAR_SINCRONES.equals(backofficeCaibAsyncTipus);
+		}
+		return tipus != null && asyncSincron;
+	}
+
 	public String getCodiNom() {
 		if ((codi == null || codi.isBlank()) && (nom == null || nom.isBlank()))
 			return null;

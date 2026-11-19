@@ -69,6 +69,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1196,32 +1198,44 @@ public class RedireccioServiceImpl implements RedireccioService {
 		log.debug("Consulta del missatge XML de resposta (" +
 				"peticioId=" + peticioId + ")");
 		RedireccioPeticioEntity redireccioPeticio = comprovarRedireccioPeticio(peticioId);
-		List<RedireccioMissatgeEntity> redireccioMissatge;
+		RedireccioMissatgeEntity redireccioMissatge;
 		if ("0003".equals(redireccioPeticio.getEstat())) {
-			redireccioMissatge = redireccioMissatgeRepository.findByPeticioAndTipus(
-					redireccioPeticio,
-					RedireccioMissatgeEntity.TIPUS_RESPUESTA);
-			if (redireccioMissatge == null || redireccioMissatge.isEmpty()) {
+			// Les asíncrones tenen dues respostes (la confirmació i la definitiva): la darrera
+			redireccioMissatge = darrerMissatge(redireccioPeticio, RedireccioMissatgeEntity.TIPUS_RESPUESTA);
+			if (redireccioMissatge == null) {
 				throw new NotFoundException(
 						"[peticioId=" + peticioId + ", tipus=" + RedireccioMissatgeEntity.TIPUS_RESPUESTA + "]",
 						RedireccioMissatgeEntity.class);
 			}
 		} else {
-			redireccioMissatge = redireccioMissatgeRepository.findByPeticioAndTipus(
-					redireccioPeticio,
-					RedireccioMissatgeEntity.TIPUS_FAULT);
-			if (redireccioMissatge == null || redireccioMissatge.isEmpty()) {
-				redireccioMissatge = redireccioMissatgeRepository.findByPeticioAndTipus(
-						redireccioPeticio,
-						RedireccioMissatgeEntity.TIPUS_FAULT_LOCAL);
+			redireccioMissatge = darrerMissatge(redireccioPeticio, RedireccioMissatgeEntity.TIPUS_FAULT);
+			if (redireccioMissatge == null) {
+				redireccioMissatge = darrerMissatge(redireccioPeticio, RedireccioMissatgeEntity.TIPUS_FAULT_LOCAL);
 			}
-			if (redireccioMissatge == null || redireccioMissatge.isEmpty()) {
+			if (redireccioMissatge == null) {
+				// Petició asíncrona en curs: la resposta és la confirmació de la petició
+				redireccioMissatge = darrerMissatge(redireccioPeticio, RedireccioMissatgeEntity.TIPUS_RESPUESTA);
+			}
+			if (redireccioMissatge == null) {
 				throw new NotFoundException(
 						"[peticioId=" + peticioId + ", tipus=" + RedireccioMissatgeEntity.TIPUS_FAULT + "]",
 						RedireccioMissatgeEntity.class);
 			}
 		}
-		return redireccioMissatge.get(0).getXml();
+		return redireccioMissatge.getXml();
+	}
+
+	/** Darrer missatge (el d'id més alt) del tipus indicat, o null si no n'hi ha cap. */
+	private RedireccioMissatgeEntity darrerMissatge(
+			RedireccioPeticioEntity redireccioPeticio,
+			int tipus) {
+		List<RedireccioMissatgeEntity> missatges = redireccioMissatgeRepository.findByPeticioAndTipus(
+				redireccioPeticio,
+				tipus);
+		if (missatges == null || missatges.isEmpty()) {
+			return null;
+		}
+		return Collections.max(missatges, Comparator.comparing(RedireccioMissatgeEntity::getId));
 	}
 
 	@Transactional(readOnly = true)

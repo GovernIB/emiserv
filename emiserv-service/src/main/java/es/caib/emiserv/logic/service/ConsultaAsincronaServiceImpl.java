@@ -148,6 +148,7 @@ public class ConsultaAsincronaServiceImpl implements ConsultaAsincronaService {
 	@Override
 	public List<ConsultaAsincronaSolicitudDto> solicitudFindByConsulta(Long consultaId) {
 		List<ConsultaAsincronaSolicitudDto> solicituds = new ArrayList<ConsultaAsincronaSolicitudDto>();
+		int intentsMaxim = configuracioAsincronHelper.getReintentsMaxim();
 		for (BackofficeSolicitudEntity solicitud: backofficeSolicitudRepository.findByPeticioOrderByIdAsc(getPeticio(consultaId))) {
 			ConsultaAsincronaSolicitudDto dto = new ConsultaAsincronaSolicitudDto();
 			dto.setId(solicitud.getId());
@@ -155,6 +156,7 @@ public class ConsultaAsincronaServiceImpl implements ConsultaAsincronaService {
 			dto.setEntitatCodi(solicitud.getEntitatCodi());
 			dto.setEstat(solicitud.getEstat());
 			dto.setIntents(solicitud.getIntents());
+			dto.setIntentsMaxim(intentsMaxim);
 			dto.setDataEnviament(solicitud.getDataEnviament());
 			dto.setDataProperIntent(solicitud.getDataProperIntent());
 			dto.setPeticioDestiId(solicitud.getPeticioDestiId());

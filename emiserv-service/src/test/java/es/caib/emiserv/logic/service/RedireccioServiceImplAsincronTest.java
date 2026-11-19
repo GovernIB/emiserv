@@ -3,6 +3,7 @@ package es.caib.emiserv.logic.service;
 import es.caib.emiserv.logic.helper.XmlHelper;
 import es.caib.emiserv.logic.intf.dto.RedireccioProcessarResultatDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
+import es.caib.emiserv.persist.entity.RedireccioMissatgeEntity;
 import es.caib.emiserv.persist.entity.RedireccioPeticioEntity;
 import es.caib.emiserv.persist.entity.ServeiEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreServicioEntity;
@@ -19,6 +20,8 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -176,6 +179,31 @@ class RedireccioServiceImplAsincronTest {
 
 		assertEquals("0003", peticio.getEstat());
 		verify(redireccioMissatgeRepository, times(2)).save(any());
+	}
+
+	@Test
+	void laRespostaDUnaAsincronaEnCursEsLaConfirmacioIDespresLaDefinitiva() {
+		RedireccioPeticioEntity peticio = RedireccioPeticioEntity.getBuilder("PBLASYNC0001", SERVEI, "0002", 0, 1, "S0711001H").build();
+		ReflectionTestUtils.setField(peticio, "id", 65L);
+		when(redireccioPeticioRepository.findById(65L)).thenReturn(Optional.of(peticio));
+		RedireccioMissatgeEntity confirmacio = missatge(peticio, 71L, "<ConfirmacionPeticion/>");
+		when(redireccioMissatgeRepository.findByPeticioAndTipus(peticio, RedireccioMissatgeEntity.TIPUS_RESPUESTA)).
+				thenReturn(new ArrayList<>(Collections.singletonList(confirmacio)));
+
+		assertEquals("<ConfirmacionPeticion/>", redireccioService.peticioXmlResposta(65L));
+
+		// En acabar n'hi ha dues, en qualsevol ordre: la resposta és la darrera
+		ReflectionTestUtils.setField(peticio, "estat", "0003");
+		when(redireccioMissatgeRepository.findByPeticioAndTipus(peticio, RedireccioMissatgeEntity.TIPUS_RESPUESTA)).
+				thenReturn(Arrays.asList(missatge(peticio, 80L, "<Respuesta/>"), confirmacio));
+
+		assertEquals("<Respuesta/>", redireccioService.peticioXmlResposta(65L));
+	}
+
+	private static RedireccioMissatgeEntity missatge(RedireccioPeticioEntity peticio, Long id, String xml) {
+		RedireccioMissatgeEntity missatge = RedireccioMissatgeEntity.getBuilder(peticio, RedireccioMissatgeEntity.TIPUS_RESPUESTA, xml).build();
+		ReflectionTestUtils.setField(missatge, "id", id);
+		return missatge;
 	}
 
 	private static byte[] peticio(int numSolicituds) {

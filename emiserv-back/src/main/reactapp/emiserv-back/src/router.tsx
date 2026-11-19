@@ -5,6 +5,7 @@ import NotFound from './pages/NotFound';
 import AuditoriaLlistat from './pages/auditoria/AuditoriaLlistat';
 import ConfiguracioPagina from './pages/configuracio/ConfiguracioPagina';
 import Informes from './pages/informes/Informes';
+import ConsultesAsincrones from './pages/consultesAsincrones/ConsultesAsincrones';
 import NomesAdmin from './components/NomesAdmin';
 
 export const router = createBrowserRouter(
@@ -31,6 +32,15 @@ export const router = createBrowserRouter(
                 {
                     path: 'auditoria/enrutador/:id?',
                     element: <AuditoriaLlistat key="enrutador" tipus="enrutador" />,
+                },
+                {
+                    // Consultes asíncrones processades com a síncrones (consultaAsincronaList.jsp): només administradors
+                    path: 'auditoria/consultesAsincrones',
+                    element: (
+                        <NomesAdmin>
+                            <ConsultesAsincrones />
+                        </NomesAdmin>
+                    ),
                 },
                 {
                     path: 'informes',

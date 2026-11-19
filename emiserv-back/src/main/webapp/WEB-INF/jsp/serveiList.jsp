@@ -68,10 +68,10 @@
 						{{if rutesBackoffice}}<span class="fa fa-check" title="<spring:message code="servei.list.columna.rutes.backoffice.info"/>"></span>{{/if}}
 					</script>
 				</th>
-				<th data-col-name="asyncSincron" data-template="#cellAsyncSincronTemplate" width="1%">
-					<span title="<spring:message code="servei.form.camp.async.sincron"/>"><spring:message code="servei.list.columna.async"/></span>
+				<th data-col-name="asyncProcessatSincron" data-orderable="false" data-template="#cellAsyncSincronTemplate" width="1%">
+					<span title="<spring:message code="servei.list.columna.async.info"/>"><spring:message code="servei.list.columna.async"/></span>
 					<script id="cellAsyncSincronTemplate" type="text/x-jsrender">
-						{{if asyncSincron}}<span class="fa fa-check" title="<spring:message code="servei.form.camp.async.sincron"/>"></span>{{/if}}
+						{{if asyncProcessatSincron}}<span class="fa fa-check" title="<spring:message code="servei.list.columna.async.info"/>"></span>{{/if}}
 					</script>
 				</th>
 				<c:choose>

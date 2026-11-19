@@ -3,6 +3,7 @@ package es.caib.emiserv.logic.service;
 import es.caib.emiserv.logic.helper.BackofficeHelper;
 import es.caib.emiserv.logic.helper.ConfiguracioAsincronHelper;
 import es.caib.emiserv.logic.intf.dto.BackofficeSolicitudEstatEnumDto;
+import es.caib.emiserv.logic.intf.dto.ConsultaAsincronaSolicitudDto;
 import es.caib.emiserv.logic.intf.dto.PeticioEstatEnumDto;
 import es.caib.emiserv.logic.intf.dto.ServeiTipusEnumDto;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
@@ -168,6 +169,26 @@ class ConsultaAsincronaServiceImplTest {
 		assertEquals(0, erronia.getIntents());
 		assertNull(programada.getDataProperIntent());
 		verify(backofficeHelper).recomptarPeticio(peticio, null);
+	}
+
+	@Test
+	void lesSolicitudsInformenDelsIntentsIDelMaximDeReintents() {
+		environment.setProperty("es.caib.emiserv.async.reintents.maxim", "5");
+		BackofficePeticioEntity peticio = peticio(1L, PeticioEstatEnumDto.PENDENT);
+		BackofficeSolicitudEntity programada = solicitud(peticio, "000001");
+		programada.iniciarEnviament(new Date());
+		Date properIntent = new Date(System.currentTimeMillis() + 300000);
+		programada.reprogramar("ScspCedentException: [0101] Connection refused", properIntent);
+		when(backofficeSolicitudRepository.findByPeticioOrderByIdAsc(peticio)).thenReturn(Arrays.asList(programada));
+
+		List<ConsultaAsincronaSolicitudDto> solicituds = service.solicitudFindByConsulta(1L);
+
+		assertEquals(1, solicituds.size());
+		assertEquals(BackofficeSolicitudEstatEnumDto.PENDENT, solicituds.get(0).getEstat());
+		assertEquals(1, solicituds.get(0).getIntents());
+		assertEquals(5, solicituds.get(0).getIntentsMaxim());
+		assertEquals(properIntent, solicituds.get(0).getDataProperIntent());
+		assertTrue(solicituds.get(0).getDarrerError().contains("Connection refused"));
 	}
 
 	@Test

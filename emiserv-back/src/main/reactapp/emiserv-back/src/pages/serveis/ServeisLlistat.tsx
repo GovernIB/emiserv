@@ -28,6 +28,7 @@ import ServeisFiltre from './ServeisFiltre';
 import { missatgeError } from '../../util/missatgeError';
 import {
     ambConfiguracioScsp,
+    asyncProcessatSincron,
     esEnrutador,
     ID_NOU,
     PESTANYES_SERVEI,
@@ -276,12 +277,13 @@ export const ServeisLlistat: React.FC = () => {
             {
                 field: 'asyncSincron',
                 headerName: t('serveis.columna.async'),
-                description: t('serveis.form.asyncSincron'),
+                description: t('serveis.columna.asyncInfo'),
                 width: 100,
                 align: 'center',
                 headerAlign: 'center',
+                sortable: false,
                 renderCell: (params: GridRenderCellParams<Servei>) =>
-                    params.row.asyncSincron === true && <Icon fontSize="small">check</Icon>,
+                    asyncProcessatSincron(params.row) && <Icon fontSize="small">check</Icon>,
             },
             ...(fakePermes
                 ? [

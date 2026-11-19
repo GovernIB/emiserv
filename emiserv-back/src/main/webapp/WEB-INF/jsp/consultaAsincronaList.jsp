@@ -52,6 +52,10 @@ function formatData(valor) {
 }
 $(document).ready(function() {
 	$('#consultes').on('rowinfo.dataTable', function(e, td, rowData) {
+		$(td).data('consulta', rowData);
+		carregarSolicituds(td, rowData);
+	});
+	function carregarSolicituds(td, rowData) {
 		$.get('consultaAsincrona/' + rowData.id + '/solicituds', function(data) {
 			var $taula = $('<table class="table table-condensed table-bordered solicituds"><thead><tr>' +
 					'<th><spring:message code="consulta.asincrona.solicitud.columna.id"/></th>' +
@@ -73,7 +77,7 @@ $(document).ready(function() {
 						'<td>' + escapar(s.solicitudId) + '</td>' +
 						'<td>' + escapar(s.entitatCodi) + '</td>' +
 						'<td>' + estatsSolicitud[s.estat] + '</td>' +
-						'<td>' + s.intents + '</td>' +
+						'<td>' + s.intents + (s.intentsMaxim ? '/' + s.intentsMaxim : '') + '</td>' +
 						'<td>' + formatData(s.dataEnviament) + '</td>' +
 						'<td>' + formatData(s.dataProperIntent) + '</td>' +
 						'<td>' + escapar(s.peticioDestiId) + '</td>' +
@@ -82,17 +86,33 @@ $(document).ready(function() {
 						'<td>' + (reintentable ? '<a href="consultaAsincrona/' + rowData.id + '/solicitud/' + s.id + '/reintentar" class="btn btn-default btn-xs" title="<spring:message code="consulta.asincrona.accio.reintentar"/>"><span class="fa fa-redo"></span></a>' : '') + '</td>' +
 						'</tr>');
 			}
-			$(td).append($taula);
+			$(td).empty().append($taula);
 		});
-	});
+	}
 	// Per defecte només es mostren els destins amb sol·licituds per enviar o pausats
 	$('#mostrar-cedents').click(function() {
 		$('tr.cedent-inactiu').toggle();
 		return false;
 	});
 	// Actualització periòdica del progrés
+	// Actualització periòdica del progrés mentre hi hagi consultes en curs. Amb files desplegades no
+	// es recarrega la taula (les plegaria): es tornen a carregar les sol·licituds desplegades.
 	setInterval(function() {
-		if ($('#actualitzar').is(':checked') && $('tr[data-row-info]', '#consultes').length == 0) {
+		if (!$('#actualitzar').is(':checked')) {
+			return;
+		}
+		var desplegades = $('tr[data-row-info] > td', '#consultes');
+		if (desplegades.length > 0) {
+			desplegades.each(function() {
+				var rowData = $(this).data('consulta');
+				if (rowData && !rowData.finalitzada) {
+					carregarSolicituds(this, rowData);
+				}
+			});
+			return;
+		}
+		var enCurs = $('#consultes').DataTable().rows().data().toArray().some(function(c) { return !c.finalitzada; });
+		if (enCurs) {
 			$('#consultes').DataTable().ajax.reload(null, false);
 		}
 	}, 15000);

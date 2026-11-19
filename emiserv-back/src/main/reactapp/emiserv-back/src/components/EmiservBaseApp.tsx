@@ -32,6 +32,7 @@ export const emiservIcons = {
     auditoriaBackoffice: 'dns',
     auditoriaEnrutador: 'alt_route',
     configuracio: 'settings',
+    consultesAsincrones: 'pending_actions',
     interficieClassica: icons.interficieClassica,
 };
 
@@ -113,6 +114,17 @@ export const EmiservBaseApp: React.FC<React.PropsWithChildren> = ({ children }) 
                     icon: emiservIcons.auditoriaEnrutador,
                     to: '/auditoria/enrutador',
                 },
+                // Consultes asíncrones: només amb el rol actual d'administrador, com el menú de la JSP
+                ...(esAdmin
+                    ? [
+                          {
+                              id: 'consultesAsincrones',
+                              title: t('app.menu.consultesAsincrones'),
+                              icon: emiservIcons.consultesAsincrones,
+                              to: '/auditoria/consultesAsincrones',
+                          },
+                      ]
+                    : []),
             ],
         },
         // Configuració: només per als administradors, com el menú de la JSP
