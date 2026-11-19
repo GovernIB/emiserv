@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -61,7 +62,7 @@ public class EjbContextConfig {
 	private static boolean initialized;
 	private static ApplicationContext applicationContext;
 
-	public static ApplicationContext getApplicationContext() {
+	public static synchronized ApplicationContext getApplicationContext() {
 		if (!initialized) {
 			initialized = true;
 			log.info("Starting EJB spring application..");
@@ -69,6 +70,20 @@ public class EjbContextConfig {
 			log.info("...EJB spring application started.");
 		}
 		return applicationContext;
+	}
+
+	/**
+	 * Tanca el context (s'atura el desplegament): sense tancar-lo, en tornar a desplegar l'EAR en calent
+	 * les tasques planificades i els fils del context anterior (p. ex. el planificador de les consultes
+	 * asíncrones) continuen executant-se amb les classes antigues.
+	 */
+	public static synchronized void close() {
+		if (applicationContext instanceof ConfigurableApplicationContext) {
+			log.info("Stopping EJB spring application..");
+			((ConfigurableApplicationContext)applicationContext).close();
+			log.info("...EJB spring application stopped.");
+		}
+		// No es torna a crear: un desplegament nou té les seves pròpies classes (i estàtics)
 	}
 
 	@Bean
