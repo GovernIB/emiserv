@@ -98,6 +98,44 @@ class ServeiFakeHelperTest {
 	}
 
 	@Test
+	void marcadorAmbValorPerDefecte() throws IOException {
+		ServeiEntity servei = servei(true, ServeiFakeResultatEnumDto.OK,
+				"<X><N>${nombre:PERSONA}</N><A>${apellido2:FAKE}</A><B>${apellido2}</B><Z>${desconegut:Z}</Z></X>");
+		String xml = helper(true).dadesEspecifiques(servei, peticio(), "SOL-1");
+		// El valor de la petició té preferència; si no n'hi ha, el per defecte
+		assertTrue(xml.contains("<N>JOAN</N>"), xml);
+		assertTrue(xml.contains("<A>FAKE</A>"), xml);
+		assertTrue(xml.contains("<B></B>"), xml);
+		assertTrue(xml.contains("${desconegut:Z}"), xml);
+	}
+
+	@Test
+	void plantillesPerDefecte() {
+		ServeiFakeHelper helper = helper(true);
+		for (String codi: new String[] {
+				"SCDCPAJU", "SCDHPAJU", "SCMCEDU", "SVDCCAACPASWS01", "SVDCCAACPCWS01",
+				"SVDCCAAIRPHWS01", "SVDNIVCAT", "SVDSCDDWS01", "SVDSCDDWS02", "SVDSCDWS01", "SVDSCTFNWS01"}) {
+			String plantilla = helper.plantillaPerDefecte(codi);
+			assertNotNull(plantilla, codi);
+			assertTrue(plantilla.startsWith("<DatosEspecificos xmlns=\"http://intermediacion.redsara.es/scsp/esquemas/datosespecificos\">"), codi);
+		}
+		assertEquals(helper.plantillaPerDefecte("SCDCPAJU"), helper.plantillaPerDefecte(" scdcpaju "));
+		assertNull(helper.plantillaPerDefecte("DESCONEGUT"));
+		assertNull(helper.plantillaPerDefecte("../plantilles/SCDCPAJU"));
+		assertNull(helper.plantillaPerDefecte(""));
+		assertNull(helper.plantillaPerDefecte(null));
+	}
+
+	@Test
+	void plantillaPerDefecteAmbLesDadesDeLaPeticio() throws IOException {
+		ServeiFakeHelper helper = helper(true);
+		ServeiEntity servei = servei(true, ServeiFakeResultatEnumDto.OK, helper.plantillaPerDefecte("SCDCPAJU"));
+		String xml = helper.dadesEspecifiques(servei, peticio(), "SOL-1");
+		assertFalse(xml.contains("${"), xml);
+		assertTrue(xml.contains("<Nombre>JOAN</Nombre>"), xml);
+	}
+
+	@Test
 	void literalEstat() {
 		assertEquals("[FAKE] Peticion procesada correctamente.",
 				helper(true).literalEstat(servei(true, ServeiFakeResultatEnumDto.OK, null)));

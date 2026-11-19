@@ -78,6 +78,12 @@ public class ServeiService extends AbstractService<es.caib.emiserv.logic.intf.se
 
 	@Override
 	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
+	public String fakePlantillaPerDefecte(String codi) {
+		return getDelegateService().fakePlantillaPerDefecte(codi);
+	}
+
+	@Override
+	@RolesAllowed({"EMS_ADMIN", "EMS_RESP"})
 	public ServeiConfigScspDto configuracioScspFindByServei(
 			Long id) throws NotFoundException {
 		return getDelegateService().configuracioScspFindByServei(id);

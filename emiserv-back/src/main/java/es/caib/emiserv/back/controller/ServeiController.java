@@ -37,7 +37,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.Validator;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controlador per al manteniment de serveis.
@@ -242,6 +244,16 @@ public class ServeiController extends BaseController {
 				request,
 				"redirect:../../servei",
 				"servei.controller.esborrat.ok");
+	}
+
+	/**
+	 * Plantilla de dades específiques per defecte del mode fake d'un servei: el formulari l'hi
+	 * posa quan s'activa el mode fake i la plantilla és buida. En JSON per conservar els accents.
+	 */
+	@RequestMapping(value = "/fakePlantillaPerDefecte", method = RequestMethod.GET)
+	@ResponseBody
+	public Map<String, String> fakePlantillaPerDefecte(@RequestParam String codi) {
+		return Collections.singletonMap("plantilla", serveiService.fakePlantillaPerDefecte(codi));
 	}
 
 	private boolean isFakePermes() {

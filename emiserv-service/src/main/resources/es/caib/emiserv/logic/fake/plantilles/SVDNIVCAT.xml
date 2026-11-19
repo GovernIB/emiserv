@@ -1,0 +1,24 @@
+<DatosEspecificos xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<retorno>
+		<codigo>0</codigo>
+		<descripcion>El titular dispone de uno o más certificados firmados telemáticamente.</descripcion>
+		<persona>
+			<datosPersonales>
+				<nombre>${nombre:PERSONA}</nombre>
+				<apellido1>${apellido1:DE PROVES}</apellido1>
+				<apellido2>${apellido2:FAKE}</apellido2>
+				<tipoDocumento>${tipoDocumentacion:DNI}</tipoDocumento>
+				<numDocumento>${documentacion:12345678Z}</numDocumento>
+			</datosPersonales>
+			<certificados>
+				<datosCertificado>
+					<convocatoria>FAKE - Convocatòria de proves</convocatoria>
+					<nivel>C1</nivel>
+					<numCertificado>123</numCertificado>
+					<fechaFirma>2026-01-01 10:00:00.000</fechaFirma>
+					<enlaceCertificado>https://localhost/fake/certificat/123</enlaceCertificado>
+				</datosCertificado>
+			</certificados>
+		</persona>
+	</retorno>
+</DatosEspecificos>

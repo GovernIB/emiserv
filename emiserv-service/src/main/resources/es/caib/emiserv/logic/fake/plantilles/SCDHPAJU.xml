@@ -1,0 +1,61 @@
+<DatosEspecificos xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<Estado>
+		<CodigoEstado>0003</CodigoEstado>
+		<LiteralError>TRAMITADA</LiteralError>
+	</Estado>
+	<Solicitud>
+		<ProvinciaSolicitud>${provinciaSolicitud:07}</ProvinciaSolicitud>
+		<MunicipioSolicitud>${municipioSolicitud:040}</MunicipioSolicitud>
+		<Titular>
+			<Documentacion>
+				<Tipo>${tipoDocumentacion:NIF}</Tipo>
+				<Valor>${documentacion:12345678Z}</Valor>
+			</Documentacion>
+		</Titular>
+	</Solicitud>
+	<Resultado>
+		<Nombre>${nombre:PERSONA}</Nombre>
+		<Apellido1>${apellido1:DE PROVES}</Apellido1>
+		<Apellido2>${apellido2:FAKE}</Apellido2>
+		<FechaNacimiento>1980-01-01</FechaNacimiento>
+		<Documentacion>
+			<Tipo>${tipoDocumentacion:NIF}</Tipo>
+			<Valor>${documentacion:12345678Z}</Valor>
+		</Documentacion>
+		<HistoricoDomicilios>
+			<Domicilio>
+				<ClaveHojaPadronal>
+					<Distrito>01</Distrito>
+					<Seccion>001</Seccion>
+					<Hoja>0000001</Hoja>
+				</ClaveHojaPadronal>
+				<ProvinciaRespuesta>
+					<Codigo>${provinciaSolicitud:07}</Codigo>
+					<Nombre>ILLES BALEARS</Nombre>
+				</ProvinciaRespuesta>
+				<MunicipioRespuesta>
+					<Codigo>${municipioSolicitud:040}</Codigo>
+					<Nombre>MUNICIPI DE PROVES</Nombre>
+				</MunicipioRespuesta>
+				<Direccion>
+					<Via>
+						<Codigo>00001</Codigo>
+						<Tipo>CL</Tipo>
+						<Nombre>CARRER DE PROVES</Nombre>
+					</Via>
+					<Numero>
+						<Valor>0001</Valor>
+					</Numero>
+					<CodPostal>07001</CodPostal>
+				</Direccion>
+				<Desde>2020-01-01</Desde>
+				<MotivoInscripcion>
+					<CodigoVariacion>A</CodigoVariacion>
+					<CausaVariacion>CR</CausaVariacion>
+					<Descripcion>Alta por cambio de residencia</Descripcion>
+				</MotivoInscripcion>
+			</Domicilio>
+		</HistoricoDomicilios>
+		<FechaExpedicion>2026-01-01</FechaExpedicion>
+	</Resultado>
+</DatosEspecificos>

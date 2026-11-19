@@ -1,0 +1,10 @@
+<DatosEspecificos xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<Respuesta>
+		<Organismo>
+			<Nombre>ORGANISME DE PROVES</Nombre>
+			<CodigoOrganismo>BALEARS_FAKE</CodigoOrganismo>
+			<CodigoEstado>0003</CodigoEstado>
+			<LiteralError>Cambio de domicilio comunicado correctamente</LiteralError>
+		</Organismo>
+	</Respuesta>
+</DatosEspecificos>

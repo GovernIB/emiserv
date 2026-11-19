@@ -1,0 +1,8 @@
+<DatosEspecificos xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<Retorno>
+		<Estado>
+			<CodigoEstado>0</CodigoEstado>
+			<LiteralError>El contribuyente se encuentra al corriente en sus obligaciones tributarias</LiteralError>
+		</Estado>
+	</Retorno>
+</DatosEspecificos>

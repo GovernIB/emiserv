@@ -21,7 +21,23 @@ pageContext.setAttribute(
 	<script src="<c:url value="/webjars/select2/4.0.1/dist/js/select2.min.js"/>"></script>
 	<script src="<c:url value="/webjars/select2/4.0.1/dist/js/i18n/${idioma}.js"/>"></script>
 	<emi:modalHead/>
+<style>
+#fakeDadesEspecifiques { font-family: monospace; font-size: 12px; resize: vertical; }
+</style>
 <script>
+// Mode fake: si la plantilla de dades específiques és buida s'omple amb la per defecte del servei
+function omplirPlantillaFake() {
+	var plantilla = $('#fakeDadesEspecifiques');
+	var codi = $('form input#codi').val();
+	if (plantilla.length == 0 || !$('form input#fake').is(':checked') || !codi || $.trim(plantilla.val()) != '') {
+		return;
+	}
+	$.get('<c:url value="/servei/fakePlantillaPerDefecte"/>', {codi: codi}, function(resposta) {
+		if (resposta && resposta.plantilla && $.trim(plantilla.val()) == '') {
+			plantilla.val(resposta.plantilla);
+		}
+	});
+}
 $(document).ready(function() {
 	$("form select#tipus").on('change', function() {
 		var tipusVal = $(this).val();
@@ -54,7 +70,9 @@ $(document).ready(function() {
 	$("form input#fake").on('change', function() {
 		var actiu = $(this).is(':checked');
 		$('#fakeResultat, #fakeDadesEspecifiques').prop('disabled', !actiu);
+		omplirPlantillaFake();
 	});
+	$("form input#codi").on('change', omplirPlantillaFake);
 	$("form input#fake").trigger('change');
 	$("form select#tipus").trigger('change');
 });
@@ -111,7 +129,7 @@ $(document).ready(function() {
 				<div id="bloc-fake">
 					<emi:inputCheckbox name="fake" textKey="servei.form.camp.fake"/>
 					<emi:inputSelect name="fakeResultat" textKey="servei.form.camp.fake.resultat" optionItems="${serveiFakeResultatEnumOptions}" optionValueAttribute="value" optionTextKeyAttribute="text" emptyOption="true"/>
-					<emi:inputTextarea name="fakeDadesEspecifiques" textKey="servei.form.camp.fake.dades"/>
+					<emi:inputTextarea name="fakeDadesEspecifiques" textKey="servei.form.camp.fake.dades" files="20"/>
 				</div>
 			</c:when>
 			<c:otherwise>

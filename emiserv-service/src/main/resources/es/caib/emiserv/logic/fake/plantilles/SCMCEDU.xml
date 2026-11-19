@@ -1,0 +1,18 @@
+<DatosEspecificos xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<Respuesta>
+		<DatosAlumno>
+			<IdTitular>
+				<TipoDocumentacion>NIF</TipoDocumentacion>
+				<Documentacion>${documentacion:12345678Z}</Documentacion>
+			</IdTitular>
+			<Nombre>${nombre:ALUMNE}</Nombre>
+			<Apellido1>${apellido1:DE PROVES}</Apellido1>
+			<Apellido2>${apellido2:FAKE}</Apellido2>
+			<FechaNacimiento>01/09/2012</FechaNacimiento>
+		</DatosAlumno>
+		<CodRespuesta>0</CodRespuesta>
+		<DescRespuesta>El titular de la consulta está matriculado en un centro educativo.</DescRespuesta>
+		<CursoMatriculaVigente>2026/2027</CursoMatriculaVigente>
+		<FechaProceso>01/01/2026</FechaProceso>
+	</Respuesta>
+</DatosEspecificos>

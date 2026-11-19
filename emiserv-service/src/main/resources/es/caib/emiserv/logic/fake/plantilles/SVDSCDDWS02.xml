@@ -1,0 +1,24 @@
+<DatosEspecificos xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<Retorno>
+		<Estado>
+			<CodigoEstado>0</CodigoEstado>
+			<LiteralError>Existen datos de discapacidad del titular</LiteralError>
+		</Estado>
+		<DatosAdicionalesTitularRespuesta>
+			<FechaNacimiento>01/01/1980</FechaNacimiento>
+		</DatosAdicionalesTitularRespuesta>
+		<CertificadoDatosDiscapacidad>
+			<CodigoComunidadAutonoma>04</CodigoComunidadAutonoma>
+			<CodigoProvincia>07</CodigoProvincia>
+			<Expediente>EXP-FAKE-0000001</Expediente>
+			<GradoDiscapacidad>33</GradoDiscapacidad>
+			<TiposDiscapacidad>
+				<TipoDiscapacidad>FISICA</TipoDiscapacidad>
+			</TiposDiscapacidad>
+			<MovilidadReducida>N</MovilidadReducida>
+			<TerceraPersona>N</TerceraPersona>
+			<FechaEfectos>01/01/2020</FechaEfectos>
+			<ValidezPermanente>S</ValidezPermanente>
+		</CertificadoDatosDiscapacidad>
+	</Retorno>
+</DatosEspecificos>

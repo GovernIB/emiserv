@@ -123,6 +123,17 @@ public interface ServeiService {
 	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
 	public List<String> responseResolverClassesFindAll();
 
+	/**
+	 * Plantilla de dades específiques per defecte del mode fake d'un servei.
+	 *
+	 * @param codi
+	 *            Codi del servei.
+	 * @return la plantilla, o null si el servei no en té o si el mode fake no està permès
+	 *            (propietat es.caib.emiserv.fake.permes).
+	 */
+	@PreAuthorize("hasRole('EMS_ADMIN') or hasRole('EMS_RESP')")
+	public String fakePlantillaPerDefecte(String codi);
+
 	
 	/**
 	 * Obté la configuració SCSP d'un servei per a un usuari

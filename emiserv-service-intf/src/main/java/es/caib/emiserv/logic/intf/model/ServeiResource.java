@@ -147,7 +147,11 @@ public class ServeiResource extends BaseResource<Long> {
 	/** Peticions simultànies màximes a un mateix cedent; buit: el valor global. */
 	@Min(1)
 	private Integer asyncConcurrencia;
-	/** Mode fake: respostes simulades sense consultar el cedent. */
+	/**
+	 * Mode fake: respostes simulades sense consultar el cedent. En activar-lo (o en obrir el
+	 * formulari amb el mode actiu) la plantilla buida s'omple amb la per defecte del servei.
+	 */
+	@ResourceField(onChangeActive = true)
 	private boolean fake;
 	private ServeiFakeResultatEnumDto fakeResultat;
 	/** Plantilla opcional de DatosEspecificos de la resposta simulada. */

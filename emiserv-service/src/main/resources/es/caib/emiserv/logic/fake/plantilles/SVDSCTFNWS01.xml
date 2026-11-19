@@ -1,0 +1,28 @@
+<DatosEspecificos xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<Retorno>
+		<Estado>
+			<CodigoEstado>0</CodigoEstado>
+			<LiteralError>Existe el titulo de familia numerosa</LiteralError>
+		</Estado>
+		<TituloFamiliaNumerosaRetorno>
+			<CodigoComunidadAutonoma>04</CodigoComunidadAutonoma>
+			<NumeroTitulo>TFN-FAKE-0000001</NumeroTitulo>
+			<Categoria>G</Categoria>
+			<TituloVigente>S</TituloVigente>
+			<FechaExpedicion>01/01/2024</FechaExpedicion>
+			<FechaCaducidad>31/12/2035</FechaCaducidad>
+			<NumeroHijos>3</NumeroHijos>
+		</TituloFamiliaNumerosaRetorno>
+		<ListaBeneficiariosRetorno>
+			<BeneficiarioRetorno>
+				<TipoDocumentacion>${tipoDocumentacion:NIF}</TipoDocumentacion>
+				<Documentacion>${documentacion:12345678Z}</Documentacion>
+				<FechaNacimiento>01/01/1980</FechaNacimiento>
+				<Nombre>${nombre:PERSONA}</Nombre>
+				<Apellido1>${apellido1:DE PROVES}</Apellido1>
+				<Apellido2>${apellido2:FAKE}</Apellido2>
+				<Titular>S</Titular>
+			</BeneficiarioRetorno>
+		</ListaBeneficiariosRetorno>
+	</Retorno>
+</DatosEspecificos>

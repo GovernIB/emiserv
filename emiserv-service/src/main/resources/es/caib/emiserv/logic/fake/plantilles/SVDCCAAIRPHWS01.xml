@@ -1,0 +1,17 @@
+<DatosEspecificos xmlns="http://intermediacion.redsara.es/scsp/esquemas/datosespecificos">
+	<Retorno>
+		<Estado>
+			<codigoEstado>0</codigoEstado>
+			<literalError>El ciudadano se encuentra inscrito en el registro de parejas de hecho</literalError>
+		</Estado>
+		<ParejaDeHecho>
+			<TipoDocumentacion>DNI</TipoDocumentacion>
+			<Documentacion>00000000T</Documentacion>
+			<NombreCompleto>PARELLA DE PROVES FAKE</NombreCompleto>
+			<Nombre>PARELLA</Nombre>
+			<Apellido1>DE PROVES</Apellido1>
+			<Apellido2>FAKE</Apellido2>
+		</ParejaDeHecho>
+		<FechaAlta>2020-01-01</FechaAlta>
+	</Retorno>
+</DatosEspecificos>

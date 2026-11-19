@@ -9,6 +9,7 @@ import es.caib.emiserv.logic.helper.PermisosHelper;
 import es.caib.emiserv.logic.helper.PermisosHelper.ObjectIdentifierExtractor;
 import es.caib.emiserv.logic.helper.SecurityHelper;
 import es.caib.emiserv.logic.helper.ServeiXsdHelper;
+import es.caib.emiserv.logic.helper.ServeiFakeHelper;
 import es.caib.emiserv.logic.helper.BackofficeDestiHelper;
 import es.caib.emiserv.logic.helper.BackofficeDestiHelper.BackofficeDesti;
 import es.caib.emiserv.logic.intf.dto.*;
@@ -108,6 +109,8 @@ public class ServeiServiceImpl implements ServeiService {
 	private ServeiXsdHelper serveiXsdHelper;
 	@Autowired
 	private BackofficeDestiHelper backofficeDestiHelper;
+	@Autowired
+	private ServeiFakeHelper serveiFakeHelper;
 
 	@Transactional
 	@Override
@@ -561,6 +564,11 @@ public class ServeiServiceImpl implements ServeiService {
 			resposta.add(component.getBeanClassName());
 		}
 		return resposta;
+	}
+
+	@Override
+	public String fakePlantillaPerDefecte(String codi) {
+		return serveiFakeHelper.isPermes() ? serveiFakeHelper.plantillaPerDefecte(codi) : null;
 	}
 
 	@Transactional(readOnly = true)

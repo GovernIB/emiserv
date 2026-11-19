@@ -291,6 +291,36 @@ class ServeiResourceServiceTest {
 	}
 
 	@Test
+	void modeFakeOmpleLaPlantillaBuidaAmbLaPerDefecte() {
+		when(serveiService.fakePlantillaPerDefecte("SCDCPAJU")).thenReturn("<DatosEspecificos/>");
+		ServeiResource previ = new ServeiResource();
+		previ.setCodi("SCDCPAJU");
+		// En activar el mode fake
+		assertEquals("<DatosEspecificos/>", plantillaCanviada(
+				service.onChange(null, previ, ServeiResource.Fields.fake, true, Collections.emptyMap())));
+		// En desactivar-lo no es toca
+		assertNull(plantillaCanviada(
+				service.onChange(null, previ, ServeiResource.Fields.fake, false, Collections.emptyMap())));
+		// En obrir el formulari d'un servei amb el mode fake actiu
+		previ.setFake(true);
+		assertEquals("<DatosEspecificos/>", plantillaCanviada(
+				service.onChange(1L, previ, null, null, Collections.emptyMap())));
+		// Si ja té plantilla no es toca
+		previ.setFakeDadesEspecifiques("<Propia/>");
+		assertNull(plantillaCanviada(
+				service.onChange(1L, previ, null, null, Collections.emptyMap())));
+		// Serveis sense plantilla per defecte
+		previ.setFakeDadesEspecifiques(null);
+		previ.setCodi("ALTRE");
+		assertNull(plantillaCanviada(
+				service.onChange(1L, previ, null, null, Collections.emptyMap())));
+	}
+
+	private static Object plantillaCanviada(Map<String, Object> canvis) {
+		return canvis != null ? canvis.get(ServeiResource.Fields.fakeDadesEspecifiques) : null;
+	}
+
+	@Test
 	void esborrarDelegaAServeiService() {
 		crearServeisBasics();
 		autenticar("EMS_ADMIN");

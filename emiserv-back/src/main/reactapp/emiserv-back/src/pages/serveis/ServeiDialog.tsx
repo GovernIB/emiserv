@@ -254,6 +254,8 @@ export const ServeiDialog: React.FC<ServeiDialogProps> = ({
                         // navegador) aturaria la navegació a /serveis/<id> després de crear el servei. L'avís
                         // de canvis sense desar el fa tancar(), comparant els valors.
                         formBlockerDisabled
+                        // El backend omple la plantilla fake buida amb la per defecte del servei (onChange)
+                        initOnChangeRequest
                         hiddenToolbar
                     >
                         <ServeiDadesForm

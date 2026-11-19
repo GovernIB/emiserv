@@ -169,12 +169,17 @@ export const ServeiDadesForm: React.FC<ServeiDadesFormProps> = ({ existent, moti
                             disabled={!data?.fake}
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, md: 8 }}>
+                    <Grid size={12}>
+                        {/* Plantilla XML: tota l'amplada, 20 files i lletra monoespaiada */}
                         <FormField
                             name="fakeDadesEspecifiques"
                             label={t('serveis.form.fakeDadesEspecifiques')}
                             type="textarea"
                             disabled={!data?.fake}
+                            componentProps={{
+                                rows: 20,
+                                sx: { '& textarea': { fontFamily: 'monospace', fontSize: '0.8125rem' } },
+                            }}
                         />
                     </Grid>
                 </>

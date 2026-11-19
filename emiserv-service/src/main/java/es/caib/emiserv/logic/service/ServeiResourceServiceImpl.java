@@ -141,6 +141,34 @@ public class ServeiResourceServiceImpl extends BaseMutableResourceService<Servei
 				opcionsClasses(serveiService.responseResolverClassesFindAll()));
 	}
 
+	/**
+	 * Mode fake: en obrir el formulari (fieldName null) o en activar el mode fake, si la plantilla
+	 * de dades específiques és buida s'hi posa la per defecte del servei (si en té).
+	 */
+	@Override
+	public void onChange(
+			Serializable id,
+			ServeiResource previous,
+			String fieldName,
+			Object fieldValue,
+			Map<String, AnswerRequiredException.AnswerValue> answers,
+			String[] previousFieldsChanged,
+			ServeiResource target) {
+		super.onChange(id, previous, fieldName, fieldValue, answers, previousFieldsChanged, target);
+		boolean canviFake = ServeiResource.Fields.fake.equals(fieldName);
+		if (previous == null || (fieldName != null && !canviFake)) {
+			return;
+		}
+		boolean fake = canviFake ? Boolean.parseBoolean(String.valueOf(fieldValue)) : previous.isFake();
+		String plantilla = previous.getFakeDadesEspecifiques();
+		if (fake && (plantilla == null || plantilla.trim().isEmpty())) {
+			String perDefecte = serveiService.fakePlantillaPerDefecte(previous.getCodi());
+			if (perDefecte != null) {
+				target.setFakeDadesEspecifiques(perDefecte);
+			}
+		}
+	}
+
 	@Override
 	@Transactional
 	public <P extends Serializable> Serializable artifactActionExec(
