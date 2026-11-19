@@ -974,7 +974,8 @@ public class BackofficeHelper {
 				servei,
 				ruta,
 				idPeticionDesti,
-				clientScspHelper.getCredencials(scspCoreServicio.getClaveFirma()));
+				clientScspHelper.getCredencials(scspCoreServicio.getClaveFirma()),
+				scspCoreServicio.getTipoSeguridad());
 		RespostaBackofficeEntitat resposta = enviarPeticioSincronaEmisorCedent(peticioCedent);
 		Atributos atributos = new Atributos();
 		atributos.setIdPeticion(idPeticionDesti);
@@ -1011,7 +1012,7 @@ public class BackofficeHelper {
 				// El mateix IdPeticion per a tots els cedents (emisors diferents)
 				idPeticionDesti = getIdPeticioDesti(solicitud);
 			}
-			peticions.add(prepararPeticioEmisorCedent(peticio, solicitud, servei, ruta, idPeticionDesti, credencials));
+			peticions.add(prepararPeticioEmisorCedent(peticio, solicitud, servei, ruta, idPeticionDesti, credencials, scspCoreServicio.getTipoSeguridad()));
 		}
 		return peticions;
 	}
@@ -1019,7 +1020,10 @@ public class BackofficeHelper {
 	/**
 	 * Petició SCSP d'una sola sol·licitud per a l'emisor del cedent: les dades de la sol·licitud
 	 * original (requeridor, titular, dades específiques) amb un IdPeticion propi d'EMISERV. L'emisor
-	 * es pot substituir per ruta (propietats emisor.nif i emisor.nom del backoffice de la ruta).
+	 * es pot substituir per ruta (propietats emisor.nif i emisor.nom del backoffice de la ruta). Es
+	 * signa amb el tipus de seguretat del servei a l'emisor SCSP (el que espera el cedent, que en
+	 * síncron rep la petició del requeridor tal qual) o amb el de la propietat signatura.tipus de la
+	 * ruta (XMLSignature o WS-Security).
 	 */
 	PeticioEmisorCedent prepararPeticioEmisorCedent(
 			BackofficePeticioEntity peticio,
@@ -1027,7 +1031,8 @@ public class BackofficeHelper {
 			ServeiEntity servei,
 			ServeiRutaDestiEntity ruta,
 			String idPeticionDesti,
-			ClientScspHelper.Credencials credencials) throws Exception {
+			ClientScspHelper.Credencials credencials,
+			String tipoSeguridad) throws Exception {
 		String idPeticion = peticio.getScspPeticionRespuesta().getPeticionId();
 		ScspCoreTokenDataEntity scspTokenData = scspCoreTokenDataRepository.findByPeticionIdAndTipoMensaje(idPeticion, 0);
 		if (scspTokenData == null) {
@@ -1069,6 +1074,7 @@ public class BackofficeHelper {
 		}
 		String validarSignatura = backofficeDestiHelper.getPropietat(desti, "signatura.validar");
 		String soapAction = backofficeDestiHelper.getPropietat(desti, "soapaction");
+		String tipusSignatura = backofficeDestiHelper.getPropietat(desti, "signatura.tipus");
 		return new PeticioEmisorCedent(
 				ruta.getEntitatCodi(),
 				ruta.getUrl(),
@@ -1076,6 +1082,7 @@ public class BackofficeHelper {
 				peticion,
 				idPeticionDesti,
 				credencials,
+				ClientScspHelper.TipusSignatura.fromTipoSeguridad(tipusSignatura != null ? tipusSignatura : tipoSeguridad),
 				configuracioAsincronHelper.getTimeoutSegons(),
 				validarSignatura == null || Boolean.parseBoolean(validarSignatura.trim()));
 	}
@@ -1089,6 +1096,7 @@ public class BackofficeHelper {
 					peticio.getSoapAction(),
 					peticio.getPeticion(),
 					peticio.getCredencials(),
+					peticio.getTipusSignatura(),
 					peticio.getTimeoutSegons(),
 					peticio.isValidarSignatura());
 			ClientScspHelper.escriure(resposta.getXmlPeticio(), respostaCedent.getXmlPeticio());
@@ -1164,16 +1172,19 @@ public class BackofficeHelper {
 		private final Element peticion;
 		private final String idPeticion;
 		private final ClientScspHelper.Credencials credencials;
+		private final ClientScspHelper.TipusSignatura tipusSignatura;
 		private final int timeoutSegons;
 		private final boolean validarSignatura;
 		PeticioEmisorCedent(String entitatCodi, String url, String soapAction, Element peticion, String idPeticion,
-				ClientScspHelper.Credencials credencials, int timeoutSegons, boolean validarSignatura) {
+				ClientScspHelper.Credencials credencials, ClientScspHelper.TipusSignatura tipusSignatura,
+				int timeoutSegons, boolean validarSignatura) {
 			this.entitatCodi = entitatCodi;
 			this.url = url;
 			this.soapAction = soapAction;
 			this.peticion = peticion;
 			this.idPeticion = idPeticion;
 			this.credencials = credencials;
+			this.tipusSignatura = tipusSignatura;
 			this.timeoutSegons = timeoutSegons;
 			this.validarSignatura = validarSignatura;
 		}
@@ -1183,6 +1194,7 @@ public class BackofficeHelper {
 		Element getPeticion() { return peticion; }
 		String getIdPeticion() { return idPeticion; }
 		ClientScspHelper.Credencials getCredencials() { return credencials; }
+		ClientScspHelper.TipusSignatura getTipusSignatura() { return tipusSignatura; }
 		int getTimeoutSegons() { return timeoutSegons; }
 		boolean isValidarSignatura() { return validarSignatura; }
 	}

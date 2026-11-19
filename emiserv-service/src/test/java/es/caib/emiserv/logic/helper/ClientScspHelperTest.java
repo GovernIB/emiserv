@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 import es.caib.emiserv.logic.helper.ClientScspHelper.Credencials;
 import es.caib.emiserv.logic.helper.ClientScspHelper.RespostaCedent;
 import es.caib.emiserv.logic.helper.ClientScspHelper.ScspCedentException;
+import es.caib.emiserv.logic.helper.ClientScspHelper.TipusSignatura;
 import es.caib.emiserv.logic.intf.exception.ValidationException;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreClavePrivadaEntity;
 import es.caib.emiserv.persist.entity.scsp.ScspCoreParametroConfiguracionEntity;
@@ -40,7 +41,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Client SCSP per a les peticions als emisors dels cedents: signatura WS-Security de les peticions,
+ * Client SCSP per a les peticions als emisors dels cedents: signatura WS-Security o XMLSignature de les peticions,
  * validació de la signatura de les respostes i tractament dels SOAP Fault.
  *
  * @author Limit Tecnologies <limit@limit.es>
@@ -106,6 +107,69 @@ class ClientScspHelperTest {
 	}
 
 	@Test
+	void laPeticioXmlSignatureTeElFormatDeLesLlibreriesScsp() throws Exception {
+		Document signada = client.crearPeticioSignada(peticion(), caib, TipusSignatura.XML_SIGNATURE);
+		String xml = ClientScspHelper.toXml(signada);
+
+		// Format de PINBAL i de l'XMLDSigManager de scsp-core: ds:Signature a la capçalera, certificat
+		// al KeyInfo (X509Data) i Body amb Id="MsgBody" (sense WS-Security)
+		Element header = (Element)signada.getElementsByTagNameNS(ClientScspHelper.NS_SOAPENV, "Header").item(0);
+		Element signature = (Element)header.getFirstChild();
+		assertEquals("Signature", signature.getLocalName());
+		assertEquals(1, signature.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "X509Certificate").getLength());
+		Element body = (Element)signada.getElementsByTagNameNS(ClientScspHelper.NS_SOAPENV, "Body").item(0);
+		assertEquals("MsgBody", body.getAttribute("Id"));
+		assertTrue(xml.contains("URI=\"#MsgBody\""), xml);
+		assertFalse(xml.contains("wsse:"), xml);
+		client.validarSignatura(ClientScspHelper.parse(xml), xml, null);
+		String modificat = xml.replace("12345678Z", "87654321X");
+		assertThrows(ScspCedentException.class, () -> client.validarSignatura(ClientScspHelper.parse(modificat), xml, modificat));
+	}
+
+	@Test
+	void laPeticioXmlSignatureDUnDomConstruitEsValidaUnCopEnviada() throws Exception {
+		// Com BackofficeHelper: elements creats amb createElementNS (sense atributs xmlns) i les dades
+		// específiques importades amb un altre namespace
+		Document document = ClientScspHelper.nouDocument();
+		Element peticion = document.createElementNS(NS_PETICION, "Peticion");
+		document.appendChild(peticion);
+		Element atributos = document.createElementNS(NS_PETICION, "Atributos");
+		peticion.appendChild(atributos);
+		Element idPeticion = document.createElementNS(NS_PETICION, "IdPeticion");
+		idPeticion.setTextContent("EMS00000000000000000000042");
+		atributos.appendChild(idPeticion);
+		Element datosEspecificos = ClientScspHelper.parse(
+				"<ns2:DatosEspecificos xmlns:ns2=\"http://intermediacion.redsara.es/scsp/esquemas/datosespecificos\">" +
+				"<Solicitud xmlns=\"http://intermediacion.redsara.es/scsp/esquemas/datosespecificos\"><Finalidad>Prova d'integració</Finalidad></Solicitud>" +
+				"</ns2:DatosEspecificos>").getDocumentElement();
+		peticion.appendChild(document.importNode(datosEspecificos, true));
+
+		String xml = ClientScspHelper.toXml(client.crearPeticioSignada(peticion, caib, TipusSignatura.XML_SIGNATURE));
+
+		// L'emisor valida el missatge que rep (serialitzat), no el DOM signat
+		client.validarSignatura(ClientScspHelper.parse(xml.getBytes(StandardCharsets.UTF_8)), xml, null);
+	}
+
+	@Test
+	void elTipusDeSignaturaEsElTipusDeSeguretatDelServei() {
+		assertEquals(TipusSignatura.XML_SIGNATURE, TipusSignatura.fromTipoSeguridad("XMLSignature"));
+		assertEquals(TipusSignatura.XML_SIGNATURE, TipusSignatura.fromTipoSeguridad(" xmlsignature "));
+		assertEquals(TipusSignatura.WS_SECURITY, TipusSignatura.fromTipoSeguridad("WS-Security"));
+		assertEquals(TipusSignatura.WS_SECURITY, TipusSignatura.fromTipoSeguridad(null));
+	}
+
+	@Test
+	void peticioXmlSignatureALEmisorDelCedent() throws Exception {
+		iniciarEmisor(200, ClientScspHelper.toXml(client.crearPeticioSignada(respuesta("0003"), cedent, TipusSignatura.XML_SIGNATURE)));
+
+		RespostaCedent resposta = client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, TipusSignatura.XML_SIGNATURE, 10, true);
+
+		assertEquals("Respuesta", resposta.getRespuesta().getLocalName());
+		assertTrue(peticioRebuda.get().contains("Id=\"MsgBody\""), peticioRebuda.get());
+		client.validarSignatura(ClientScspHelper.parse(peticioRebuda.get()), peticioRebuda.get(), null);
+	}
+
+	@Test
 	void unMissatgeModificatNoEsValida() throws Exception {
 		String xml = ClientScspHelper.toXml(client.crearPeticioSignada(peticion(), caib));
 		String modificat = xml.replace("12345678Z", "87654321X");
@@ -120,7 +184,7 @@ class ClientScspHelperTest {
 	void peticioIRespostaSignadesAmbLEmisorDelCedent() throws Exception {
 		iniciarEmisor(200, ClientScspHelper.toXml(client.crearPeticioSignada(respuesta("0003"), cedent)));
 
-		RespostaCedent resposta = client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, 10, true);
+		RespostaCedent resposta = client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, TipusSignatura.WS_SECURITY, 10, true);
 
 		assertEquals("Respuesta", resposta.getRespuesta().getLocalName());
 		// L'emisor rep una petició signada vàlida
@@ -133,11 +197,11 @@ class ClientScspHelperTest {
 		iniciarEmisor(200, ClientScspHelper.toXml(sobre(respuesta("0003"))));
 
 		ScspCedentException ex = assertThrows(ScspCedentException.class,
-				() -> client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, 10, true));
+				() -> client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, TipusSignatura.WS_SECURITY, 10, true));
 
 		assertTrue(ex.getMessage().contains("no està signada"), ex.getMessage());
 		// Si la ruta no ho requereix, s'accepta
-		assertNotNull(client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, 10, false).getRespuesta());
+		assertNotNull(client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, TipusSignatura.WS_SECURITY, 10, false).getRespuesta());
 	}
 
 	@Test
@@ -149,7 +213,7 @@ class ClientScspHelperTest {
 				"</detail></soapenv:Fault></soapenv:Body></soapenv:Envelope>");
 
 		ScspCedentException ex = assertThrows(ScspCedentException.class,
-				() -> client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, 10, true));
+				() -> client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, TipusSignatura.WS_SECURITY, 10, true));
 
 		assertEquals("0301", ex.getCodiEstat());
 		assertTrue(ex.isDefinitiu());
@@ -162,7 +226,7 @@ class ClientScspHelperTest {
 		iniciarEmisor(500, "<html>Service Unavailable</html");
 
 		ScspCedentException ex = assertThrows(ScspCedentException.class,
-				() -> client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, 10, true));
+				() -> client.enviarPeticioSincrona(url(), "peticionSincrona", peticion(), caib, TipusSignatura.WS_SECURITY, 10, true));
 
 		assertFalse(ex.isDefinitiu());
 	}

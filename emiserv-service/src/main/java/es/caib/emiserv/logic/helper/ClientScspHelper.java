@@ -59,9 +59,11 @@ import java.util.UUID;
 
 /**
  * Client SCSP per enviar peticions síncrones als emisors dels cedents (rutes de tipus EMISERV de les
- * consultes asíncrones processades com a síncrones). La petició es signa amb WS-Security
- * (BinarySecurityToken amb referència directa, com els requeridors SCSP) amb la clau privada del
- * servei a l'emisor SCSP d'EMISERV (certificat de la CAIB) i se'n valida la signatura de la resposta.
+ * consultes asíncrones processades com a síncrones). La petició es signa amb la clau privada del
+ * servei a l'emisor SCSP d'EMISERV (certificat de la CAIB) en el format del tipus de seguretat del
+ * servei (TipusSignatura): WS-Security (BinarySecurityToken amb referència directa) o XMLSignature
+ * (ds:Signature a la capçalera amb el certificat i el Body amb Id="MsgBody", com PINBAL i les
+ * llibreries SCSP). Se'n valida la signatura de la resposta.
  *
  * Fa servir només l'API XML Digital Signature de Java: les llibreries de seguretat de l'emisor
  * (WSS4J) només són a l'aplicació de l'emisor SCSP.
@@ -78,6 +80,8 @@ public class ClientScspHelper {
 	static final String X509_V3 = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3";
 	static final String BASE64_BINARY = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary";
 	static final String RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
+	/** Id del Body de les peticions XMLSignature (el que fan servir PINBAL i les llibreries SCSP). */
+	static final String XML_SIGNATURE_BODY_ID = "MsgBody";
 
 	@Autowired
 	private ScspCoreParametroConfiguracionRepository scspCoreParametroConfiguracionRepository;
@@ -124,9 +128,10 @@ public class ClientScspHelper {
 			String soapAction,
 			Element peticion,
 			Credencials credencials,
+			TipusSignatura tipusSignatura,
 			int timeoutSegons,
 			boolean validarSignatura) throws Exception {
-		Document document = crearPeticioSignada(peticion, credencials);
+		Document document = crearPeticioSignada(peticion, credencials, tipusSignatura);
 		String xmlPeticio = toXml(document);
 		HttpURLConnection connexio = (HttpURLConnection)new URL(url).openConnection();
 		connexio.setConnectTimeout(timeoutSegons * 1000);
@@ -170,6 +175,13 @@ public class ClientScspHelper {
 		return new RespostaCedent(xmlPeticio, xmlResposta, respuesta);
 	}
 
+	Document crearPeticioSignada(Element peticion, Credencials credencials, TipusSignatura tipusSignatura) throws Exception {
+		return TipusSignatura.XML_SIGNATURE.equals(tipusSignatura) ?
+				crearPeticioSignadaXmlSignature(peticion, credencials) :
+				crearPeticioSignada(peticion, credencials);
+	}
+
+	/** Signatura WS-Security: BinarySecurityToken amb el certificat i referència directa des del KeyInfo. */
 	Document crearPeticioSignada(Element peticion, Credencials credencials) throws Exception {
 		Document document = nouDocument();
 		Element envelope = document.createElementNS(NS_SOAPENV, "soapenv:Envelope");
@@ -214,6 +226,49 @@ public class ClientScspHelper {
 		KeyInfo keyInfo = keyInfoFactory.newKeyInfo(Collections.singletonList(new DOMStructure(str)), "KI-" + id);
 		XMLSignature signature = factory.newXMLSignature(signedInfo, keyInfo, null, "SIG-" + id, null);
 		DOMSignContext signContext = new DOMSignContext(credencials.getClauPrivada(), security);
+		signContext.setDefaultNamespacePrefix("ds");
+		signature.sign(signContext);
+		return document;
+	}
+
+	/**
+	 * Signatura XMLSignature de les llibreries SCSP (XMLDSigManager): ds:Signature enveloping a la
+	 * capçalera SOAP, que signa el Body (atribut Id="MsgBody") i duu el certificat al KeyInfo
+	 * (X509Data). Els emisors SCSP amb aquest tipus de seguretat no accepten WS-Security («Didn't get
+	 * a certificate»).
+	 */
+	Document crearPeticioSignadaXmlSignature(Element peticion, Credencials credencials) throws Exception {
+		Document sobre = nouDocument();
+		Element envelope = sobre.createElementNS(NS_SOAPENV, "soapenv:Envelope");
+		sobre.appendChild(envelope);
+		envelope.appendChild(sobre.createElementNS(NS_SOAPENV, "soapenv:Header"));
+		Element bodySobre = sobre.createElementNS(NS_SOAPENV, "soapenv:Body");
+		envelope.appendChild(bodySobre);
+		bodySobre.appendChild(sobre.importNode(peticion, true));
+		// La c14n inclusiva treu les declaracions de namespace dels atributs xmlns del DOM: els elements
+		// creats amb createElementNS no en tenen (les afegeix el serialitzador) i el digest no
+		// coincidiria amb el del missatge que rep l'emisor. Se signa el document tal com s'enviarà.
+		Document document = parse(toXml(sobre));
+		Element header = primerElement(document, NS_SOAPENV, "Header");
+		Element body = primerElement(document, NS_SOAPENV, "Body");
+		body.setAttribute("Id", XML_SIGNATURE_BODY_ID);
+		body.setIdAttribute("Id", true);
+		XMLSignatureFactory factory = XMLSignatureFactory.getInstance("DOM");
+		Reference reference = factory.newReference(
+				"#" + XML_SIGNATURE_BODY_ID,
+				factory.newDigestMethod(DigestMethod.SHA256, null),
+				Collections.singletonList(factory.newTransform(CanonicalizationMethod.INCLUSIVE, (TransformParameterSpec)null)),
+				null,
+				null);
+		SignedInfo signedInfo = factory.newSignedInfo(
+				factory.newCanonicalizationMethod(CanonicalizationMethod.INCLUSIVE, (C14NMethodParameterSpec)null),
+				factory.newSignatureMethod(RSA_SHA256, null),
+				Collections.singletonList(reference));
+		KeyInfoFactory keyInfoFactory = factory.getKeyInfoFactory();
+		KeyInfo keyInfo = keyInfoFactory.newKeyInfo(Collections.singletonList(
+				keyInfoFactory.newX509Data(Collections.singletonList(credencials.getCertificat()))));
+		XMLSignature signature = factory.newXMLSignature(signedInfo, keyInfo);
+		DOMSignContext signContext = new DOMSignContext(credencials.getClauPrivada(), header);
 		signContext.setDefaultNamespacePrefix("ds");
 		signature.sign(signContext);
 		return document;
@@ -371,6 +426,21 @@ public class ClientScspHelper {
 	static void escriure(ByteArrayOutputStream os, String text) {
 		if (text != null) {
 			os.writeBytes(text.getBytes(StandardCharsets.UTF_8));
+		}
+	}
+
+	/**
+	 * Format de la signatura de les peticions: el tipus de seguretat del servei a l'emisor SCSP
+	 * (core_servicio.tiposeguridad, «XMLSignature» o «WS-Security»), que és el que esperen els emisors
+	 * dels cedents del servei (els enrutadors els reenvien les peticions síncrones sense tornar-les a
+	 * signar).
+	 */
+	public enum TipusSignatura {
+		WS_SECURITY,
+		XML_SIGNATURE;
+		/** «XMLSignature» (sense distingir majúscules) és XML_SIGNATURE; la resta, WS_SECURITY. */
+		public static TipusSignatura fromTipoSeguridad(String tipoSeguridad) {
+			return tipoSeguridad != null && "XMLSignature".equalsIgnoreCase(tipoSeguridad.trim()) ? XML_SIGNATURE : WS_SECURITY;
 		}
 	}
 

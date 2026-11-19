@@ -100,7 +100,7 @@ class BackofficeHelperEmisorCedentTest {
 	void peticioDUnaSolaSolicitudAmbLesDadesOriginals() throws Exception {
 		environment.setProperty("es.caib.emiserv.backoffice.SCDCPAJU.7040.emisor.nif", "P0704000A");
 
-		PeticioEmisorCedent peticioCedent = backofficeHelper.prepararPeticioEmisorCedent(peticio, solicitud, servei, ruta, "EMS00000000000000000000042", null);
+		PeticioEmisorCedent peticioCedent = backofficeHelper.prepararPeticioEmisorCedent(peticio, solicitud, servei, ruta, "EMS00000000000000000000042", null, "XMLSignature");
 
 		Element peticion = peticioCedent.getPeticion();
 		assertEquals(NS_PETICION, peticion.getNamespaceURI());
@@ -116,11 +116,17 @@ class BackofficeHelperEmisorCedentTest {
 		assertEquals("P0704000A", text(peticion, "NifEmisor"));
 		assertEquals("https://cedent.es/emisor/services/peticionSincrona", peticioCedent.getUrl());
 		assertTrue(peticioCedent.isValidarSignatura());
+		// Signatura amb el tipus de seguretat del servei, si la ruta no en configura cap altre
+		assertEquals(ClientScspHelper.TipusSignatura.XML_SIGNATURE, peticioCedent.getTipusSignatura());
+		environment.setProperty("es.caib.emiserv.backoffice.SCDCPAJU.7040.signatura.tipus", "WS-Security");
+		assertEquals(
+				ClientScspHelper.TipusSignatura.WS_SECURITY,
+				backofficeHelper.prepararPeticioEmisorCedent(peticio, solicitud, servei, ruta, "EMS00000000000000000000042", null, "XMLSignature").getTipusSignatura());
 	}
 
 	@Test
 	void laRespostaDelCedentEsConverteixAlFormatDelBackoffice() throws Exception {
-		when(clientScspHelper.enviarPeticioSincrona(anyString(), anyString(), any(), any(), anyInt(), anyBoolean())).thenReturn(
+		when(clientScspHelper.enviarPeticioSincrona(anyString(), anyString(), any(), any(), any(), anyInt(), anyBoolean())).thenReturn(
 				respostaCedent("EMS00000000000000000000042", "0003"));
 
 		RespostaBackofficeEntitat resposta = backofficeHelper.enviarPeticioSincronaEmisorCedent(peticioCedent());
@@ -147,7 +153,7 @@ class BackofficeHelperEmisorCedentTest {
 
 	@Test
 	void unEstatDiferentDeTramitadaEsUnError() throws Exception {
-		when(clientScspHelper.enviarPeticioSincrona(anyString(), anyString(), any(), any(), anyInt(), anyBoolean())).thenReturn(
+		when(clientScspHelper.enviarPeticioSincrona(anyString(), anyString(), any(), any(), any(), anyInt(), anyBoolean())).thenReturn(
 				respostaCedent("EMS00000000000000000000042", "0233"));
 
 		RespostaBackofficeEntitat resposta = backofficeHelper.enviarPeticioSincronaEmisorCedent(peticioCedent());
@@ -160,7 +166,7 @@ class BackofficeHelperEmisorCedentTest {
 
 	@Test
 	void unaRespostaDUnaAltraPeticioEsRebutja() throws Exception {
-		when(clientScspHelper.enviarPeticioSincrona(anyString(), anyString(), any(), any(), anyInt(), anyBoolean())).thenReturn(
+		when(clientScspHelper.enviarPeticioSincrona(anyString(), anyString(), any(), any(), any(), anyInt(), anyBoolean())).thenReturn(
 				respostaCedent("EMS00000000000000000000099", "0003"));
 
 		RespostaBackofficeEntitat resposta = backofficeHelper.enviarPeticioSincronaEmisorCedent(peticioCedent());
@@ -170,7 +176,7 @@ class BackofficeHelperEmisorCedentTest {
 
 	@Test
 	void unErrorDeComunicacioEsDesaALaResposta() throws Exception {
-		when(clientScspHelper.enviarPeticioSincrona(anyString(), anyString(), any(), any(), anyInt(), anyBoolean())).thenThrow(
+		when(clientScspHelper.enviarPeticioSincrona(anyString(), anyString(), any(), any(), any(), anyInt(), anyBoolean())).thenThrow(
 				new ScspCedentException("0301", "No autorizado", "<peticio/>", "<fault/>"));
 
 		RespostaBackofficeEntitat resposta = backofficeHelper.enviarPeticioSincronaEmisorCedent(peticioCedent());
@@ -181,7 +187,7 @@ class BackofficeHelperEmisorCedentTest {
 	}
 
 	private PeticioEmisorCedent peticioCedent() throws Exception {
-		return backofficeHelper.prepararPeticioEmisorCedent(peticio, solicitud, servei, ruta, "EMS00000000000000000000042", null);
+		return backofficeHelper.prepararPeticioEmisorCedent(peticio, solicitud, servei, ruta, "EMS00000000000000000000042", null, "XMLSignature");
 	}
 
 	private static ClientScspHelper.RespostaCedent respostaCedent(String idPeticion, String estat) throws Exception {

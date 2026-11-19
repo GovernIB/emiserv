@@ -296,6 +296,10 @@ public final class FakeRequest {
 	public String getTitularNom() { return titularNom; }
 	public String getTitularLlinatge1() { return titularLlinatge1; }
 	public String getTitularLlinatge2() { return titularLlinatge2; }
+	public String getTipusDocumentacio() { return tipusDocumentacio; }
+	public String getProvinciaSolicitud() { return provinciaSolicitud; }
+	public String getMunicipioSolicitud() { return municipioSolicitud; }
+	public String getDocumentSolicitud() { return documentSolicitud; }
 	public List<String> getIdSolicitudes() { return idSolicitudes; }
 
 	/** Identificadors de sol·licitud de la petició; si no en té, un de generat a partir de l'identificador de petició. */
